@@ -5,382 +5,373 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<title>LLM VRAM Calculator</title>
 	<style>
-		@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap');
-		
 		:root {
-			--bg: #0a0e14;
-			--surface: #1a2332;
-			--text: #c7d3e3;
-			--accent: #00ff41;
-			--muted: #8b9db6;
-			--border: rgba(0, 255, 65, 0.2);
-			--danger: #ff6b6b;
-			--warning: #ffd93d;
-			--info: #6bcfff;
+			--primary: #005dac;
+			--on-primary: #ffffff;
+			--hover: #00539a;
+			--background: #f9f9ff;
+			--surface: #ffffff;
+			--text: #181c21;
+			--border: #c1c6d4;
+			--muted: #f2f3fc;
+			--success: #0b6b1d;
+			--on-success: #ffffff;
+			--danger: #ba1a1a;
+			--on-danger: #ffffff;
+			--warning: #e65100;
+			--on-warning: #ffffff;
+			--highlight-bg: #d4e3ff;
 		}
-		
+		@media (prefers-color-scheme: dark) {
+			:root:not(.light) {
+				--primary: #a5c8ff;
+				--on-primary: #00315f;
+				--hover: #72adff;
+				--background: #101319;
+				--surface: #0b0e14;
+				--text: #e0e2ea;
+				--border: #414752;
+				--muted: #181c21;
+				--success: #82db7e;
+				--on-success: #00390a;
+				--danger: #ffb4ab;
+				--on-danger: #93000a;
+				--warning: #ffb77c;
+				--on-warning: #4d2600;
+				--highlight-bg: #001c3a;
+			}
+		}
+		:root.dark {
+			--primary: #a5c8ff;
+			--on-primary: #00315f;
+			--hover: #72adff;
+			--background: #101319;
+			--surface: #0b0e14;
+			--text: #e0e2ea;
+			--border: #414752;
+			--muted: #181c21;
+			--success: #82db7e;
+			--on-success: #00390a;
+			--danger: #ffb4ab;
+			--on-danger: #93000a;
+			--warning: #ffb77c;
+			--on-warning: #4d2600;
+			--highlight-bg: #001c3a;
+		}
 		* { 
 			box-sizing: border-box; 
 			margin: 0; 
 			padding: 0; 
 			outline-offset: 2px; 
-			font-family: 'JetBrains Mono', monospace;
 		}
-		
+		*:focus-visible { 
+			outline: 2px solid var(--primary); 
+		}
 		body {
-			background: var(--bg);
+			background: var(--background);
 			color: var(--text);
+			font-family: sans-serif;
+			display: flex;
+			justify-content: center;
 			min-height: 100vh;
 			padding: 1rem;
-			background-image: 
-				linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
-				linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
-			background-size: 40px 40px;
 		}
-		
 		.container {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 8px;
 			max-width: 1400px;
-			margin: 0 auto;
-			padding: 2rem 1rem;
-		}
-		
-		.header {
-			text-align: center;
-			margin-bottom: 2rem;
+			padding: 2rem;
+			width: 100%;
 			position: relative;
+			margin: 2rem 0;
 		}
-		
-		.header h1 {
-			font-size: 2.5rem;
-			font-weight: 700;
-			color: var(--accent);
-			text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+		.hidden { 
+			display: none !important; 
+		}
+		h1, h2, h3, label { 
+			margin: .5rem 0; 
+		}
+		h1 {
+			font-size: 2rem;
+			text-align: center;
+			color: var(--primary);
 			margin-bottom: 0.5rem;
 		}
-		
-		.header .subtitle {
+		h2 {
+			font-size: 1.1rem;
+			font-weight: 700;
+			color: var(--primary);
+		}
+		label { 
+			display: block; 
+			font-weight: 700;
 			font-size: 0.9rem;
-			color: var(--muted);
-			max-width: 800px;
-			margin: 0 auto;
-			line-height: 1.6;
 		}
-		
-		.controls {
-			position: absolute;
-			right: 0;
-			top: 0;
-			display: flex;
-			gap: 0.5rem;
-		}
-		
-		.controls select {
-			font-size: 0.8rem;
-			padding: 0.4rem 0.6rem;
+		input, select, button, textarea {
 			background: var(--surface);
-			border: 1px solid var(--accent);
-			color: var(--text);
+			border: 1px solid var(--border);
 			border-radius: 4px;
-			cursor: pointer;
+			color: var(--text);
+			font-size: 1rem;
+			padding: .5rem;
+			width: 100%;
 		}
-		
+		textarea {
+			resize: vertical;
+			min-height: 80px;
+		}
+		button { 
+			cursor: pointer; 
+		}
+		button:disabled { 
+			opacity: .6; 
+			cursor: not-allowed; 
+		}
+		.primary { 
+			background: var(--primary); 
+			color: var(--on-primary); 
+			border: 0; 
+		}
+		.primary:hover:not(:disabled) { 
+			background: var(--hover); 
+		}
+		.secondary:hover:not(:disabled) { 
+			background: var(--muted); 
+		}
+		.danger { 
+			background: var(--danger); 
+			color: var(--on-danger); 
+			border: 0; 
+		}
+		.success { 
+			background: var(--success); 
+			color: var(--on-success); 
+			border: 0; 
+		}
+		.selectors {
+			position: absolute;
+			right: 2rem;
+			top: 1rem;
+			display: flex;
+			gap: 8px;
+		}
+		.selectors select { 
+			width: auto; 
+			font-size: .9rem; 
+		}
+		.subtitle {
+			text-align: center;
+			font-size: 0.9rem;
+			opacity: 0.8;
+			line-height: 1.6;
+			margin-bottom: 2rem;
+		}
 		.main-grid {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			gap: 2rem;
 			margin-bottom: 2rem;
 		}
-		
 		.card {
-			background: rgba(26, 35, 50, 0.4);
-			backdrop-filter: blur(10px);
+			background: var(--muted);
 			border: 1px solid var(--border);
 			border-radius: 8px;
 			padding: 1.5rem;
-			transition: all 0.3s ease;
-		}
-		
-		.card:hover {
-			border-color: rgba(0, 255, 65, 0.5);
-			box-shadow: 0 0 25px rgba(0, 255, 65, 0.2);
-		}
-		
-		.terminal-card {
-			border: 2px solid var(--accent);
-			box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), inset 0 0 20px rgba(0, 255, 65, 0.05);
-			background: linear-gradient(135deg, rgba(0, 255, 65, 0.1) 0%, rgba(10, 14, 20, 0.8) 100%);
-		}
-		
-		.card h2 {
-			font-size: 1rem;
-			font-weight: 700;
-			color: var(--accent);
 			margin-bottom: 1rem;
 		}
-		
-		.form-group {
-			margin-bottom: 1.5rem;
+		.card:last-child {
+			margin-bottom: 0;
 		}
-		
-		.form-group label {
-			display: block;
-			font-size: 0.75rem;
-			color: var(--muted);
-			margin-bottom: 0.5rem;
+		.form-group { 
+			margin-bottom: 1.5rem; 
 		}
-		
+		.form-group:last-child {
+			margin-bottom: 0;
+		}
 		.form-group label .value {
-			color: var(--accent);
+			color: var(--primary);
 			font-weight: 700;
 		}
-		
-		select {
-			width: 100%;
-			padding: 0.5rem;
-			background: var(--surface);
-			border: 1px solid var(--accent);
-			color: var(--text);
-			border-radius: 4px;
-			font-size: 0.9rem;
-			cursor: pointer;
-		}
-		
-		select:focus {
-			box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
-			outline: none;
-		}
-		
-		/* Custom Range Slider */
 		input[type="range"] {
 			-webkit-appearance: none;
 			appearance: none;
 			width: 100%;
 			height: 8px;
-			background: var(--surface);
+			background: var(--border);
 			border-radius: 4px;
 			outline: none;
 			cursor: pointer;
+			border: 0;
 		}
-		
 		input[type="range"]::-webkit-slider-thumb {
 			-webkit-appearance: none;
 			appearance: none;
 			width: 20px;
 			height: 20px;
 			border-radius: 50%;
-			background: var(--accent);
-			border: 2px solid var(--bg);
-			box-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+			background: var(--primary);
 			cursor: pointer;
 		}
-		
 		input[type="range"]::-moz-range-thumb {
 			width: 20px;
 			height: 20px;
 			border-radius: 50%;
-			background: var(--accent);
-			border: 2px solid var(--bg);
-			box-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+			background: var(--primary);
+			border: 0;
 			cursor: pointer;
 		}
-		
 		.slider-labels {
 			display: flex;
 			justify-content: space-between;
-			font-size: 0.65rem;
-			color: var(--muted);
+			font-size: 0.75rem;
+			opacity: 0.7;
 			margin-top: 0.5rem;
 		}
-		
 		.result-box {
 			text-align: center;
 			padding: 2rem 1rem;
 		}
-		
 		.result-value {
 			font-size: 3rem;
 			font-weight: 700;
-			color: var(--accent);
-			text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+			color: var(--primary);
 			margin: 1rem 0;
 		}
-		
 		.result-category {
-			font-size: 0.75rem;
-			color: var(--muted);
+			font-size: 0.85rem;
+			opacity: 0.8;
 			margin-bottom: 1rem;
 		}
-		
 		.model-details {
 			padding-top: 1rem;
-			border-top: 1px solid rgba(0, 255, 65, 0.2);
+			border-top: 1px solid var(--border);
 			margin-top: 1rem;
 		}
-		
 		.detail-row {
 			display: flex;
 			justify-content: space-between;
-			font-size: 0.75rem;
+			font-size: 0.85rem;
 			margin-bottom: 0.5rem;
 		}
-		
 		.detail-row .label {
-			color: var(--muted);
+			opacity: 0.8;
 		}
-		
 		.detail-row .value {
-			color: var(--accent);
+			color: var(--primary);
 			font-weight: 700;
 		}
-		
 		.metric-card {
-			background: linear-gradient(135deg, rgba(0, 255, 65, 0.05) 0%, rgba(10, 14, 20, 0.8) 100%);
-			border-left: 3px solid var(--accent);
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-left: 3px solid var(--primary);
 			padding: 0.75rem;
 			border-radius: 4px;
 			margin-bottom: 0.75rem;
 		}
-		
+		.metric-card:last-child {
+			margin-bottom: 0;
+		}
 		.metric-card .metric-label {
-			font-size: 0.75rem;
-			color: var(--muted);
+			font-size: 0.85rem;
+			opacity: 0.8;
 			margin-bottom: 0.25rem;
 		}
-		
 		.metric-card .metric-value {
 			font-size: 1.1rem;
 			font-weight: 700;
 		}
-		
 		.metric-card .metric-detail {
-			font-size: 0.7rem;
-			color: var(--muted);
+			font-size: 0.75rem;
+			opacity: 0.7;
 			margin-top: 0.25rem;
 		}
-		
 		.warning-box {
-			background: rgba(255, 217, 61, 0.1);
-			border: 1px solid var(--warning);
-			border-left: 4px solid var(--warning);
-			padding: 1rem;
+			background: var(--warning);
+			color: var(--on-warning);
 			border-radius: 4px;
+			padding: 1rem;
 			margin-bottom: 1rem;
 		}
-		
 		.warning-box p {
-			font-size: 0.75rem;
-			color: var(--warning);
+			font-size: 0.85rem;
 			margin-bottom: 0.5rem;
 		}
-		
 		.warning-box p:last-child {
 			margin-bottom: 0;
 		}
-		
 		.presets {
 			display: grid;
 			grid-template-columns: repeat(2, 1fr);
 			gap: 0.5rem;
 		}
-		
 		.preset-btn {
-			padding: 0.6rem;
+			padding: 0.75rem;
 			background: var(--surface);
-			border: 1px solid rgba(0, 255, 65, 0.3);
+			border: 1px solid var(--border);
 			color: var(--text);
-			font-size: 0.75rem;
+			font-size: 0.85rem;
 			border-radius: 4px;
 			cursor: pointer;
-			transition: all 0.2s;
 		}
-		
 		.preset-btn:hover {
-			background: rgba(0, 255, 65, 0.1);
-			border-color: var(--accent);
+			background: var(--highlight-bg);
+			border-color: var(--primary);
 		}
-		
 		.reference-section {
-			background: rgba(26, 35, 50, 0.4);
+			background: var(--muted);
 			border: 1px solid var(--border);
 			border-radius: 8px;
 			padding: 1.5rem;
-			margin-top: 2rem;
 		}
-		
 		.reference-section h3 {
-			font-size: 0.9rem;
+			font-size: 1rem;
 			font-weight: 700;
-			color: var(--accent);
+			color: var(--primary);
 			margin-bottom: 1rem;
 		}
-		
 		.reference-grid {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			gap: 1.5rem;
-			font-size: 0.75rem;
-			color: var(--muted);
+			font-size: 0.85rem;
+			opacity: 0.9;
 			line-height: 1.6;
 		}
-		
 		.reference-grid p {
 			margin-bottom: 0.5rem;
 		}
-		
 		.reference-grid strong {
-			color: var(--accent);
+			color: var(--primary);
 		}
-		
 		.insufficient {
 			color: var(--danger);
-			font-size: 1.5rem;
-			font-weight: 700;
 		}
-		
-		@keyframes pulse {
-			0%, 100% { opacity: 1; }
-			50% { opacity: 0.5; }
-		}
-		
-		.pulse {
-			animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-		}
-		
 		.grid-row {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			gap: 1rem;
 		}
-		
-		.hidden {
-			display: none !important;
-		}
-		
 		@media (max-width: 1024px) {
 			.main-grid {
 				grid-template-columns: 1fr;
 			}
-			
-			.header h1 {
-				font-size: 2rem;
-			}
-			
-			.controls {
-				position: static;
-				justify-content: center;
-				margin-top: 1rem;
-			}
-			
 			.reference-grid {
 				grid-template-columns: 1fr;
 			}
 		}
-		
-		@media (max-width: 640px) {
+		@media (max-width: 768px) {
+			.selectors { 
+				position: static; 
+				justify-content: end; 
+				margin-bottom: 1rem; 
+			}
 			.grid-row {
 				grid-template-columns: 1fr;
 			}
-			
+			h1 {
+				font-size: 1.5rem;
+			}
 			.result-value {
 				font-size: 2rem;
 			}
@@ -389,16 +380,19 @@
 </head>
 <body>
 	<div class="container">
-		<div class="header">
-			<div class="controls">
-				<select id="language">
-					<option value="en">English</option>
-					<option value="id">Bahasa Indonesia</option>
-				</select>
-			</div>
-			<h1 id="title"></h1>
-			<p class="subtitle" id="subtitle"></p>
+		<div class="selectors">
+			<select id="language">
+				<option value="en">English</option>
+				<option value="id">Bahasa Indonesia</option>
+			</select>
+			<select id="theme">
+				<option value="auto">Auto</option>
+				<option value="light">Light</option>
+				<option value="dark">Dark</option>
+			</select>
 		</div>
+		<h1 id="title"></h1>
+		<p id="subtitle" class="subtitle"></p>
 		
 		<div class="main-grid">
 			<div>
@@ -428,7 +422,7 @@
 
 					<div class="form-group">
 						<label>
-							<span id="overheadLabel">System Overhead:</span>
+							<span id="overheadLabel"></span>
 							<span class="value" id="overheadValue">2.0 GB</span>
 						</label>
 						<input type="range" id="overheadSlider" min="0" max="16" step="0.5" value="2">
@@ -492,13 +486,13 @@
 			</div>
 			
 			<div>
-				<div class="card terminal-card">
+				<div class="card">
 					<div class="result-box">
 						<h2 id="maxParamsLabel"></h2>
 						<div class="result-value" id="resultValue">0B</div>
 						<div class="result-category" id="resultCategory"></div>
 						
-						<div class="model-details" id="modelDetails">
+						<div class="model-details hidden" id="modelDetails">
 							<div class="detail-row">
 								<span class="label" id="layersLabel"></span>
 								<span class="value" id="layersValue">-</span>
@@ -536,8 +530,8 @@
 				<div id="formulasSection"></div>
 				<div id="architectureSection"></div>
 			</div>
-			<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0, 255, 65, 0.2);">
-				<p style="font-size: 0.75rem; color: var(--muted);" id="sourcesText"></p>
+			<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+				<p style="font-size: 0.85rem; opacity: 0.8;" id="sourcesText"></p>
 			</div>
 		</div>
 	</div>
@@ -545,21 +539,24 @@
 	<script>
 		const text = {
 			en: {
-				title: 'LLM VRAM CALCULATOR',
+				title: 'LLM VRAM Calculator',
 				subtitle: 'Calculate maximum model size that fits in your GPU memory, accounting for quantization, KV cache, and system overhead',
-				vramLabel: 'GPU MEMORY',
-				vramSizeLabel: '> VRAM Size:',
-				gpuTypeLabel: '> GPU Type',
-				overheadLabel: '> System Overhead:',
-				quantizationLabel: 'QUANTIZATION',
-				modelQuantLabel: '> Model Precision',
-				kvCacheLabel: '> KV Cache',
-				contextLabel: 'CONTEXT WINDOW',
-				maxContextLabel: '> Max Context:',
-				maxParamsLabel: 'MAX PARAMETERS',
-				memoryAllocationLabel: 'MEMORY ALLOCATION',
-				presetsLabel: 'QUICK PRESETS',
-				referenceTitle: 'REFERENCES & METHODOLOGY',
+				autoTheme: 'Auto',
+				lightTheme: 'Light',
+				darkTheme: 'Dark',
+				vramLabel: 'GPU Memory',
+				vramSizeLabel: 'VRAM Size:',
+				gpuTypeLabel: 'GPU Type',
+				overheadLabel: 'System Overhead:',
+				quantizationLabel: 'Quantization',
+				modelQuantLabel: 'Model Precision',
+				kvCacheLabel: 'KV Cache',
+				contextLabel: 'Context Window',
+				maxContextLabel: 'Max Context:',
+				maxParamsLabel: 'Maximum Parameters',
+				memoryAllocationLabel: 'Memory Allocation',
+				presetsLabel: 'Quick Presets',
+				referenceTitle: 'References & Methodology',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'System Overhead',
@@ -586,21 +583,24 @@
 				sources: '<strong>Sources:</strong> Meta Llama Technical Reports (2024-2025), Mistral AI Docs & Papers (2023-2024), Google Gemma Blog & HF Docs (2024), Qwen 2.5 Technical Report (2024), HuggingFace Model Cards, NVIDIA Technical Blogs, vLLM Documentation'
 			},
 			id: {
-				title: 'KALKULATOR VRAM LLM',
+				title: 'Kalkulator VRAM LLM',
 				subtitle: 'Hitung ukuran model maksimum yang muat dalam memori GPU Anda, dengan memperhitungkan kuantisasi, KV cache, dan overhead sistem',
-				vramLabel: 'MEMORI GPU',
-				vramSizeLabel: '> Ukuran VRAM:',
-				gpuTypeLabel: '> Tipe GPU',
-				overheadLabel: '> Overhead Sistem:',
-				quantizationLabel: 'KUANTISASI',
-				modelQuantLabel: '> Presisi Model',
-				kvCacheLabel: '> KV Cache',
-				contextLabel: 'JENDELA KONTEKS',
-				maxContextLabel: '> Konteks Maks:',
-				maxParamsLabel: 'PARAMETER MAKSIMUM',
-				memoryAllocationLabel: 'ALOKASI MEMORI',
-				presetsLabel: 'PRESET CEPAT',
-				referenceTitle: 'REFERENSI & METODOLOGI',
+				autoTheme: 'Otomatis',
+				lightTheme: 'Terang',
+				darkTheme: 'Gelap',
+				vramLabel: 'Memori GPU',
+				vramSizeLabel: 'Ukuran VRAM:',
+				gpuTypeLabel: 'Tipe GPU',
+				overheadLabel: 'Overhead Sistem:',
+				quantizationLabel: 'Kuantisasi',
+				modelQuantLabel: 'Presisi Model',
+				kvCacheLabel: 'KV Cache',
+				contextLabel: 'Jendela Konteks',
+				maxContextLabel: 'Konteks Maks:',
+				maxParamsLabel: 'Parameter Maksimum',
+				memoryAllocationLabel: 'Alokasi Memori',
+				presetsLabel: 'Preset Cepat',
+				referenceTitle: 'Referensi & Metodologi',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'Overhead Sistem',
@@ -642,7 +642,6 @@
 		];
 
 		function estimateArchitecture(params) {
-			// Sort just in case
 			referenceConfigs.sort((a, b) => a.size - b.size);
 
 			if (params <= referenceConfigs[0].size) {
@@ -659,7 +658,6 @@
 				};
 			}
 
-			// Interpolate
 			for (let i = 0; i < referenceConfigs.length - 1; i++) {
 				const lower = referenceConfigs[i];
 				const upper = referenceConfigs[i+1];
@@ -683,7 +681,6 @@
 		
 		class LLMCalculator {
 			constructor() {
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				this.vramSize = 24;
 				this.quantization = 'fp16';
 				this.contextWindow = 8192;
@@ -692,12 +689,14 @@
 				this.overheadGB = 2.0;
 				
 				this.setup();
+				this.theme('auto');
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				this.lang(this.language);
-				this.calculate();
 			}
 			
 			setup() {
 				elements.language.onchange = e => this.lang(e.target.value);
+				elements.theme.onchange = e => this.theme(e.target.value);
 				
 				elements.vramSlider.oninput = e => {
 					this.vramSize = Number(e.target.value);
@@ -739,10 +738,10 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 2.5 }, // Windows/Linux Desktop
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5 }, // Headless Server
-					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5 }, // Headless Server
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', overhead: 4.0 } // macOS (Display + OS)
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 2.5 },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5 },
+					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5 },
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', overhead: 4.0 }
 				};
 				
 				const p = presets[preset];
@@ -786,8 +785,6 @@
 				let maxParams = 0;
 				let estimatedArchitecture = { layers: 0, hidden: 0 };
 				
-				// Iterative calculation
-				// We start with a guess for params to calculate KV cache, then refine
 				for (let i = 0; i < 5; i++) {
 					const kvCache = estimatedArchitecture.layers ?
 						(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
@@ -822,7 +819,6 @@
 			displayResults(results) {
 				const t = text[this.language];
 				
-				// Main result
 				if (results.modelMemoryGB > 0) {
 					elements.resultValue.textContent = `${Math.floor(results.maxParams)}B`;
 					elements.resultValue.className = 'result-value';
@@ -844,7 +840,6 @@
 					elements.modelDetails.classList.add('hidden');
 				}
 				
-				// Memory allocation
 				const mbPerToken = (results.kvCacheGB * 1024 / this.contextWindow).toFixed(2);
 				elements.metricsList.innerHTML = `
 					<div class="metric-card">
@@ -853,20 +848,19 @@
 					</div>
 					<div class="metric-card">
 						<div class="metric-label">${t.systemOverhead}</div>
-						<div class="metric-value" style="color: #ff9f43;">-${results.overheadGB.toFixed(1)} GB</div>
+						<div class="metric-value">-${results.overheadGB.toFixed(1)} GB</div>
 					</div>
 					<div class="metric-card">
 						<div class="metric-label">${t.kvCacheMemory}</div>
-						<div class="metric-value" style="color: #6bcfff;">-${results.kvCacheGB.toFixed(2)} GB</div>
+						<div class="metric-value">-${results.kvCacheGB.toFixed(2)} GB</div>
 						<div class="metric-detail">${mbPerToken} MB/token</div>
 					</div>
-					<div class="metric-card" style="border-color: var(--accent); border-width: 2px;">
+					<div class="metric-card" style="border-left-color: var(--primary); border-left-width: 3px;">
 						<div class="metric-label">${t.modelWeights}</div>
-						<div class="metric-value" style="color: var(--accent);">${Math.max(0, results.modelMemoryGB).toFixed(2)} GB</div>
+						<div class="metric-value" style="color: var(--primary);">${Math.max(0, results.modelMemoryGB).toFixed(2)} GB</div>
 					</div>
 				`;
 				
-				// Warnings
 				const warnings = [];
 				if (results.kvCacheGB > results.availableVram * 0.5) {
 					warnings.push(t.warningKvCache);
@@ -893,30 +887,36 @@
 				return t.categoryMassive;
 			}
 			
-			format(value) {
-				return value.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US');
+			format(value, options = {}) {
+				return value.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US', options);
 			}
 			
 			string(key) {
 				return text[this.language]?.[key] ?? key;
 			}
 			
+			theme(themeName) {
+				document.documentElement.className = themeName === 'auto' ? '' : themeName;
+				elements.theme.value = themeName;
+			}
+			
 			lang(language) {
 				this.language = elements.language.value = document.documentElement.lang = language;
 				
-				// Update all text elements
 				Object.keys(text.en).forEach(key => {
 					if (elements[key]) {
 						elements[key].textContent = this.string(key);
 					}
 				});
 				
-				// Update special HTML content
+				[...elements.theme.options].forEach(option => {
+					option.textContent = this.string(option.value + 'Theme');
+				});
+				
 				elements.formulasSection.innerHTML = this.string('formulas');
 				elements.architectureSection.innerHTML = this.string('architecture');
 				elements.sourcesText.innerHTML = this.string('sources');
 				
-				// Re-display with new language
 				this.updateVramDisplay();
 				this.updateContextDisplay();
 				this.calculate();
