@@ -1,7 +1,7 @@
 [English](README.md) | **Bahasa Indonesia**
 
 # LLMCalculator
-Penggunaan VRAM, disederhanakan.
+*VRAM usage, simplified.*
 
 ## Pendahuluan
 LLMCalculator adalah alat berbasis peramban (browser) berkas tunggal untuk memperkirakan ukuran Model Bahasa Besar (LLM) maksimum yang dapat dimuat dalam memori GPU Anda. Dirancang untuk penggemar AI, peneliti, dan perencana perangkat keras, alat ini membantu memvisualisasikan bagaimana kuantisasi, panjang konteks, dan overhead sistem memengaruhi kapasitas model.
