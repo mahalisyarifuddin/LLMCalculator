@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>LLM VRAM Calculator</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap');
+		
+		:root {
+			--bg: #0a0e14;
+			--surface: #1a2332;
+			--text: #c7d3e3;
+			--accent: #00ff41;
+			--muted: #8b9db6;
+			--border: rgba(0, 255, 65, 0.2);
+			--danger: #ff6b6b;
+			--warning: #ffd93d;
+			--info: #6bcfff;
+		}
+		
+		* { 
+			box-sizing: border-box; 
+			margin: 0; 
+			padding: 0; 
+			outline-offset: 2px; 
+			font-family: 'JetBrains Mono', monospace;
+		}
+		
+		body {
+			background: var(--bg);
+			color: var(--text);
+			min-height: 100vh;
+			padding: 1rem;
+			background-image: 
+				linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+			background-size: 40px 40px;
+		}
+		
+		.container {
+			max-width: 1400px;
+			margin: 0 auto;
+			padding: 2rem 1rem;
+		}
+		
+		.header {
+			text-align: center;
+			margin-bottom: 2rem;
+			position: relative;
+		}
+		
+		.header h1 {
+			font-size: 2.5rem;
+			font-weight: 700;
+			color: var(--accent);
+			text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+			margin-bottom: 0.5rem;
+		}
+		
+		.header .subtitle {
+			font-size: 0.9rem;
+			color: var(--muted);
+			max-width: 800px;
+			margin: 0 auto;
+			line-height: 1.6;
+		}
+		
+		.controls {
+			position: absolute;
+			right: 0;
+			top: 0;
+			display: flex;
+			gap: 0.5rem;
+		}
+		
+		.controls select {
+			font-size: 0.8rem;
+			padding: 0.4rem 0.6rem;
+			background: var(--surface);
+			border: 1px solid var(--accent);
+			color: var(--text);
+			border-radius: 4px;
+			cursor: pointer;
+		}
+		
+		.main-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+			margin-bottom: 2rem;
+		}
+		
+		.card {
+			background: rgba(26, 35, 50, 0.4);
+			backdrop-filter: blur(10px);
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			padding: 1.5rem;
+			transition: all 0.3s ease;
+		}
+		
+		.card:hover {
+			border-color: rgba(0, 255, 65, 0.5);
+			box-shadow: 0 0 25px rgba(0, 255, 65, 0.2);
+		}
+		
+		.terminal-card {
+			border: 2px solid var(--accent);
+			box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), inset 0 0 20px rgba(0, 255, 65, 0.05);
+			background: linear-gradient(135deg, rgba(0, 255, 65, 0.1) 0%, rgba(10, 14, 20, 0.8) 100%);
+		}
+		
+		.card h2 {
+			font-size: 1rem;
+			font-weight: 700;
+			color: var(--accent);
+			margin-bottom: 1rem;
+		}
+		
+		.form-group {
+			margin-bottom: 1.5rem;
+		}
+		
+		.form-group label {
+			display: block;
+			font-size: 0.75rem;
+			color: var(--muted);
+			margin-bottom: 0.5rem;
+		}
+		
+		.form-group label .value {
+			color: var(--accent);
+			font-weight: 700;
+		}
+		
+		select {
+			width: 100%;
+			padding: 0.5rem;
+			background: var(--surface);
+			border: 1px solid var(--accent);
+			color: var(--text);
+			border-radius: 4px;
+			font-size: 0.9rem;
+			cursor: pointer;
+		}
+		
+		select:focus {
+			box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+			outline: none;
+		}
+		
+		/* Custom Range Slider */
+		input[type="range"] {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 100%;
+			height: 8px;
+			background: var(--surface);
+			border-radius: 4px;
+			outline: none;
+			cursor: pointer;
+		}
+		
+		input[type="range"]::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			background: var(--accent);
+			border: 2px solid var(--bg);
+			box-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+			cursor: pointer;
+		}
+		
+		input[type="range"]::-moz-range-thumb {
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			background: var(--accent);
+			border: 2px solid var(--bg);
+			box-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+			cursor: pointer;
+		}
+		
+		.slider-labels {
+			display: flex;
+			justify-content: space-between;
+			font-size: 0.65rem;
+			color: var(--muted);
+			margin-top: 0.5rem;
+		}
+		
+		.result-box {
+			text-align: center;
+			padding: 2rem 1rem;
+		}
+		
+		.result-value {
+			font-size: 3rem;
+			font-weight: 700;
+			color: var(--accent);
+			text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+			margin: 1rem 0;
+		}
+		
+		.result-category {
+			font-size: 0.75rem;
+			color: var(--muted);
+			margin-bottom: 1rem;
+		}
+		
+		.model-details {
+			padding-top: 1rem;
+			border-top: 1px solid rgba(0, 255, 65, 0.2);
+			margin-top: 1rem;
+		}
+		
+		.detail-row {
+			display: flex;
+			justify-content: space-between;
+			font-size: 0.75rem;
+			margin-bottom: 0.5rem;
+		}
+		
+		.detail-row .label {
+			color: var(--muted);
+		}
+		
+		.detail-row .value {
+			color: var(--accent);
+			font-weight: 700;
+		}
+		
+		.metric-card {
+			background: linear-gradient(135deg, rgba(0, 255, 65, 0.05) 0%, rgba(10, 14, 20, 0.8) 100%);
+			border-left: 3px solid var(--accent);
+			padding: 0.75rem;
+			border-radius: 4px;
+			margin-bottom: 0.75rem;
+		}
+		
+		.metric-card .metric-label {
+			font-size: 0.75rem;
+			color: var(--muted);
+			margin-bottom: 0.25rem;
+		}
+		
+		.metric-card .metric-value {
+			font-size: 1.1rem;
+			font-weight: 700;
+		}
+		
+		.metric-card .metric-detail {
+			font-size: 0.7rem;
+			color: var(--muted);
+			margin-top: 0.25rem;
+		}
+		
+		.warning-box {
+			background: rgba(255, 217, 61, 0.1);
+			border: 1px solid var(--warning);
+			border-left: 4px solid var(--warning);
+			padding: 1rem;
+			border-radius: 4px;
+			margin-bottom: 1rem;
+		}
+		
+		.warning-box p {
+			font-size: 0.75rem;
+			color: var(--warning);
+			margin-bottom: 0.5rem;
+		}
+		
+		.warning-box p:last-child {
+			margin-bottom: 0;
+		}
+		
+		.presets {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 0.5rem;
+		}
+		
+		.preset-btn {
+			padding: 0.6rem;
+			background: var(--surface);
+			border: 1px solid rgba(0, 255, 65, 0.3);
+			color: var(--text);
+			font-size: 0.75rem;
+			border-radius: 4px;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+		
+		.preset-btn:hover {
+			background: rgba(0, 255, 65, 0.1);
+			border-color: var(--accent);
+		}
+		
+		.reference-section {
+			background: rgba(26, 35, 50, 0.4);
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			padding: 1.5rem;
+			margin-top: 2rem;
+		}
+		
+		.reference-section h3 {
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--accent);
+			margin-bottom: 1rem;
+		}
+		
+		.reference-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1.5rem;
+			font-size: 0.75rem;
+			color: var(--muted);
+			line-height: 1.6;
+		}
+		
+		.reference-grid p {
+			margin-bottom: 0.5rem;
+		}
+		
+		.reference-grid strong {
+			color: var(--accent);
+		}
+		
+		.insufficient {
+			color: var(--danger);
+			font-size: 1.5rem;
+			font-weight: 700;
+		}
+		
+		@keyframes pulse {
+			0%, 100% { opacity: 1; }
+			50% { opacity: 0.5; }
+		}
+		
+		.pulse {
+			animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		}
+		
+		.grid-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1rem;
+		}
+		
+		.hidden {
+			display: none !important;
+		}
+		
+		@media (max-width: 1024px) {
+			.main-grid {
+				grid-template-columns: 1fr;
+			}
+			
+			.header h1 {
+				font-size: 2rem;
+			}
+			
+			.controls {
+				position: static;
+				justify-content: center;
+				margin-top: 1rem;
+			}
+			
+			.reference-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+		
+		@media (max-width: 640px) {
+			.grid-row {
+				grid-template-columns: 1fr;
+			}
+			
+			.result-value {
+				font-size: 2rem;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<div class="controls">
+				<select id="language">
+					<option value="en">English</option>
+					<option value="id">Bahasa Indonesia</option>
+				</select>
+			</div>
+			<h1 id="title"></h1>
+			<p class="subtitle" id="subtitle"></p>
+		</div>
+		
+		<div class="main-grid">
+			<div>
+				<div class="card">
+					<h2 id="vramLabel"></h2>
+					<div class="form-group">
+						<label>
+							<span id="vramSizeLabel"></span> 
+							<span class="value" id="vramValue">24 GB</span>
+						</label>
+						<input type="range" id="vramSlider" min="4" max="256" step="4" value="24">
+						<div class="slider-labels">
+							<span>4GB</span>
+							<span>64GB</span>
+							<span>128GB</span>
+							<span>256GB</span>
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label id="gpuTypeLabel"></label>
+						<select id="gpuType">
+							<option value="discrete">Discrete GPU (NVIDIA/AMD)</option>
+							<option value="soc">Apple Silicon (M-series)</option>
+						</select>
+					</div>
+				</div>
+				
+				<div class="card">
+					<h2 id="quantizationLabel"></h2>
+					<div class="grid-row">
+						<div class="form-group">
+							<label id="modelQuantLabel"></label>
+							<select id="quantization">
+								<option value="fp32">FP32 (4.0 bytes)</option>
+								<option value="fp16" selected>FP16 (2.0 bytes)</option>
+								<option value="bf16">BF16 (2.0 bytes)</option>
+								<option value="fp8">FP8 (1.0 byte)</option>
+								<option value="int8">INT8 (1.0 byte)</option>
+								<option value="int4">INT4 (0.5 bytes)</option>
+								<option value="fp4">FP4 (0.5 bytes)</option>
+								<option value="fp2">FP2 (0.25 bytes)</option>
+							</select>
+						</div>
+						
+						<div class="form-group">
+							<label id="kvCacheLabel"></label>
+							<select id="kvCache">
+								<option value="same" selected>Same as Model</option>
+								<option value="fp16">FP16 (2.0 bytes)</option>
+								<option value="fp8">FP8 (1.0 byte)</option>
+								<option value="int8">INT8 (1.0 byte)</option>
+								<option value="int4">INT4 (0.5 bytes)</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				
+				<div class="card">
+					<h2 id="contextLabel"></h2>
+					<div class="form-group">
+						<label>
+							<span id="maxContextLabel"></span> 
+							<span class="value" id="contextValue">8,192 tokens</span>
+						</label>
+						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13">
+						<div class="slider-labels">
+							<span>512</span>
+							<span>2K</span>
+							<span>8K</span>
+							<span>32K</span>
+							<span>128K</span>
+							<span>512K</span>
+							<span>1M</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div>
+				<div class="card terminal-card">
+					<div class="result-box">
+						<h2 id="maxParamsLabel"></h2>
+						<div class="result-value" id="resultValue">0B</div>
+						<div class="result-category" id="resultCategory"></div>
+						
+						<div class="model-details" id="modelDetails">
+							<div class="detail-row">
+								<span class="label" id="layersLabel"></span>
+								<span class="value" id="layersValue">-</span>
+							</div>
+							<div class="detail-row">
+								<span class="label" id="hiddenLabel"></span>
+								<span class="value" id="hiddenValue">-</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="card">
+					<h2 id="memoryAllocationLabel"></h2>
+					<div id="metricsList"></div>
+				</div>
+				
+				<div id="warningBox" class="warning-box hidden"></div>
+				
+				<div class="card">
+					<h2 id="presetsLabel"></h2>
+					<div class="presets">
+						<button class="preset-btn" data-preset="rtx4090">RTX 4090</button>
+						<button class="preset-btn" data-preset="a100">A100 80GB</button>
+						<button class="preset-btn" data-preset="h200">H200</button>
+						<button class="preset-btn" data-preset="m4max">M4 Max</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="reference-section">
+			<h3 id="referenceTitle"></h3>
+			<div class="reference-grid">
+				<div id="formulasSection"></div>
+				<div id="architectureSection"></div>
+			</div>
+			<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0, 255, 65, 0.2);">
+				<p style="font-size: 0.75rem; color: var(--muted);" id="sourcesText"></p>
+			</div>
+		</div>
+	</div>
+	
+	<script>
+		const text = {
+			en: {
+				title: 'LLM VRAM CALCULATOR',
+				subtitle: 'Calculate maximum model size that fits in your GPU memory, accounting for quantization, KV cache, and system overhead',
+				vramLabel: 'GPU MEMORY',
+				vramSizeLabel: '> VRAM Size:',
+				gpuTypeLabel: '> GPU Type',
+				quantizationLabel: 'QUANTIZATION',
+				modelQuantLabel: '> Model Precision',
+				kvCacheLabel: '> KV Cache',
+				contextLabel: 'CONTEXT WINDOW',
+				maxContextLabel: '> Max Context:',
+				maxParamsLabel: 'MAX PARAMETERS',
+				memoryAllocationLabel: 'MEMORY ALLOCATION',
+				presetsLabel: 'QUICK PRESETS',
+				referenceTitle: 'REFERENCES & METHODOLOGY',
+				
+				totalVram: 'Total VRAM',
+				systemOverhead: 'System Overhead (20%)',
+				kvCacheMemory: 'KV Cache',
+				modelWeights: 'Model Weights',
+				
+				layersLabel: 'Layers:',
+				hiddenLabel: 'Hidden Size:',
+				
+				categorySuffix: '•',
+				categoryToy: 'Toy',
+				categorySmall: 'Small',
+				categoryMedium: 'Medium',
+				categoryLarge: 'Large',
+				categoryVeryLarge: 'Very Large',
+				categoryMassive: 'Massive',
+				
+				warningKvCache: '⚠️ KV cache >50% of VRAM. Reduce context.',
+				warningInsufficient: '❌ Insufficient VRAM for model.',
+				insufficient: 'INSUFFICIENT VRAM',
+				
+				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param<br>• KV Cache: 2 × layers × hidden × context × bytes<br>• Overhead: 20% (CUDA, framework, buffers)',
+				architecture: '<strong>Architecture Data:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv heads)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
+				sources: '<strong>Sources:</strong> Meta Llama Technical Reports (2024-2025), Mistral AI Docs & Papers (2023-2024), Google Gemma Blog & HF Docs (2024), Qwen 2.5 Technical Report (2024), HuggingFace Model Cards, NVIDIA Technical Blogs, vLLM Documentation'
+			},
+			id: {
+				title: 'KALKULATOR VRAM LLM',
+				subtitle: 'Hitung ukuran model maksimum yang muat dalam memori GPU Anda, dengan memperhitungkan kuantisasi, KV cache, dan overhead sistem',
+				vramLabel: 'MEMORI GPU',
+				vramSizeLabel: '> Ukuran VRAM:',
+				gpuTypeLabel: '> Tipe GPU',
+				quantizationLabel: 'KUANTISASI',
+				modelQuantLabel: '> Presisi Model',
+				kvCacheLabel: '> KV Cache',
+				contextLabel: 'JENDELA KONTEKS',
+				maxContextLabel: '> Konteks Maks:',
+				maxParamsLabel: 'PARAMETER MAKSIMUM',
+				memoryAllocationLabel: 'ALOKASI MEMORI',
+				presetsLabel: 'PRESET CEPAT',
+				referenceTitle: 'REFERENSI & METODOLOGI',
+				
+				totalVram: 'Total VRAM',
+				systemOverhead: 'Overhead Sistem (20%)',
+				kvCacheMemory: 'KV Cache',
+				modelWeights: 'Bobot Model',
+				
+				layersLabel: 'Lapisan:',
+				hiddenLabel: 'Ukuran Tersembunyi:',
+				
+				categorySuffix: '•',
+				categoryToy: 'Mainan',
+				categorySmall: 'Kecil',
+				categoryMedium: 'Sedang',
+				categoryLarge: 'Besar',
+				categoryVeryLarge: 'Sangat Besar',
+				categoryMassive: 'Masif',
+				
+				warningKvCache: '⚠️ KV cache >50% dari VRAM. Kurangi konteks.',
+				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
+				insufficient: 'VRAM TIDAK CUKUP',
+				
+				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param<br>• KV Cache: 2 × lapisan × tersembunyi × konteks × byte<br>• Overhead: 20% (CUDA, framework, buffer)',
+				architecture: '<strong>Data Arsitektur:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv head)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
+				sources: '<strong>Sumber:</strong> Laporan Teknis Meta Llama (2024-2025), Dokumen & Makalah Mistral AI (2023-2024), Blog Google Gemma & Dokumen HF (2024), Laporan Teknis Qwen 2.5 (2024), Kartu Model HuggingFace, Blog Teknis NVIDIA, Dokumentasi vLLM'
+			}
+		};
+		
+		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
+		
+		const modelDatabase = [
+			{ name: "Qwen 2.5 1.5B", size: 1.5, layers: 28, hidden: 1536 },
+			{ name: "Phi-2", size: 2.7, layers: 32, hidden: 2560 },
+			{ name: "Qwen 2.5 3B", size: 3.0, layers: 36, hidden: 2048 },
+			{ name: "Llama 3.2 3B", size: 3.2, layers: 28, hidden: 3072 },
+			{ name: "Qwen 2.5 7B", size: 7.0, layers: 28, hidden: 3584 },
+			{ name: "Mistral 7B", size: 7.3, layers: 32, hidden: 4096 },
+			{ name: "Llama 3.1 8B", size: 8.0, layers: 32, hidden: 4096 },
+			{ name: "Gemma 2 9B", size: 9.0, layers: 42, hidden: 3584 },
+			{ name: "Llama 2 13B", size: 13.0, layers: 40, hidden: 5120 },
+			{ name: "Qwen 2.5 14B", size: 14.0, layers: 48, hidden: 5120 },
+			{ name: "Gemma 2 27B", size: 27.0, layers: 46, hidden: 4608 },
+			{ name: "Qwen 2.5 32B", size: 32.0, layers: 64, hidden: 5120 },
+			{ name: "Mixtral 8x7B", size: 47.0, layers: 32, hidden: 4096 },
+			{ name: "Llama 3.1 70B", size: 70.0, layers: 80, hidden: 8192 },
+			{ name: "Qwen 2.5 72B", size: 72.0, layers: 80, hidden: 8192 },
+			{ name: "DeepSeek-V2", size: 236.0, layers: 60, hidden: 5120 }
+		];
+		
+		const quantizationBits = {
+			'fp32': 32, 'fp16': 16, 'bf16': 16, 'fp8': 8,
+			'int8': 8, 'int4': 4, 'fp4': 4, 'fp2': 2
+		};
+		
+		class LLMCalculator {
+			constructor() {
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.vramSize = 24;
+				this.quantization = 'fp16';
+				this.contextWindow = 8192;
+				this.kvCacheQuant = 'same';
+				this.gpuType = 'discrete';
+				
+				this.setup();
+				this.lang(this.language);
+				this.calculate();
+			}
+			
+			setup() {
+				elements.language.onchange = e => this.lang(e.target.value);
+				
+				elements.vramSlider.oninput = e => {
+					this.vramSize = Number(e.target.value);
+					this.updateVramDisplay();
+					this.calculate();
+				};
+				
+				elements.quantization.onchange = e => {
+					this.quantization = e.target.value;
+					this.calculate();
+				};
+				
+				elements.kvCache.onchange = e => {
+					this.kvCacheQuant = e.target.value;
+					this.calculate();
+				};
+				
+				elements.contextSlider.oninput = e => {
+					this.contextWindow = Math.pow(2, Number(e.target.value));
+					this.updateContextDisplay();
+					this.calculate();
+				};
+				
+				elements.gpuType.onchange = e => {
+					this.gpuType = e.target.value;
+					this.calculate();
+				};
+				
+				document.querySelectorAll('.preset-btn').forEach(btn => {
+					btn.onclick = () => this.applyPreset(btn.dataset.preset);
+				});
+			}
+			
+			applyPreset(preset) {
+				const presets = {
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete' },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete' },
+					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete' },
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc' }
+				};
+				
+				const p = presets[preset];
+				if (p) {
+					this.vramSize = p.vram;
+					this.quantization = p.quant;
+					this.contextWindow = p.context;
+					this.gpuType = p.gpu;
+					
+					elements.vramSlider.value = p.vram;
+					elements.quantization.value = p.quant;
+					elements.contextSlider.value = Math.log2(p.context);
+					elements.gpuType.value = p.gpu;
+					
+					this.updateVramDisplay();
+					this.updateContextDisplay();
+					this.calculate();
+				}
+			}
+			
+			updateVramDisplay() {
+				elements.vramValue.textContent = `${this.vramSize} GB`;
+			}
+			
+			updateContextDisplay() {
+				elements.contextValue.textContent = `${this.format(this.contextWindow)} tokens`;
+			}
+			
+			calculate() {
+				const SYSTEM_OVERHEAD = 0.20;
+				const bytesPerParam = quantizationBits[this.quantization] / 8;
+				const kvQuantBits = this.kvCacheQuant === 'same' ? 
+					quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant];
+				const bytesPerKvElement = kvQuantBits / 8;
+				
+				const overheadGB = this.vramSize * SYSTEM_OVERHEAD;
+				const availableVram = this.vramSize - overheadGB;
+				
+				let maxParams = 0;
+				let estimatedModel = null;
+				
+				// Iterative calculation
+				for (let i = 0; i < 5; i++) {
+					const kvCache = estimatedModel ? 
+						(2 * estimatedModel.layers * estimatedModel.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
+					
+					const memoryForWeights = availableVram - kvCache;
+					
+					if (memoryForWeights <= 0) {
+						maxParams = 0;
+						break;
+					}
+					
+					maxParams = memoryForWeights / bytesPerParam;
+					estimatedModel = modelDatabase.reduce((prev, curr) => 
+						Math.abs(curr.size - maxParams) < Math.abs(prev.size - maxParams) ? curr : prev
+					);
+				}
+				
+				const kvCacheGB = estimatedModel ? 
+					(2 * estimatedModel.layers * estimatedModel.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
+				
+				const results = {
+					totalVram: this.vramSize,
+					overheadGB: overheadGB,
+					availableVram: availableVram,
+					kvCacheGB: kvCacheGB,
+					modelMemoryGB: Math.max(0, availableVram - kvCacheGB),
+					maxParams: maxParams,
+					closestModel: estimatedModel
+				};
+				
+				this.displayResults(results);
+			}
+			
+			displayResults(results) {
+				const t = text[this.language];
+				
+				// Main result
+				if (results.modelMemoryGB > 0) {
+					elements.resultValue.textContent = `${Math.floor(results.maxParams)}B`;
+					elements.resultValue.className = 'result-value';
+					
+					const category = this.getModelCategory(results.maxParams);
+					const modelName = results.closestModel ? results.closestModel.name : 'Unknown';
+					elements.resultCategory.textContent = `${category} ${t.categorySuffix} ~${modelName}`;
+					
+					if (results.closestModel) {
+						elements.modelDetails.classList.remove('hidden');
+						elements.layersValue.textContent = results.closestModel.layers;
+						elements.hiddenValue.textContent = results.closestModel.hidden;
+					} else {
+						elements.modelDetails.classList.add('hidden');
+					}
+				} else {
+					elements.resultValue.textContent = t.insufficient;
+					elements.resultValue.className = 'result-value insufficient';
+					elements.resultCategory.textContent = '';
+					elements.modelDetails.classList.add('hidden');
+				}
+				
+				// Memory allocation
+				const mbPerToken = (results.kvCacheGB * 1024 / this.contextWindow).toFixed(2);
+				elements.metricsList.innerHTML = `
+					<div class="metric-card">
+						<div class="metric-label">${t.totalVram}</div>
+						<div class="metric-value">${results.totalVram} GB</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-label">${t.systemOverhead}</div>
+						<div class="metric-value" style="color: #ff9f43;">-${results.overheadGB.toFixed(1)} GB</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-label">${t.kvCacheMemory}</div>
+						<div class="metric-value" style="color: #6bcfff;">-${results.kvCacheGB.toFixed(2)} GB</div>
+						<div class="metric-detail">${mbPerToken} MB/token</div>
+					</div>
+					<div class="metric-card" style="border-color: var(--accent); border-width: 2px;">
+						<div class="metric-label">${t.modelWeights}</div>
+						<div class="metric-value" style="color: var(--accent);">${Math.max(0, results.modelMemoryGB).toFixed(2)} GB</div>
+					</div>
+				`;
+				
+				// Warnings
+				const warnings = [];
+				if (results.kvCacheGB > results.availableVram * 0.5) {
+					warnings.push(t.warningKvCache);
+				}
+				if (results.modelMemoryGB <= 0) {
+					warnings.push(t.warningInsufficient);
+				}
+				
+				if (warnings.length > 0) {
+					elements.warningBox.innerHTML = warnings.map(w => `<p>${w}</p>`).join('');
+					elements.warningBox.classList.remove('hidden');
+				} else {
+					elements.warningBox.classList.add('hidden');
+				}
+			}
+			
+			getModelCategory(params) {
+				const t = text[this.language];
+				if (params < 1) return t.categoryToy;
+				if (params < 3) return t.categorySmall;
+				if (params < 10) return t.categoryMedium;
+				if (params < 20) return t.categoryLarge;
+				if (params < 40) return t.categoryVeryLarge;
+				return t.categoryMassive;
+			}
+			
+			format(value) {
+				return value.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US');
+			}
+			
+			string(key) {
+				return text[this.language]?.[key] ?? key;
+			}
+			
+			lang(language) {
+				this.language = elements.language.value = document.documentElement.lang = language;
+				
+				// Update all text elements
+				Object.keys(text.en).forEach(key => {
+					if (elements[key]) {
+						elements[key].textContent = this.string(key);
+					}
+				});
+				
+				// Update special HTML content
+				elements.formulasSection.innerHTML = this.string('formulas');
+				elements.architectureSection.innerHTML = this.string('architecture');
+				elements.sourcesText.innerHTML = this.string('sources');
+				
+				// Re-display with new language
+				this.updateVramDisplay();
+				this.updateContextDisplay();
+				this.calculate();
+			}
+		}
+		
+		new LLMCalculator();
+	</script>
+</body>
+</html>
