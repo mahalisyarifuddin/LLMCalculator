@@ -429,13 +429,13 @@
 					<div class="form-group">
 						<label>
 							<span id="overheadLabel">System Overhead:</span>
-							<span class="value" id="overheadValue">4.0 GB</span>
+							<span class="value" id="overheadValue">2.0 GB</span>
 						</label>
-						<input type="range" id="overheadSlider" min="0" max="32" step="0.5" value="4">
+						<input type="range" id="overheadSlider" min="0" max="16" step="0.5" value="2">
 						<div class="slider-labels">
 							<span>0 GB</span>
+							<span>8 GB</span>
 							<span>16 GB</span>
-							<span>32 GB</span>
 						</div>
 					</div>
 				</div>
@@ -689,7 +689,7 @@
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
 				this.gpuType = 'discrete';
-				this.overheadGB = 4.0;
+				this.overheadGB = 2.0;
 				
 				this.setup();
 				this.lang(this.language);
@@ -739,10 +739,10 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 4.0 },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 2.0 },
-					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 2.0 },
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', overhead: 24.0 } // macOS reserves ~20%
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 2.5 }, // Windows/Linux Desktop
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5 }, // Headless Server
+					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5 }, // Headless Server
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', overhead: 4.0 } // macOS (Display + OS)
 				};
 				
 				const p = presets[preset];
@@ -751,7 +751,7 @@
 					this.quantization = p.quant;
 					this.contextWindow = p.context;
 					this.gpuType = p.gpu;
-					this.overheadGB = p.overhead !== undefined ? p.overhead : 4.0;
+					this.overheadGB = p.overhead !== undefined ? p.overhead : 2.0;
 					
 					elements.vramSlider.value = p.vram;
 					elements.quantization.value = p.quant;
