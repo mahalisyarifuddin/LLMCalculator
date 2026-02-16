@@ -429,13 +429,13 @@
 					<div class="form-group">
 						<label>
 							<span id="overheadLabel">System Overhead:</span>
-							<span class="value" id="overheadValue">10%</span>
+							<span class="value" id="overheadValue">4.0 GB</span>
 						</label>
-						<input type="range" id="overheadSlider" min="0" max="50" step="1" value="10">
+						<input type="range" id="overheadSlider" min="0" max="32" step="0.5" value="4">
 						<div class="slider-labels">
-							<span>0%</span>
-							<span>25%</span>
-							<span>50%</span>
+							<span>0 GB</span>
+							<span>16 GB</span>
+							<span>32 GB</span>
 						</div>
 					</div>
 				</div>
@@ -581,7 +581,7 @@
 				warningInsufficient: '❌ Insufficient VRAM for model.',
 				insufficient: 'INSUFFICIENT VRAM',
 				
-				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param<br>• KV Cache: 2 × layers × hidden × context × bytes<br>• Overhead: % of VRAM (CUDA, framework, buffers)',
+				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param<br>• KV Cache: 2 × layers × hidden × context × bytes<br>• Overhead: Fixed amount (OS, Display, Framework)',
 				architecture: '<strong>Reference Data:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv heads)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
 				sources: '<strong>Sources:</strong> Meta Llama Technical Reports (2024-2025), Mistral AI Docs & Papers (2023-2024), Google Gemma Blog & HF Docs (2024), Qwen 2.5 Technical Report (2024), HuggingFace Model Cards, NVIDIA Technical Blogs, vLLM Documentation'
 			},
@@ -622,7 +622,7 @@
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
 				insufficient: 'VRAM TIDAK CUKUP',
 				
-				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param<br>• KV Cache: 2 × lapisan × tersembunyi × konteks × byte<br>• Overhead: % dari VRAM (CUDA, framework, buffer)',
+				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param<br>• KV Cache: 2 × lapisan × tersembunyi × konteks × byte<br>• Overhead: Jumlah tetap (OS, Tampilan, Framework)',
 				architecture: '<strong>Data Referensi:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv head)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
 				sources: '<strong>Sumber:</strong> Laporan Teknis Meta Llama (2024-2025), Dokumen & Makalah Mistral AI (2023-2024), Blog Google Gemma & Dokumen HF (2024), Laporan Teknis Qwen 2.5 (2024), Kartu Model HuggingFace, Blog Teknis NVIDIA, Dokumentasi vLLM'
 			}
@@ -689,7 +689,7 @@
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
 				this.gpuType = 'discrete';
-				this.overheadPercent = 10;
+				this.overheadGB = 4.0;
 				
 				this.setup();
 				this.lang(this.language);
@@ -706,8 +706,8 @@
 				};
 				
 				elements.overheadSlider.oninput = e => {
-					this.overheadPercent = Number(e.target.value);
-					elements.overheadValue.textContent = `${this.overheadPercent}%`;
+					this.overheadGB = Number(e.target.value);
+					elements.overheadValue.textContent = `${this.overheadGB.toFixed(1)} GB`;
 					this.calculate();
 				};
 
@@ -739,10 +739,10 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 10 },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 5 },
-					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 5 },
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', overhead: 15 }
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 4.0 },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 2.0 },
+					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 2.0 },
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', overhead: 24.0 } // macOS reserves ~20%
 				};
 				
 				const p = presets[preset];
@@ -751,14 +751,14 @@
 					this.quantization = p.quant;
 					this.contextWindow = p.context;
 					this.gpuType = p.gpu;
-					this.overheadPercent = p.overhead || 10;
+					this.overheadGB = p.overhead !== undefined ? p.overhead : 4.0;
 					
 					elements.vramSlider.value = p.vram;
 					elements.quantization.value = p.quant;
 					elements.contextSlider.value = Math.log2(p.context);
 					elements.gpuType.value = p.gpu;
-					elements.overheadSlider.value = this.overheadPercent;
-					elements.overheadValue.textContent = `${this.overheadPercent}%`;
+					elements.overheadSlider.value = this.overheadGB;
+					elements.overheadValue.textContent = `${this.overheadGB.toFixed(1)} GB`;
 					
 					this.updateVramDisplay();
 					this.updateContextDisplay();
@@ -780,7 +780,7 @@
 					quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant];
 				const bytesPerKvElement = kvQuantBits / 8;
 				
-				const overheadGB = this.vramSize * (this.overheadPercent / 100);
+				const overheadGB = this.overheadGB;
 				const availableVram = this.vramSize - overheadGB;
 				
 				let maxParams = 0;
@@ -852,7 +852,7 @@
 						<div class="metric-value">${results.totalVram} GB</div>
 					</div>
 					<div class="metric-card">
-						<div class="metric-label">${t.systemOverhead} (${this.overheadPercent}%)</div>
+						<div class="metric-label">${t.systemOverhead}</div>
 						<div class="metric-value" style="color: #ff9f43;">-${results.overheadGB.toFixed(1)} GB</div>
 					</div>
 					<div class="metric-card">

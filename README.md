@@ -15,7 +15,7 @@ The calculator estimates memory usage based on:
 2.  **Quantization**: The precision of model weights (FP32, FP16/BF16, FP8/INT8, INT4/FP4, FP2). Lower precision reduces memory usage but may affect quality.
 3.  **Context Window**: The maximum number of tokens the model processes. Larger context requires more KV cache memory.
 4.  **KV Cache**: Memory required to store Key-Value states for the context window. It also supports separate quantization for KV cache.
-5.  **System Overhead**: A reserved buffer (adjustable, default 10%) for the OS, display, and framework overhead.
+5.  **System Overhead**: A reserved buffer (adjustable in GB) for the OS, display, and framework overhead.
 
 It iteratively calculates the maximum parameter count (in Billions) that fits within the remaining VRAM after accounting for overhead and KV cache.
 

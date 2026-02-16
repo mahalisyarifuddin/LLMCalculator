@@ -15,7 +15,7 @@ Kalkulator memperkirakan penggunaan memori berdasarkan:
 2.  **Kuantisasi**: Presisi bobot model (FP32, FP16/BF16, FP8/INT8, INT4/FP4, FP2). Presisi yang lebih rendah mengurangi penggunaan memori tetapi dapat memengaruhi kualitas.
 3.  **Jendela Konteks**: Jumlah maksimum token yang diproses model. Konteks yang lebih besar membutuhkan lebih banyak memori KV cache.
 4.  **KV Cache**: Memori yang diperlukan untuk menyimpan status Key-Value untuk jendela konteks. Ini juga mendukung kuantisasi terpisah untuk KV cache.
-5.  **Overhead Sistem**: Buffer cadangan (dapat disesuaikan, default 10%) untuk OS, tampilan, dan overhead framework.
+5.  **Overhead Sistem**: Buffer cadangan (dapat disesuaikan dalam GB) untuk OS, tampilan, dan overhead framework.
 
 Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yang muat dalam sisa VRAM setelah memperhitungkan overhead dan KV cache.
 
