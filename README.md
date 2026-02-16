@@ -15,7 +15,7 @@ The calculator estimates memory usage based on:
 2.  **Quantization**: The precision of model weights (FP32, FP16/BF16, FP8/INT8, INT4/FP4, FP2). Lower precision reduces memory usage but may affect quality.
 3.  **Context Window**: The maximum number of tokens the model processes. Larger context requires more KV cache memory.
 4.  **KV Cache**: Memory required to store Key-Value states for the context window. It also supports separate quantization for KV cache.
-5.  **System Overhead**: A reserved buffer (20%) for the OS, display, and framework overhead.
+5.  **System Overhead**: A reserved buffer (adjustable, default 10%) for the OS, display, and framework overhead.
 
 It iteratively calculates the maximum parameter count (in Billions) that fits within the remaining VRAM after accounting for overhead and KV cache.
 
@@ -24,10 +24,11 @@ It iteratively calculates the maximum parameter count (in Billions) that fits wi
 2.  Open it in any modern browser (Chrome, Edge, Firefox, Safari).
 3.  Set your **GPU Memory** (VRAM Size) using the slider.
 4.  Select the **GPU Type** (Discrete or Apple Silicon).
-5.  Choose the **Model Precision** (Quantization) and **KV Cache** precision.
-6.  Adjust the **Context Window** (e.g., 8K, 32K tokens).
-7.  View the estimated **Max Parameters** and detailed memory breakdown.
-8.  Use **Quick Presets** to simulate popular hardware configurations like RTX 4090, A100, H200, or M4 Max.
+5.  Adjust the **System Overhead** if needed (e.g. for Windows or heavy desktop usage).
+6.  Choose the **Model Precision** (Quantization) and **KV Cache** precision.
+7.  Adjust the **Context Window** (e.g., 8K, 32K tokens).
+8.  View the estimated **Max Parameters** and detailed memory breakdown.
+9.  Use **Quick Presets** to simulate popular hardware configurations like RTX 4090, A100, H200, or M4 Max.
 
 ## Key Features
 -   **Multi-language Support**: Toggle between English and Indonesian.
@@ -35,7 +36,7 @@ It iteratively calculates the maximum parameter count (in Billions) that fits wi
 -   **Detailed Memory Breakdown**: Visualizes usage for System Overhead, KV Cache, and Model Weights.
 -   **Hardware Presets**: One-click configuration for common GPUs.
 -   **Advanced Options**: Support for various quantization formats (up to FP2) and separate KV cache precision.
--   **Model Estimation**: Suggests the closest known model architecture (e.g., Llama 3, Mistral, Qwen, DeepSeek) that fits the calculated parameters.
+-   **Model Estimation**: Dynamically estimates model architecture (Layers and Hidden Size) based on modern LLM configurations (e.g. Llama 3, Qwen 2.5) for the calculated parameter count.
 -   **Single HTML file**: No installation, no dependencies, works completely offline.
 -   **Responsive design**: Works on desktop, tablet, and mobile devices.
 

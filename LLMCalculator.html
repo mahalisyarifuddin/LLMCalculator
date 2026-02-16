@@ -425,6 +425,19 @@
 							<option value="soc">Apple Silicon (M-series)</option>
 						</select>
 					</div>
+
+					<div class="form-group">
+						<label>
+							<span id="overheadLabel">System Overhead:</span>
+							<span class="value" id="overheadValue">10%</span>
+						</label>
+						<input type="range" id="overheadSlider" min="0" max="50" step="1" value="10">
+						<div class="slider-labels">
+							<span>0%</span>
+							<span>25%</span>
+							<span>50%</span>
+						</div>
+					</div>
 				</div>
 				
 				<div class="card">
@@ -537,6 +550,7 @@
 				vramLabel: 'GPU MEMORY',
 				vramSizeLabel: '> VRAM Size:',
 				gpuTypeLabel: '> GPU Type',
+				overheadLabel: '> System Overhead:',
 				quantizationLabel: 'QUANTIZATION',
 				modelQuantLabel: '> Model Precision',
 				kvCacheLabel: '> KV Cache',
@@ -548,7 +562,7 @@
 				referenceTitle: 'REFERENCES & METHODOLOGY',
 				
 				totalVram: 'Total VRAM',
-				systemOverhead: 'System Overhead (20%)',
+				systemOverhead: 'System Overhead',
 				kvCacheMemory: 'KV Cache',
 				modelWeights: 'Model Weights',
 				
@@ -567,8 +581,8 @@
 				warningInsufficient: '❌ Insufficient VRAM for model.',
 				insufficient: 'INSUFFICIENT VRAM',
 				
-				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param<br>• KV Cache: 2 × layers × hidden × context × bytes<br>• Overhead: 20% (CUDA, framework, buffers)',
-				architecture: '<strong>Architecture Data:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv heads)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
+				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param<br>• KV Cache: 2 × layers × hidden × context × bytes<br>• Overhead: % of VRAM (CUDA, framework, buffers)',
+				architecture: '<strong>Reference Data:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv heads)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
 				sources: '<strong>Sources:</strong> Meta Llama Technical Reports (2024-2025), Mistral AI Docs & Papers (2023-2024), Google Gemma Blog & HF Docs (2024), Qwen 2.5 Technical Report (2024), HuggingFace Model Cards, NVIDIA Technical Blogs, vLLM Documentation'
 			},
 			id: {
@@ -577,6 +591,7 @@
 				vramLabel: 'MEMORI GPU',
 				vramSizeLabel: '> Ukuran VRAM:',
 				gpuTypeLabel: '> Tipe GPU',
+				overheadLabel: '> Overhead Sistem:',
 				quantizationLabel: 'KUANTISASI',
 				modelQuantLabel: '> Presisi Model',
 				kvCacheLabel: '> KV Cache',
@@ -588,7 +603,7 @@
 				referenceTitle: 'REFERENSI & METODOLOGI',
 				
 				totalVram: 'Total VRAM',
-				systemOverhead: 'Overhead Sistem (20%)',
+				systemOverhead: 'Overhead Sistem',
 				kvCacheMemory: 'KV Cache',
 				modelWeights: 'Bobot Model',
 				
@@ -607,32 +622,59 @@
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
 				insufficient: 'VRAM TIDAK CUKUP',
 				
-				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param<br>• KV Cache: 2 × lapisan × tersembunyi × konteks × byte<br>• Overhead: 20% (CUDA, framework, buffer)',
-				architecture: '<strong>Data Arsitektur:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv head)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
+				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param<br>• KV Cache: 2 × lapisan × tersembunyi × konteks × byte<br>• Overhead: % dari VRAM (CUDA, framework, buffer)',
+				architecture: '<strong>Data Referensi:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv head)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
 				sources: '<strong>Sumber:</strong> Laporan Teknis Meta Llama (2024-2025), Dokumen & Makalah Mistral AI (2023-2024), Blog Google Gemma & Dokumen HF (2024), Laporan Teknis Qwen 2.5 (2024), Kartu Model HuggingFace, Blog Teknis NVIDIA, Dokumentasi vLLM'
 			}
 		};
 		
 		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
 		
-		const modelDatabase = [
-			{ name: "Qwen 2.5 1.5B", size: 1.5, layers: 28, hidden: 1536 },
-			{ name: "Phi-2", size: 2.7, layers: 32, hidden: 2560 },
-			{ name: "Qwen 2.5 3B", size: 3.0, layers: 36, hidden: 2048 },
-			{ name: "Llama 3.2 3B", size: 3.2, layers: 28, hidden: 3072 },
-			{ name: "Qwen 2.5 7B", size: 7.0, layers: 28, hidden: 3584 },
-			{ name: "Mistral 7B", size: 7.3, layers: 32, hidden: 4096 },
-			{ name: "Llama 3.1 8B", size: 8.0, layers: 32, hidden: 4096 },
-			{ name: "Gemma 2 9B", size: 9.0, layers: 42, hidden: 3584 },
-			{ name: "Llama 2 13B", size: 13.0, layers: 40, hidden: 5120 },
-			{ name: "Qwen 2.5 14B", size: 14.0, layers: 48, hidden: 5120 },
-			{ name: "Gemma 2 27B", size: 27.0, layers: 46, hidden: 4608 },
-			{ name: "Qwen 2.5 32B", size: 32.0, layers: 64, hidden: 5120 },
-			{ name: "Mixtral 8x7B", size: 47.0, layers: 32, hidden: 4096 },
-			{ name: "Llama 3.1 70B", size: 70.0, layers: 80, hidden: 8192 },
-			{ name: "Qwen 2.5 72B", size: 72.0, layers: 80, hidden: 8192 },
-			{ name: "DeepSeek-V2", size: 236.0, layers: 60, hidden: 5120 }
+		const referenceConfigs = [
+			{ size: 0.5, layers: 24, hidden: 896 },
+			{ size: 1.5, layers: 28, hidden: 1536 },
+			{ size: 3.0, layers: 28, hidden: 3072 },
+			{ size: 7.0, layers: 32, hidden: 4096 },
+			{ size: 14.0, layers: 48, hidden: 5120 },
+			{ size: 32.0, layers: 64, hidden: 5120 },
+			{ size: 70.0, layers: 80, hidden: 8192 },
+			{ size: 405.0, layers: 126, hidden: 16384 }
 		];
+
+		function estimateArchitecture(params) {
+			// Sort just in case
+			referenceConfigs.sort((a, b) => a.size - b.size);
+
+			if (params <= referenceConfigs[0].size) {
+				return {
+					layers: referenceConfigs[0].layers,
+					hidden: referenceConfigs[0].hidden
+				};
+			}
+
+			if (params >= referenceConfigs[referenceConfigs.length - 1].size) {
+				return {
+					layers: referenceConfigs[referenceConfigs.length - 1].layers,
+					hidden: referenceConfigs[referenceConfigs.length - 1].hidden
+				};
+			}
+
+			// Interpolate
+			for (let i = 0; i < referenceConfigs.length - 1; i++) {
+				const lower = referenceConfigs[i];
+				const upper = referenceConfigs[i+1];
+
+				if (params >= lower.size && params <= upper.size) {
+					const ratio = (params - lower.size) / (upper.size - lower.size);
+					return {
+						layers: Math.round(lower.layers + (upper.layers - lower.layers) * ratio),
+						hidden: Math.round(lower.hidden + (upper.hidden - lower.hidden) * ratio)
+					};
+				}
+			}
+
+			return referenceConfigs[0];
+		}
 		
 		const quantizationBits = {
 			'fp32': 32, 'fp16': 16, 'bf16': 16, 'fp8': 8,
@@ -647,6 +689,7 @@
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
 				this.gpuType = 'discrete';
+				this.overheadPercent = 10;
 				
 				this.setup();
 				this.lang(this.language);
@@ -662,6 +705,12 @@
 					this.calculate();
 				};
 				
+				elements.overheadSlider.oninput = e => {
+					this.overheadPercent = Number(e.target.value);
+					elements.overheadValue.textContent = `${this.overheadPercent}%`;
+					this.calculate();
+				};
+
 				elements.quantization.onchange = e => {
 					this.quantization = e.target.value;
 					this.calculate();
@@ -690,10 +739,10 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete' },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete' },
-					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete' },
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc' }
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 10 },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 5 },
+					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 5 },
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', overhead: 15 }
 				};
 				
 				const p = presets[preset];
@@ -702,11 +751,14 @@
 					this.quantization = p.quant;
 					this.contextWindow = p.context;
 					this.gpuType = p.gpu;
+					this.overheadPercent = p.overhead || 10;
 					
 					elements.vramSlider.value = p.vram;
 					elements.quantization.value = p.quant;
 					elements.contextSlider.value = Math.log2(p.context);
 					elements.gpuType.value = p.gpu;
+					elements.overheadSlider.value = this.overheadPercent;
+					elements.overheadValue.textContent = `${this.overheadPercent}%`;
 					
 					this.updateVramDisplay();
 					this.updateContextDisplay();
@@ -723,22 +775,22 @@
 			}
 			
 			calculate() {
-				const SYSTEM_OVERHEAD = 0.20;
 				const bytesPerParam = quantizationBits[this.quantization] / 8;
 				const kvQuantBits = this.kvCacheQuant === 'same' ? 
 					quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant];
 				const bytesPerKvElement = kvQuantBits / 8;
 				
-				const overheadGB = this.vramSize * SYSTEM_OVERHEAD;
+				const overheadGB = this.vramSize * (this.overheadPercent / 100);
 				const availableVram = this.vramSize - overheadGB;
 				
 				let maxParams = 0;
-				let estimatedModel = null;
+				let estimatedArchitecture = { layers: 0, hidden: 0 };
 				
 				// Iterative calculation
+				// We start with a guess for params to calculate KV cache, then refine
 				for (let i = 0; i < 5; i++) {
-					const kvCache = estimatedModel ? 
-						(2 * estimatedModel.layers * estimatedModel.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
+					const kvCache = estimatedArchitecture.layers ?
+						(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
 					
 					const memoryForWeights = availableVram - kvCache;
 					
@@ -748,13 +800,11 @@
 					}
 					
 					maxParams = memoryForWeights / bytesPerParam;
-					estimatedModel = modelDatabase.reduce((prev, curr) => 
-						Math.abs(curr.size - maxParams) < Math.abs(prev.size - maxParams) ? curr : prev
-					);
+					estimatedArchitecture = estimateArchitecture(maxParams);
 				}
 				
-				const kvCacheGB = estimatedModel ? 
-					(2 * estimatedModel.layers * estimatedModel.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
+				const kvCacheGB = estimatedArchitecture.layers ?
+					(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
 				
 				const results = {
 					totalVram: this.vramSize,
@@ -763,7 +813,7 @@
 					kvCacheGB: kvCacheGB,
 					modelMemoryGB: Math.max(0, availableVram - kvCacheGB),
 					maxParams: maxParams,
-					closestModel: estimatedModel
+					estimatedArchitecture: estimatedArchitecture
 				};
 				
 				this.displayResults(results);
@@ -778,13 +828,12 @@
 					elements.resultValue.className = 'result-value';
 					
 					const category = this.getModelCategory(results.maxParams);
-					const modelName = results.closestModel ? results.closestModel.name : 'Unknown';
-					elements.resultCategory.textContent = `${category} ${t.categorySuffix} ~${modelName}`;
+					elements.resultCategory.textContent = `${category} ${t.categorySuffix} Estimated Architecture`;
 					
-					if (results.closestModel) {
+					if (results.estimatedArchitecture) {
 						elements.modelDetails.classList.remove('hidden');
-						elements.layersValue.textContent = results.closestModel.layers;
-						elements.hiddenValue.textContent = results.closestModel.hidden;
+						elements.layersValue.textContent = results.estimatedArchitecture.layers;
+						elements.hiddenValue.textContent = results.estimatedArchitecture.hidden;
 					} else {
 						elements.modelDetails.classList.add('hidden');
 					}
@@ -803,7 +852,7 @@
 						<div class="metric-value">${results.totalVram} GB</div>
 					</div>
 					<div class="metric-card">
-						<div class="metric-label">${t.systemOverhead}</div>
+						<div class="metric-label">${t.systemOverhead} (${this.overheadPercent}%)</div>
 						<div class="metric-value" style="color: #ff9f43;">-${results.overheadGB.toFixed(1)} GB</div>
 					</div>
 					<div class="metric-card">
