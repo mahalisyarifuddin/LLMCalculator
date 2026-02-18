@@ -420,18 +420,6 @@
 						</select>
 					</div>
 
-					<div class="form-group">
-						<label>
-							<span id="overheadLabel"></span>
-							<span class="value" id="overheadValue">2.0 GB</span>
-						</label>
-						<input type="range" id="overheadSlider" min="0" max="16" step="0.5" value="2">
-						<div class="slider-labels">
-							<span>0 GB</span>
-							<span>8 GB</span>
-							<span>16 GB</span>
-						</div>
-					</div>
 				</div>
 				
 				<div class="card">
@@ -686,7 +674,7 @@
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
 				this.gpuType = 'discrete';
-				this.overheadGB = 2.0;
+				this.overheadGB = 1.5;
 				
 				this.setup();
 				this.theme('auto');
@@ -701,12 +689,6 @@
 				elements.vramSlider.oninput = e => {
 					this.vramSize = Number(e.target.value);
 					this.updateVramDisplay();
-					this.calculate();
-				};
-				
-				elements.overheadSlider.oninput = e => {
-					this.overheadGB = Number(e.target.value);
-					elements.overheadValue.textContent = `${this.overheadGB.toFixed(1)} GB`;
 					this.calculate();
 				};
 
@@ -738,10 +720,10 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 2.5 },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5 },
-					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5 },
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', overhead: 4.0 }
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete' },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete' },
+					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete' },
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc' }
 				};
 				
 				const p = presets[preset];
@@ -750,14 +732,11 @@
 					this.quantization = p.quant;
 					this.contextWindow = p.context;
 					this.gpuType = p.gpu;
-					this.overheadGB = p.overhead !== undefined ? p.overhead : 2.0;
 					
 					elements.vramSlider.value = p.vram;
 					elements.quantization.value = p.quant;
 					elements.contextSlider.value = Math.log2(p.context);
 					elements.gpuType.value = p.gpu;
-					elements.overheadSlider.value = this.overheadGB;
-					elements.overheadValue.textContent = `${this.overheadGB.toFixed(1)} GB`;
 					
 					this.updateVramDisplay();
 					this.updateContextDisplay();
