@@ -417,6 +417,7 @@
 						<select id="gpuType">
 							<option value="discrete">Discrete GPU (NVIDIA/AMD)</option>
 							<option value="soc">Apple Silicon (M-series)</option>
+							<option value="snapdragon">Snapdragon (Windows on Arm)</option>
 						</select>
 					</div>
 
@@ -507,6 +508,7 @@
 						<button class="preset-btn" data-preset="a100">A100 80GB</button>
 						<button class="preset-btn" data-preset="h200">H200</button>
 						<button class="preset-btn" data-preset="m4max">M4 Max</button>
+						<button class="preset-btn" data-preset="snapdragon">Snapdragon</button>
 					</div>
 				</div>
 			</div>
@@ -534,6 +536,7 @@
 				darkTheme: 'Dark',
 				vramLabel: 'GPU Memory',
 				vramSizeLabel: 'VRAM Size:',
+				systemRamLabel: 'Total System RAM:',
 				gpuTypeLabel: 'GPU Type',
 				overheadLabel: 'System Overhead:',
 				quantizationLabel: 'Quantization',
@@ -578,6 +581,7 @@
 				darkTheme: 'Gelap',
 				vramLabel: 'Memori GPU',
 				vramSizeLabel: 'Ukuran VRAM:',
+				systemRamLabel: 'Total RAM Sistem:',
 				gpuTypeLabel: 'Tipe GPU',
 				overheadLabel: 'Overhead Sistem:',
 				quantizationLabel: 'Kuantisasi',
@@ -674,7 +678,6 @@
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
 				this.gpuType = 'discrete';
-				this.overheadGB = 1.5;
 				
 				this.setup();
 				this.theme('auto');
@@ -710,6 +713,7 @@
 				
 				elements.gpuType.onchange = e => {
 					this.gpuType = e.target.value;
+					this.updateVramDisplay();
 					this.calculate();
 				};
 				
@@ -723,7 +727,8 @@
 					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete' },
 					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete' },
 					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete' },
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc' }
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc' },
+					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon' }
 				};
 				
 				const p = presets[preset];
@@ -746,6 +751,11 @@
 			
 			updateVramDisplay() {
 				elements.vramValue.textContent = `${this.vramSize} GB`;
+
+				// Update label based on GPU type
+				const isSoc = this.gpuType === 'soc' || this.gpuType === 'snapdragon';
+				elements.vramSizeLabel.textContent = isSoc ?
+					this.string('systemRamLabel') : this.string('vramSizeLabel');
 			}
 			
 			updateContextDisplay() {
@@ -758,8 +768,26 @@
 					quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant];
 				const bytesPerKvElement = kvQuantBits / 8;
 				
-				const overheadGB = this.overheadGB;
-				const availableVram = this.vramSize - overheadGB;
+				let overheadGB = 1.5;
+				let availableVram = 0;
+				let overheadMsg = "";
+
+				if (this.gpuType === 'discrete') {
+					overheadGB = 1.5;
+					availableVram = this.vramSize - overheadGB;
+				} else if (this.gpuType === 'soc') {
+					// Apple Silicon: ~75% available for GPU
+					availableVram = this.vramSize * 0.75;
+					overheadGB = this.vramSize - availableVram;
+					overheadMsg = "Reserved (25%)";
+				} else if (this.gpuType === 'snapdragon') {
+					// Snapdragon/Windows SoC: ~50% available for GPU
+					availableVram = this.vramSize * 0.50;
+					overheadGB = this.vramSize - availableVram;
+					overheadMsg = "Reserved (50%)";
+				}
+
+				const availableForUse = Math.max(0, availableVram);
 				
 				let maxParams = 0;
 				let estimatedArchitecture = { layers: 0, hidden: 0 };
@@ -768,7 +796,7 @@
 					const kvCache = estimatedArchitecture.layers ?
 						(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
 					
-					const memoryForWeights = availableVram - kvCache;
+					const memoryForWeights = availableForUse - kvCache;
 					
 					if (memoryForWeights <= 0) {
 						maxParams = 0;
@@ -785,9 +813,10 @@
 				const results = {
 					totalVram: this.vramSize,
 					overheadGB: overheadGB,
-					availableVram: availableVram,
+					overheadMsg: overheadMsg,
+					availableVram: availableForUse,
 					kvCacheGB: kvCacheGB,
-					modelMemoryGB: Math.max(0, availableVram - kvCacheGB),
+					modelMemoryGB: Math.max(0, availableForUse - kvCacheGB),
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
 				};
@@ -828,6 +857,7 @@
 					<div class="metric-card">
 						<div class="metric-label">${t.systemOverhead}</div>
 						<div class="metric-value">-${results.overheadGB.toFixed(1)} GB</div>
+						${results.overheadMsg ? `<div class="metric-detail">${results.overheadMsg}</div>` : ''}
 					</div>
 					<div class="metric-card">
 						<div class="metric-label">${t.kvCacheMemory}</div>
