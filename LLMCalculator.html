@@ -421,6 +421,20 @@
 						</select>
 					</div>
 
+					<div class="form-group">
+						<label>
+							<span id="overheadLabel"></span>
+							<span class="value" id="overheadValueDisplay">1.5 GB</span>
+						</label>
+						<input type="range" id="overheadSlider" min="0" max="16" step="0.1" value="1.5">
+						<div class="slider-labels">
+							<span>0GB</span>
+							<span>4GB</span>
+							<span>8GB</span>
+							<span>16GB</span>
+						</div>
+					</div>
+
 				</div>
 				
 				<div class="card">
@@ -539,7 +553,7 @@
 				vramSizeLabel: 'VRAM Size:',
 				systemRamLabel: 'Total System RAM:',
 				gpuTypeLabel: 'GPU Type',
-				overheadLabel: 'System Overhead:',
+				overheadLabel: 'System Overhead Deduction:',
 				quantizationLabel: 'Quantization',
 				modelQuantLabel: 'Model Precision',
 				kvCacheLabel: 'KV Cache',
@@ -584,7 +598,7 @@
 				vramSizeLabel: 'Ukuran VRAM:',
 				systemRamLabel: 'Total RAM Sistem:',
 				gpuTypeLabel: 'Tipe GPU',
-				overheadLabel: 'Overhead Sistem:',
+				overheadLabel: 'Deduksi Overhead Sistem:',
 				quantizationLabel: 'Kuantisasi',
 				modelQuantLabel: 'Presisi Model',
 				kvCacheLabel: 'KV Cache',
@@ -679,6 +693,7 @@
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
 				this.gpuType = 'discrete';
+				this.manualOverhead = 1.5;
 				
 				this.setup();
 				this.theme('auto');
@@ -717,6 +732,11 @@
 					this.updateVramDisplay();
 					this.calculate();
 				};
+
+				elements.overheadSlider.oninput = e => {
+					this.manualOverhead = Number(e.target.value);
+					this.calculate();
+				};
 				
 				document.querySelectorAll('.preset-btn').forEach(btn => {
 					btn.onclick = () => this.applyPreset(btn.dataset.preset);
@@ -725,10 +745,10 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete' },
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete' },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete' },
-					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete' },
+					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5 },
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5 },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5 },
+					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5 },
 					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc' },
 					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon' }
 				};
@@ -739,11 +759,13 @@
 					this.quantization = p.quant;
 					this.contextWindow = p.context;
 					this.gpuType = p.gpu;
+					if (p.overhead !== undefined) this.manualOverhead = p.overhead;
 					
 					elements.vramSlider.value = p.vram;
 					elements.quantization.value = p.quant;
 					elements.contextSlider.value = Math.log2(p.context);
 					elements.gpuType.value = p.gpu;
+					elements.overheadSlider.value = this.manualOverhead;
 					
 					this.updateVramDisplay();
 					this.updateContextDisplay();
@@ -770,24 +792,33 @@
 					quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant];
 				const bytesPerKvElement = kvQuantBits / 8;
 				
-				let overheadGB = 1.5;
+				let overheadGB = 0;
 				let availableVram = 0;
 				let overheadMsg = "";
 
 				if (this.gpuType === 'discrete') {
-					overheadGB = 1.5;
+					overheadGB = this.manualOverhead;
 					availableVram = this.vramSize - overheadGB;
-				} else if (this.gpuType === 'soc') {
-					// Apple Silicon: ~75% available for GPU
-					availableVram = this.vramSize * 0.75;
-					overheadGB = this.vramSize - availableVram;
-					overheadMsg = "Reserved (25%)";
-				} else if (this.gpuType === 'snapdragon') {
-					// Snapdragon/Windows SoC: ~50% available for GPU
-					availableVram = this.vramSize * 0.50;
-					overheadGB = this.vramSize - availableVram;
-					overheadMsg = "Reserved (50%)";
+					elements.overheadSlider.disabled = false;
+					elements.overheadSlider.value = this.manualOverhead;
+				} else {
+					elements.overheadSlider.disabled = true;
+					if (this.gpuType === 'soc') {
+						// Apple Silicon: ~75% available for GPU
+						availableVram = this.vramSize * 0.75;
+						overheadGB = this.vramSize - availableVram;
+						overheadMsg = "Reserved (25%)";
+					} else if (this.gpuType === 'snapdragon') {
+						// Snapdragon/Windows SoC: ~50% available for GPU
+						availableVram = this.vramSize * 0.50;
+						overheadGB = this.vramSize - availableVram;
+						overheadMsg = "Reserved (50%)";
+					}
+					// Update slider display for read-only view
+					elements.overheadSlider.value = overheadGB;
 				}
+
+				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`;
 
 				const availableForUse = Math.max(0, availableVram);
 				
