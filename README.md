@@ -15,7 +15,10 @@ The calculator estimates memory usage based on:
 2.  **Quantization**: The precision of model weights (FP32, FP16/BF16, FP8/INT8, INT4/FP4, FP2). Lower precision reduces memory usage but may affect quality.
 3.  **Context Window**: The maximum number of tokens the model processes. Larger context requires more KV cache memory.
 4.  **KV Cache**: Memory required to store Key-Value states for the context window. It also supports separate quantization for KV cache.
-5.  **System Overhead**: A fixed reserved buffer (1.5 GB) for the OS, display, and framework overhead.
+5.  **System Overhead**:
+    -   **Discrete GPUs (NVIDIA/AMD)**: A configurable deduction (default 1.5 GB) for OS and display.
+    -   **Apple Silicon**: Automatically reserves ~25% of Unified Memory for system use.
+    -   **Snapdragon (Windows on Arm)**: Automatically reserves ~50% of Shared Memory for system partitioning.
 
 It iteratively calculates the maximum parameter count (in Billions) that fits within the remaining VRAM after accounting for overhead and KV cache.
 
@@ -23,17 +26,19 @@ It iteratively calculates the maximum parameter count (in Billions) that fits wi
 1.  Download `LLMCalculator.html`.
 2.  Open it in any modern browser (Chrome, Edge, Firefox, Safari).
 3.  Set your **GPU Memory** (VRAM Size) using the slider.
-4.  Select the **GPU Type** (Discrete or Apple Silicon).
+4.  Select the **GPU Type** (Discrete, Apple Silicon, or Snapdragon).
 5.  Choose the **Model Precision** (Quantization) and **KV Cache** precision.
 6.  Adjust the **Context Window** (e.g., 8K, 32K tokens).
 7.  View the estimated **Max Parameters** and detailed memory breakdown.
-8.  Use **Quick Presets** to simulate popular hardware configurations like RTX 4090, A100, H200, or M4 Max.
+8.  Use **Quick Presets** to simulate popular hardware configurations like RTX 5050, RTX 4090, A100, H200, or M4 Max.
 
 ## Key Features
 -   **Multi-language Support**: Toggle between English and Indonesian.
 -   **Real-time Calculation**: Instant updates as you adjust sliders and dropdowns.
+-   **Architecture-Aware Logic**: Different memory reservation rules for Discrete GPUs vs SoCs (Apple/Snapdragon).
+-   **Adjustable Overhead**: Fine-tune system memory deduction for headless Linux servers vs Windows desktops.
 -   **Detailed Memory Breakdown**: Visualizes usage for System Overhead, KV Cache, and Model Weights.
--   **Hardware Presets**: One-click configuration for common GPUs.
+-   **Hardware Presets**: One-click configuration for common GPUs, including the new **RTX 5050**.
 -   **Advanced Options**: Support for various quantization formats (up to FP2) and separate KV cache precision.
 -   **Model Estimation**: Dynamically estimates model architecture (Layers and Hidden Size) based on modern LLM configurations (e.g. Llama 3, Qwen 2.5) for the calculated parameter count.
 -   **Single HTML file**: No installation, no dependencies, works completely offline.
