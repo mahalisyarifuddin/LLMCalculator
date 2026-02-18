@@ -15,7 +15,7 @@ Kalkulator memperkirakan penggunaan memori berdasarkan:
 2.  **Kuantisasi**: Presisi bobot model (FP32, FP16/BF16, FP8/INT8, INT4/FP4, FP2). Presisi yang lebih rendah mengurangi penggunaan memori tetapi dapat memengaruhi kualitas.
 3.  **Jendela Konteks**: Jumlah maksimum token yang diproses model. Konteks yang lebih besar membutuhkan lebih banyak memori KV cache.
 4.  **KV Cache**: Memori yang diperlukan untuk menyimpan status Key-Value untuk jendela konteks. Ini juga mendukung kuantisasi terpisah untuk KV cache.
-5.  **Overhead Sistem**: Buffer cadangan (dapat disesuaikan dalam GB) untuk OS, tampilan, dan overhead framework.
+5.  **Overhead Sistem**: Buffer cadangan tetap (1.5 GB) untuk OS, tampilan, dan overhead framework.
 
 Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yang muat dalam sisa VRAM setelah memperhitungkan overhead dan KV cache.
 
@@ -24,11 +24,10 @@ Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yan
 2.  Buka di peramban modern apa pun (Chrome, Edge, Firefox, Safari).
 3.  Atur **Memori GPU** (Ukuran VRAM) Anda menggunakan penggeser.
 4.  Pilih **Tipe GPU** (Diskrit atau Apple Silicon).
-5.  Sesuaikan **Overhead Sistem** jika diperlukan (misalnya untuk Windows atau penggunaan desktop berat).
-6.  Pilih **Presisi Model** (Kuantisasi) dan presisi **KV Cache**.
-7.  Sesuaikan **Jendela Konteks** (misalnya, 8K, 32K token).
-8.  Lihat estimasi **Parameter Maksimum** dan rincian memori.
-9.  Gunakan **Preset Cepat** untuk mensimulasikan konfigurasi perangkat keras populer seperti RTX 4090, A100, H200, atau M4 Max.
+5.  Pilih **Presisi Model** (Kuantisasi) dan presisi **KV Cache**.
+6.  Sesuaikan **Jendela Konteks** (misalnya, 8K, 32K token).
+7.  Lihat estimasi **Parameter Maksimum** dan rincian memori.
+8.  Gunakan **Preset Cepat** untuk mensimulasikan konfigurasi perangkat keras populer seperti RTX 4090, A100, H200, atau M4 Max.
 
 ## Fitur Utama
 -   **Dukungan Multi-bahasa**: Beralih antara Bahasa Inggris dan Indonesia.
