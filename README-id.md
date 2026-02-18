@@ -15,7 +15,10 @@ Kalkulator memperkirakan penggunaan memori berdasarkan:
 2.  **Kuantisasi**: Presisi bobot model (FP32, FP16/BF16, FP8/INT8, INT4/FP4, FP2). Presisi yang lebih rendah mengurangi penggunaan memori tetapi dapat memengaruhi kualitas.
 3.  **Jendela Konteks**: Jumlah maksimum token yang diproses model. Konteks yang lebih besar membutuhkan lebih banyak memori KV cache.
 4.  **KV Cache**: Memori yang diperlukan untuk menyimpan status Key-Value untuk jendela konteks. Ini juga mendukung kuantisasi terpisah untuk KV cache.
-5.  **Overhead Sistem**: Buffer cadangan tetap (1.5 GB) untuk OS, tampilan, dan overhead framework.
+5.  **Overhead Sistem**:
+    -   **GPU Diskrit (NVIDIA/AMD)**: Deduksi yang dapat dikonfigurasi (default 1.5 GB) untuk OS dan tampilan.
+    -   **Apple Silicon**: Secara otomatis mencadangkan ~25% Memori Terpadu untuk penggunaan sistem.
+    -   **Snapdragon (Windows on Arm)**: Secara otomatis mencadangkan ~50% Memori Bersama untuk partisi sistem.
 
 Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yang muat dalam sisa VRAM setelah memperhitungkan overhead dan KV cache.
 
@@ -23,17 +26,19 @@ Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yan
 1.  Unduh `LLMCalculator.html`.
 2.  Buka di peramban modern apa pun (Chrome, Edge, Firefox, Safari).
 3.  Atur **Memori GPU** (Ukuran VRAM) Anda menggunakan penggeser.
-4.  Pilih **Tipe GPU** (Diskrit atau Apple Silicon).
+4.  Pilih **Tipe GPU** (Diskrit, Apple Silicon, atau Snapdragon).
 5.  Pilih **Presisi Model** (Kuantisasi) dan presisi **KV Cache**.
 6.  Sesuaikan **Jendela Konteks** (misalnya, 8K, 32K token).
 7.  Lihat estimasi **Parameter Maksimum** dan rincian memori.
-8.  Gunakan **Preset Cepat** untuk mensimulasikan konfigurasi perangkat keras populer seperti RTX 4090, A100, H200, atau M4 Max.
+8.  Gunakan **Preset Cepat** untuk mensimulasikan konfigurasi perangkat keras populer seperti RTX 5050, RTX 4090, A100, H200, atau M4 Max.
 
 ## Fitur Utama
 -   **Dukungan Multi-bahasa**: Beralih antara Bahasa Inggris dan Indonesia.
 -   **Kalkulasi Real-time**: Pembaruan instan saat Anda menyesuaikan penggeser dan menu drop-down.
+-   **Logika Arsitektur Cerdas**: Aturan reservasi memori yang berbeda untuk GPU Diskrit vs SoC (Apple/Snapdragon).
+-   **Overhead yang Dapat Disesuaikan**: Atur deduksi memori sistem secara presisi untuk server Linux headless vs desktop Windows.
 -   **Rincian Memori Mendetail**: Memvisualisasikan penggunaan untuk Overhead Sistem, KV Cache, dan Bobot Model.
--   **Preset Perangkat Keras**: Konfigurasi satu klik untuk GPU umum.
+-   **Preset Perangkat Keras**: Konfigurasi satu klik untuk GPU umum, termasuk **RTX 5050** baru.
 -   **Opsi Lanjutan**: Dukungan untuk berbagai format kuantisasi (hingga FP2) dan presisi KV cache terpisah.
 -   **Estimasi Model**: Secara dinamis mengestimasi arsitektur model (Lapisan dan Ukuran Tersembunyi) berdasarkan konfigurasi LLM modern (misalnya Llama 3, Qwen 2.5) untuk jumlah parameter yang dihitung.
 -   **Berkas HTML tunggal**: Tidak ada instalasi, tidak ada dependensi, bekerja sepenuhnya offline.
