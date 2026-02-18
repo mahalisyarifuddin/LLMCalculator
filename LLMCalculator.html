@@ -504,6 +504,7 @@
 				<div class="card">
 					<h2 id="presetsLabel"></h2>
 					<div class="presets">
+						<button class="preset-btn" data-preset="rtx5050">RTX 5050</button>
 						<button class="preset-btn" data-preset="rtx4090">RTX 4090</button>
 						<button class="preset-btn" data-preset="a100">A100 80GB</button>
 						<button class="preset-btn" data-preset="h200">H200</button>
@@ -724,6 +725,7 @@
 			
 			applyPreset(preset) {
 				const presets = {
+					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete' },
 					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete' },
 					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete' },
 					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete' },
