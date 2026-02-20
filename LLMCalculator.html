@@ -20,8 +20,6 @@
 			--warning: #ea580c;
 			--warning-bg: #ffedd5;
 			--warning-text: #9a3412;
-			--shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-			--shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
 			--radius: 0.75rem;
 		}
 
@@ -148,7 +146,6 @@
 			border: 1px solid var(--border);
 			padding: 1.5rem;
 			margin-bottom: 1.5rem;
-			box-shadow: var(--shadow);
 		}
 
 		.card:last-child {
@@ -208,7 +205,6 @@
 			border-radius: 50%;
 			cursor: pointer;
 			transition: transform 0.1s;
-			box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 		}
 
 		input[type="range"]::-webkit-slider-thumb:hover {
@@ -235,7 +231,6 @@
 			padding: 2rem;
 			text-align: center;
 			margin-bottom: 1.5rem;
-			box-shadow: var(--shadow-lg);
 			position: sticky;
 			top: 1rem;
 			z-index: 10;
@@ -352,7 +347,6 @@
 			font-size: 0.875rem;
 			cursor: pointer;
 			transition: all 0.2s;
-			box-shadow: var(--shadow);
 		}
 
 		.preset-btn:hover {
@@ -422,13 +416,11 @@
 
 			.main-grid {
 				display: flex;
-				flex-direction: column-reverse; /* Show results at top conceptually, but maybe bottom is better? User asked for redesign. Standard is controls -> result. Let's keep normal flow but maybe make result sticky bottom? No, let's keep it simple. */
-				flex-direction: column; /* Normal flow */
+				flex-direction: column;
 			}
 
 			.card {
 				border: none;
-				box-shadow: none;
 				padding: 0;
 				margin-bottom: 2rem;
 				border-bottom: 1px solid var(--border);
@@ -441,7 +433,6 @@
 			}
 
 			.result-card {
-				box-shadow: none;
 				border: 1px solid var(--border);
 				background: var(--input-bg);
 				margin-bottom: 2rem;
@@ -669,6 +660,9 @@
 				categoryLarge: 'Large',
 				categoryVeryLarge: 'Very Large',
 				categoryMassive: 'Massive',
+				estimatedArchitecture: 'Estimated Architecture',
+				reserved: 'Reserved',
+				mbPerToken: 'MB/token',
 				
 				warningKvCache: '⚠️ KV cache >50% of VRAM. Reduce context.',
 				warningInsufficient: '❌ Insufficient VRAM for model.',
@@ -714,6 +708,9 @@
 				categoryLarge: 'Besar',
 				categoryVeryLarge: 'Sangat Besar',
 				categoryMassive: 'Masif',
+				estimatedArchitecture: 'Arsitektur Terestimasi',
+				reserved: 'Dicadangkan',
+				mbPerToken: 'MB/token',
 				
 				warningKvCache: '⚠️ KV cache >50% dari VRAM. Kurangi konteks.',
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
@@ -880,6 +877,7 @@
 				const bytesPerParam = quantizationBits[this.quantization] / 8;
 				const kvQuantBits = this.kvCacheQuant === 'same' ? 
 					quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant];
+				const t = text[this.language];
 				const bytesPerKvElement = kvQuantBits / 8;
 				
 				let overheadGB = 0;
@@ -897,12 +895,12 @@
 						// Apple Silicon: ~75% available for GPU
 						availableVram = this.vramSize * 0.75;
 						overheadGB = this.vramSize - availableVram;
-						overheadMsg = "Reserved (25%)";
+						overheadMsg = `${t.reserved} (25%)`;
 					} else if (this.gpuType === 'snapdragon') {
 						// Snapdragon/Windows SoC: ~50% available for GPU
 						availableVram = this.vramSize * 0.50;
 						overheadGB = this.vramSize - availableVram;
-						overheadMsg = "Reserved (50%)";
+						overheadMsg = `${t.reserved} (50%)`;
 					}
 					// Update slider display for read-only view
 					elements.overheadSlider.value = overheadGB;
@@ -955,7 +953,7 @@
 					elements.resultValue.className = 'result-value';
 					
 					const category = this.getModelCategory(results.maxParams);
-					elements.resultCategory.textContent = `${category} ${t.categorySuffix} Estimated Architecture`;
+					elements.resultCategory.textContent = `${category} ${t.categorySuffix} ${t.estimatedArchitecture}`;
 					
 					if (results.estimatedArchitecture) {
 						elements.modelDetails.classList.remove('hidden');
@@ -990,7 +988,7 @@
 						<span class="metric-label">${t.kvCacheMemory}</span>
 						<div class="metric-value-group">
 							<div class="metric-val" style="color: var(--warning)">-${results.kvCacheGB.toFixed(2)} GB</div>
-							<span class="metric-sub">${mbPerToken} MB/token</span>
+							<span class="metric-sub">${mbPerToken} ${t.mbPerToken}</span>
 						</div>
 					</div>
 					<div class="metric-row" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
