@@ -6,403 +6,497 @@
 	<title>LLM VRAM Calculator</title>
 	<style>
 		:root {
-			--primary: #005dac;
+			--primary: #2563eb;
+			--primary-hover: #1d4ed8;
 			--on-primary: #ffffff;
-			--hover: #00539a;
-			--background: #f9f9ff;
+			--background: #f8fafc;
 			--surface: #ffffff;
-			--text: #181c21;
-			--border: #c1c6d4;
-			--muted: #f2f3fc;
-			--success: #0b6b1d;
-			--on-success: #ffffff;
-			--danger: #ba1a1a;
-			--on-danger: #ffffff;
-			--warning: #e65100;
-			--on-warning: #ffffff;
-			--highlight-bg: #d4e3ff;
+			--text: #0f172a;
+			--text-muted: #64748b;
+			--border: #e2e8f0;
+			--input-bg: #f1f5f9;
+			--success: #16a34a;
+			--danger: #dc2626;
+			--warning: #ea580c;
+			--warning-bg: #ffedd5;
+			--warning-text: #9a3412;
+			--shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+			--shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+			--radius: 0.75rem;
 		}
+
 		@media (prefers-color-scheme: dark) {
 			:root:not(.light) {
-				--primary: #a5c8ff;
-				--on-primary: #00315f;
-				--hover: #72adff;
-				--background: #101319;
-				--surface: #0b0e14;
-				--text: #e0e2ea;
-				--border: #414752;
-				--muted: #181c21;
-				--success: #82db7e;
-				--on-success: #00390a;
-				--danger: #ffb4ab;
-				--on-danger: #93000a;
-				--warning: #ffb77c;
-				--on-warning: #4d2600;
-				--highlight-bg: #001c3a;
+				--primary: #3b82f6;
+				--primary-hover: #60a5fa;
+				--on-primary: #ffffff;
+				--background: #0f172a;
+				--surface: #1e293b;
+				--text: #f1f5f9;
+				--text-muted: #94a3b8;
+				--border: #334155;
+				--input-bg: #0f172a;
+				--success: #4ade80;
+				--danger: #f87171;
+				--warning: #fb923c;
+				--warning-bg: #431407;
+				--warning-text: #ffedd5;
 			}
 		}
+
 		:root.dark {
-			--primary: #a5c8ff;
-			--on-primary: #00315f;
-			--hover: #72adff;
-			--background: #101319;
-			--surface: #0b0e14;
-			--text: #e0e2ea;
-			--border: #414752;
-			--muted: #181c21;
-			--success: #82db7e;
-			--on-success: #00390a;
-			--danger: #ffb4ab;
-			--on-danger: #93000a;
-			--warning: #ffb77c;
-			--on-warning: #4d2600;
-			--highlight-bg: #001c3a;
+			--primary: #3b82f6;
+			--primary-hover: #60a5fa;
+			--on-primary: #ffffff;
+			--background: #0f172a;
+			--surface: #1e293b;
+			--text: #f1f5f9;
+			--text-muted: #94a3b8;
+			--border: #334155;
+			--input-bg: #0f172a;
+			--success: #4ade80;
+			--danger: #f87171;
+			--warning: #fb923c;
+			--warning-bg: #431407;
+			--warning-text: #ffedd5;
 		}
-		* { 
-			box-sizing: border-box; 
-			margin: 0; 
-			padding: 0; 
-			outline-offset: 2px; 
+
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
 		}
-		*:focus-visible { 
-			outline: 2px solid var(--primary); 
-		}
+
 		body {
 			background: var(--background);
 			color: var(--text);
-			font-family: sans-serif;
-			display: flex;
-			justify-content: center;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			line-height: 1.5;
 			min-height: 100vh;
-			padding: 1rem;
-		}
-		.container {
-			background: var(--surface);
-			border: 1px solid var(--border);
-			border-radius: 8px;
-			max-width: 1400px;
-			padding: 2rem;
-			width: 100%;
-			position: relative;
-			margin: 2rem 0;
-		}
-		.hidden { 
-			display: none !important; 
-		}
-		h1, h2, h3, label { 
-			margin: .5rem 0; 
-		}
-		h1 {
-			font-size: 2rem;
-			text-align: center;
-			color: var(--primary);
-			margin-bottom: 0.5rem;
-		}
-		h2 {
-			font-size: 1.1rem;
-			font-weight: 700;
-			color: var(--primary);
-		}
-		label { 
-			display: block; 
-			font-weight: 700;
-			font-size: 0.9rem;
-		}
-		input, select, button, textarea {
-			background: var(--surface);
-			border: 1px solid var(--border);
-			border-radius: 4px;
-			color: var(--text);
-			font-size: 1rem;
-			padding: .5rem;
-			width: 100%;
-		}
-		textarea {
-			resize: vertical;
-			min-height: 80px;
-		}
-		button { 
-			cursor: pointer; 
-		}
-		button:disabled { 
-			opacity: .6; 
-			cursor: not-allowed; 
-		}
-		.primary { 
-			background: var(--primary); 
-			color: var(--on-primary); 
-			border: 0; 
-		}
-		.primary:hover:not(:disabled) { 
-			background: var(--hover); 
-		}
-		.secondary:hover:not(:disabled) { 
-			background: var(--muted); 
-		}
-		.danger { 
-			background: var(--danger); 
-			color: var(--on-danger); 
-			border: 0; 
-		}
-		.success { 
-			background: var(--success); 
-			color: var(--on-success); 
-			border: 0; 
-		}
-		.selectors {
-			position: absolute;
-			right: 2rem;
-			top: 1rem;
 			display: flex;
-			gap: 8px;
+			flex-direction: column;
+			align-items: center;
+			padding: 2rem;
 		}
-		.selectors select { 
-			width: auto; 
-			font-size: .9rem; 
+
+		.container {
+			width: 100%;
+			max-width: 1200px;
+			margin: 0 auto;
 		}
-		.subtitle {
-			text-align: center;
-			font-size: 0.9rem;
-			opacity: 0.8;
-			line-height: 1.6;
+
+		/* Header */
+		.app-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
 			margin-bottom: 2rem;
+			flex-wrap: wrap;
+			gap: 1rem;
 		}
+
+		.title-group h1 {
+			font-size: 1.875rem;
+			font-weight: 800;
+			color: var(--primary);
+			letter-spacing: -0.025em;
+		}
+
+		.subtitle {
+			color: var(--text-muted);
+			font-size: 0.95rem;
+			max-width: 600px;
+		}
+
+		.selectors {
+			display: flex;
+			gap: 0.75rem;
+		}
+
+		select {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			color: var(--text);
+			padding: 0.5rem 2rem 0.5rem 1rem;
+			border-radius: 0.5rem;
+			font-size: 0.875rem;
+			cursor: pointer;
+			appearance: none;
+			background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+			background-position: right 0.5rem center;
+			background-repeat: no-repeat;
+			background-size: 1.5em 1.5em;
+		}
+
+		select:focus {
+			outline: 2px solid var(--primary);
+			outline-offset: 1px;
+			border-color: var(--primary);
+		}
+
+		/* Main Grid */
 		.main-grid {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			gap: 2rem;
 			margin-bottom: 2rem;
 		}
+
 		.card {
-			background: var(--muted);
+			background: var(--surface);
+			border-radius: var(--radius);
 			border: 1px solid var(--border);
-			border-radius: 8px;
 			padding: 1.5rem;
-			margin-bottom: 1rem;
+			margin-bottom: 1.5rem;
+			box-shadow: var(--shadow);
 		}
+
 		.card:last-child {
 			margin-bottom: 0;
 		}
-		.form-group { 
-			margin-bottom: 1.5rem; 
+
+		.card h2 {
+			font-size: 1.125rem;
+			font-weight: 700;
+			margin-bottom: 1.25rem;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
 		}
+
+		.form-group {
+			margin-bottom: 1.5rem;
+		}
+
 		.form-group:last-child {
 			margin-bottom: 0;
 		}
-		.form-group label .value {
-			color: var(--primary);
+
+		.label-row {
+			display: flex;
+			justify-content: space-between;
+			margin-bottom: 0.5rem;
+		}
+
+		.label-row label {
+			font-weight: 600;
+			font-size: 0.9rem;
+			color: var(--text);
+		}
+
+		.label-row .value {
+			font-family: monospace;
 			font-weight: 700;
+			color: var(--primary);
 		}
+
+		/* Inputs */
 		input[type="range"] {
-			-webkit-appearance: none;
-			appearance: none;
 			width: 100%;
-			height: 8px;
+			height: 6px;
 			background: var(--border);
-			border-radius: 4px;
+			border-radius: 3px;
 			outline: none;
-			cursor: pointer;
-			border: 0;
+			-webkit-appearance: none;
 		}
+
 		input[type="range"]::-webkit-slider-thumb {
 			-webkit-appearance: none;
-			appearance: none;
-			width: 20px;
-			height: 20px;
-			border-radius: 50%;
+			width: 18px;
+			height: 18px;
 			background: var(--primary);
-			cursor: pointer;
-		}
-		input[type="range"]::-moz-range-thumb {
-			width: 20px;
-			height: 20px;
 			border-radius: 50%;
-			background: var(--primary);
-			border: 0;
 			cursor: pointer;
+			transition: transform 0.1s;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 		}
+
+		input[type="range"]::-webkit-slider-thumb:hover {
+			transform: scale(1.1);
+		}
+
 		.slider-labels {
 			display: flex;
 			justify-content: space-between;
 			font-size: 0.75rem;
-			opacity: 0.7;
+			color: var(--text-muted);
 			margin-top: 0.5rem;
 		}
-		.result-box {
+
+		select.full-width {
+			width: 100%;
+		}
+
+		/* Results */
+		.result-card {
+			background: var(--surface);
+			border-radius: var(--radius);
+			border: 1px solid var(--border);
+			padding: 2rem;
 			text-align: center;
-			padding: 2rem 1rem;
+			margin-bottom: 1.5rem;
+			box-shadow: var(--shadow-lg);
+			position: sticky;
+			top: 1rem;
+			z-index: 10;
 		}
+
 		.result-value {
-			font-size: 3rem;
-			font-weight: 700;
+			font-size: 4rem;
+			font-weight: 800;
+			line-height: 1;
 			color: var(--primary);
-			margin: 1rem 0;
+			margin: 0.5rem 0;
+			letter-spacing: -0.05em;
 		}
+
+		.result-value.insufficient {
+			font-size: 2.5rem;
+			color: var(--danger);
+		}
+
 		.result-category {
-			font-size: 0.85rem;
-			opacity: 0.8;
-			margin-bottom: 1rem;
+			font-weight: 600;
+			color: var(--text-muted);
+			text-transform: uppercase;
+			font-size: 0.75rem;
+			letter-spacing: 0.05em;
 		}
+
 		.model-details {
+			margin-top: 1.5rem;
 			padding-top: 1rem;
 			border-top: 1px solid var(--border);
-			margin-top: 1rem;
+			display: flex;
+			justify-content: center;
+			gap: 2rem;
 		}
-		.detail-row {
+
+		.detail-item {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.detail-item span:first-child {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+		}
+
+		.detail-item span:last-child {
+			font-weight: 700;
+			font-size: 1.125rem;
+		}
+
+		/* Metrics */
+		.metric-row {
 			display: flex;
 			justify-content: space-between;
-			font-size: 0.85rem;
-			margin-bottom: 0.5rem;
+			align-items: center;
+			padding: 0.75rem 0;
+			border-bottom: 1px solid var(--border);
 		}
-		.detail-row .label {
-			opacity: 0.8;
+
+		.metric-row:last-child {
+			border-bottom: none;
 		}
-		.detail-row .value {
-			color: var(--primary);
+
+		.metric-label {
+			font-size: 0.9rem;
+			color: var(--text-muted);
+		}
+
+		.metric-value-group {
+			text-align: right;
+		}
+
+		.metric-val {
 			font-weight: 700;
+			font-family: monospace;
 		}
-		.metric-card {
-			background: var(--surface);
-			border: 1px solid var(--border);
-			border-left: 3px solid var(--primary);
-			padding: 0.75rem;
-			border-radius: 4px;
-			margin-bottom: 0.75rem;
+
+		.metric-sub {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			display: block;
 		}
-		.metric-card:last-child {
-			margin-bottom: 0;
+
+		/* Warning */
+		.warning-box {
+			background: var(--warning-bg);
+			border: 1px solid var(--warning);
+			color: var(--warning-text);
+			padding: 1rem;
+			border-radius: var(--radius);
+			margin-bottom: 1.5rem;
+			font-size: 0.9rem;
 		}
-		.metric-card .metric-label {
-			font-size: 0.85rem;
-			opacity: 0.8;
+
+		.warning-box p {
 			margin-bottom: 0.25rem;
 		}
-		.metric-card .metric-value {
-			font-size: 1.1rem;
-			font-weight: 700;
-		}
-		.metric-card .metric-detail {
-			font-size: 0.75rem;
-			opacity: 0.7;
-			margin-top: 0.25rem;
-		}
-		.warning-box {
-			background: var(--warning);
-			color: var(--on-warning);
-			border-radius: 4px;
-			padding: 1rem;
-			margin-bottom: 1rem;
-		}
-		.warning-box p {
-			font-size: 0.85rem;
-			margin-bottom: 0.5rem;
-		}
-		.warning-box p:last-child {
-			margin-bottom: 0;
-		}
-		.presets {
+
+		/* Presets */
+		.presets-grid {
 			display: grid;
-			grid-template-columns: repeat(2, 1fr);
-			gap: 0.5rem;
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: 0.75rem;
 		}
+
 		.preset-btn {
-			padding: 0.75rem;
 			background: var(--surface);
 			border: 1px solid var(--border);
+			padding: 0.75rem;
+			border-radius: 0.5rem;
 			color: var(--text);
-			font-size: 0.85rem;
-			border-radius: 4px;
+			font-weight: 500;
+			font-size: 0.875rem;
 			cursor: pointer;
+			transition: all 0.2s;
+			box-shadow: var(--shadow);
 		}
+
 		.preset-btn:hover {
-			background: var(--highlight-bg);
 			border-color: var(--primary);
-		}
-		.reference-section {
-			background: var(--muted);
-			border: 1px solid var(--border);
-			border-radius: 8px;
-			padding: 1.5rem;
-		}
-		.reference-section h3 {
-			font-size: 1rem;
-			font-weight: 700;
 			color: var(--primary);
+			transform: translateY(-1px);
+		}
+
+		/* Reference */
+		.reference-section {
+			margin-top: 3rem;
+			padding-top: 2rem;
+			border-top: 1px solid var(--border);
+			color: var(--text-muted);
+			font-size: 0.875rem;
+		}
+
+		.reference-section h3 {
+			color: var(--text);
 			margin-bottom: 1rem;
 		}
+
 		.reference-grid {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
-			gap: 1.5rem;
-			font-size: 0.85rem;
-			opacity: 0.9;
-			line-height: 1.6;
+			gap: 2rem;
 		}
-		.reference-grid p {
-			margin-bottom: 0.5rem;
+
+		.hidden {
+			display: none !important;
 		}
-		.reference-grid strong {
-			color: var(--primary);
-		}
-		.insufficient {
-			color: var(--danger);
-		}
-		.grid-row {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 1rem;
-		}
+
+		/* Mobile Optimizations */
 		@media (max-width: 1024px) {
 			.main-grid {
 				grid-template-columns: 1fr;
+				gap: 1rem;
 			}
-			.reference-grid {
-				grid-template-columns: 1fr;
+			.result-card {
+				position: static;
 			}
 		}
-		@media (max-width: 768px) {
-			.selectors { 
-				position: static; 
-				justify-content: end; 
-				margin-bottom: 1rem; 
+
+		@media (max-width: 600px) {
+			body {
+				padding: 0;
+				background: var(--surface);
 			}
-			.grid-row {
-				grid-template-columns: 1fr;
+
+			.container {
+				padding: 1rem;
 			}
-			h1 {
-				font-size: 1.5rem;
+
+			.app-header {
+				flex-direction: column;
+				align-items: flex-start;
+				margin-bottom: 1.5rem;
 			}
+
+			.selectors {
+				width: 100%;
+			}
+
+			.selectors select {
+				flex: 1;
+			}
+
+			.main-grid {
+				display: flex;
+				flex-direction: column-reverse; /* Show results at top conceptually, but maybe bottom is better? User asked for redesign. Standard is controls -> result. Let's keep normal flow but maybe make result sticky bottom? No, let's keep it simple. */
+				flex-direction: column; /* Normal flow */
+			}
+
+			.card {
+				border: none;
+				box-shadow: none;
+				padding: 0;
+				margin-bottom: 2rem;
+				border-bottom: 1px solid var(--border);
+				border-radius: 0;
+				padding-bottom: 1.5rem;
+			}
+
+			.card:last-child {
+				border-bottom: none;
+			}
+
+			.result-card {
+				box-shadow: none;
+				border: 1px solid var(--border);
+				background: var(--input-bg);
+				margin-bottom: 2rem;
+			}
+
 			.result-value {
-				font-size: 2rem;
+				font-size: 3rem;
+			}
+
+			input[type="range"] {
+				height: 8px; /* Larger touch target */
+			}
+
+			input[type="range"]::-webkit-slider-thumb {
+				width: 24px;
+				height: 24px;
+			}
+
+			.reference-grid {
+				grid-template-columns: 1fr;
+				gap: 1rem;
 			}
 		}
 	</style>
 </head>
 <body>
 	<div class="container">
-		<div class="selectors">
-			<select id="language">
-				<option value="en">English</option>
-				<option value="id">Bahasa Indonesia</option>
-			</select>
-			<select id="theme">
-				<option value="auto">Auto</option>
-				<option value="light">Light</option>
-				<option value="dark">Dark</option>
-			</select>
-		</div>
-		<h1 id="title"></h1>
-		<p id="subtitle" class="subtitle"></p>
+		<header class="app-header">
+			<div class="title-group">
+				<h1 id="title">LLM VRAM Calculator</h1>
+				<p id="subtitle" class="subtitle">Calculate maximum model size based on your hardware.</p>
+			</div>
+			<div class="selectors">
+				<select id="language">
+					<option value="en">English</option>
+					<option value="id">Bahasa Indonesia</option>
+				</select>
+				<select id="theme">
+					<option value="auto">Auto</option>
+					<option value="light">Light</option>
+					<option value="dark">Dark</option>
+				</select>
+			</div>
+		</header>
 		
 		<div class="main-grid">
-			<div>
+			<!-- Controls Column -->
+			<div class="controls-column">
 				<div class="card">
-					<h2 id="vramLabel"></h2>
+					<h2 id="vramLabel">GPU Memory</h2>
 					<div class="form-group">
-						<label>
-							<span id="vramSizeLabel"></span> 
+						<div class="label-row">
+							<label id="vramSizeLabel">VRAM Size</label>
 							<span class="value" id="vramValue">24 GB</span>
-						</label>
+						</div>
 						<input type="range" id="vramSlider" min="4" max="256" step="4" value="24">
 						<div class="slider-labels">
 							<span>4GB</span>
@@ -413,8 +507,10 @@
 					</div>
 					
 					<div class="form-group">
-						<label id="gpuTypeLabel"></label>
-						<select id="gpuType">
+						<div class="label-row">
+							<label id="gpuTypeLabel">GPU Type</label>
+						</div>
+						<select id="gpuType" class="full-width">
 							<option value="discrete">Discrete GPU (NVIDIA/AMD)</option>
 							<option value="soc">Apple Silicon (M-series)</option>
 							<option value="snapdragon">Snapdragon (Windows on Arm)</option>
@@ -422,102 +518,98 @@
 					</div>
 
 					<div class="form-group">
-						<label>
-							<span id="overheadLabel"></span>
+						<div class="label-row">
+							<label id="overheadLabel">System Overhead</label>
 							<span class="value" id="overheadValueDisplay">1.5 GB</span>
-						</label>
+						</div>
 						<input type="range" id="overheadSlider" min="0" max="16" step="0.1" value="1.5">
 						<div class="slider-labels">
 							<span>0GB</span>
-							<span>4GB</span>
 							<span>8GB</span>
 							<span>16GB</span>
 						</div>
 					</div>
-
 				</div>
 				
 				<div class="card">
-					<h2 id="quantizationLabel"></h2>
-					<div class="grid-row">
-						<div class="form-group">
-							<label id="modelQuantLabel"></label>
-							<select id="quantization">
-								<option value="fp32">FP32 (4.0 bytes)</option>
-								<option value="fp16" selected>FP16 (2.0 bytes)</option>
-								<option value="bf16">BF16 (2.0 bytes)</option>
-								<option value="fp8">FP8 (1.0 byte)</option>
-								<option value="int8">INT8 (1.0 byte)</option>
-								<option value="int4">INT4 (0.5 bytes)</option>
-								<option value="fp4">FP4 (0.5 bytes)</option>
-								<option value="fp2">FP2 (0.25 bytes)</option>
-							</select>
+					<h2 id="quantizationLabel">Quantization</h2>
+					<div class="form-group">
+						<div class="label-row">
+							<label id="modelQuantLabel">Model Precision</label>
 						</div>
-						
-						<div class="form-group">
-							<label id="kvCacheLabel"></label>
-							<select id="kvCache">
-								<option value="same" selected>Same as Model</option>
-								<option value="fp16">FP16 (2.0 bytes)</option>
-								<option value="fp8">FP8 (1.0 byte)</option>
-								<option value="int8">INT8 (1.0 byte)</option>
-								<option value="int4">INT4 (0.5 bytes)</option>
-							</select>
+						<select id="quantization" class="full-width">
+							<option value="fp32">FP32 (4.0 bytes)</option>
+							<option value="fp16" selected>FP16 (2.0 bytes)</option>
+							<option value="bf16">BF16 (2.0 bytes)</option>
+							<option value="fp8">FP8 (1.0 byte)</option>
+							<option value="int8">INT8 (1.0 byte)</option>
+							<option value="int4">INT4 (0.5 bytes)</option>
+							<option value="fp4">FP4 (0.5 bytes)</option>
+							<option value="fp2">FP2 (0.25 bytes)</option>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<div class="label-row">
+							<label id="kvCacheLabel">KV Cache</label>
 						</div>
+						<select id="kvCache" class="full-width">
+							<option value="same" selected>Same as Model</option>
+							<option value="fp16">FP16 (2.0 bytes)</option>
+							<option value="fp8">FP8 (1.0 byte)</option>
+							<option value="int8">INT8 (1.0 byte)</option>
+							<option value="int4">INT4 (0.5 bytes)</option>
+						</select>
 					</div>
 				</div>
 				
 				<div class="card">
-					<h2 id="contextLabel"></h2>
+					<h2 id="contextLabel">Context Window</h2>
 					<div class="form-group">
-						<label>
-							<span id="maxContextLabel"></span> 
+						<div class="label-row">
+							<label id="maxContextLabel">Max Context</label>
 							<span class="value" id="contextValue">8,192 tokens</span>
-						</label>
+						</div>
 						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13">
 						<div class="slider-labels">
 							<span>512</span>
-							<span>2K</span>
 							<span>8K</span>
-							<span>32K</span>
 							<span>128K</span>
-							<span>512K</span>
 							<span>1M</span>
 						</div>
 					</div>
 				</div>
 			</div>
 			
-			<div>
-				<div class="card">
-					<div class="result-box">
-						<h2 id="maxParamsLabel"></h2>
-						<div class="result-value" id="resultValue">0B</div>
-						<div class="result-category" id="resultCategory"></div>
-						
-						<div class="model-details hidden" id="modelDetails">
-							<div class="detail-row">
-								<span class="label" id="layersLabel"></span>
-								<span class="value" id="layersValue">-</span>
-							</div>
-							<div class="detail-row">
-								<span class="label" id="hiddenLabel"></span>
-								<span class="value" id="hiddenValue">-</span>
-							</div>
+			<!-- Results Column -->
+			<div class="results-column">
+				<div class="result-card">
+					<h3 class="result-category" id="maxParamsLabel">Maximum Parameters</h3>
+					<div class="result-value" id="resultValue">0B</div>
+					<div class="result-category" id="resultCategory"></div>
+
+					<div class="model-details hidden" id="modelDetails">
+						<div class="detail-item">
+							<span id="layersLabel">Layers</span>
+							<span id="layersValue">-</span>
+						</div>
+						<div class="detail-item">
+							<span id="hiddenLabel">Hidden Size</span>
+							<span id="hiddenValue">-</span>
 						</div>
 					</div>
 				</div>
 				
+				<div id="warningBox" class="warning-box hidden"></div>
+
 				<div class="card">
-					<h2 id="memoryAllocationLabel"></h2>
+					<h2 id="memoryAllocationLabel">Memory Allocation</h2>
 					<div id="metricsList"></div>
 				</div>
 				
-				<div id="warningBox" class="warning-box hidden"></div>
-				
 				<div class="card">
-					<h2 id="presetsLabel"></h2>
-					<div class="presets">
+					<h2 id="presetsLabel">Quick Presets</h2>
+					<div class="presets-grid">
 						<button class="preset-btn" data-preset="rtx5050">RTX 5050</button>
 						<button class="preset-btn" data-preset="rtx4090">RTX 4090</button>
 						<button class="preset-btn" data-preset="a100">A100 80GB</button>
@@ -530,14 +622,12 @@
 		</div>
 		
 		<div class="reference-section">
-			<h3 id="referenceTitle"></h3>
+			<h3 id="referenceTitle">References & Methodology</h3>
 			<div class="reference-grid">
 				<div id="formulasSection"></div>
 				<div id="architectureSection"></div>
 			</div>
-			<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-				<p style="font-size: 0.85rem; opacity: 0.8;" id="sourcesText"></p>
-			</div>
+			<div style="margin-top: 1rem; opacity: 0.8;" id="sourcesText"></div>
 		</div>
 	</div>
 	
@@ -550,15 +640,15 @@
 				lightTheme: 'Light',
 				darkTheme: 'Dark',
 				vramLabel: 'GPU Memory',
-				vramSizeLabel: 'VRAM Size:',
-				systemRamLabel: 'Total System RAM:',
+				vramSizeLabel: 'VRAM Size',
+				systemRamLabel: 'Total System RAM',
 				gpuTypeLabel: 'GPU Type',
-				overheadLabel: 'System Overhead Deduction:',
+				overheadLabel: 'System Overhead Deduction',
 				quantizationLabel: 'Quantization',
 				modelQuantLabel: 'Model Precision',
 				kvCacheLabel: 'KV Cache',
 				contextLabel: 'Context Window',
-				maxContextLabel: 'Max Context:',
+				maxContextLabel: 'Max Context',
 				maxParamsLabel: 'Maximum Parameters',
 				memoryAllocationLabel: 'Memory Allocation',
 				presetsLabel: 'Quick Presets',
@@ -569,8 +659,8 @@
 				kvCacheMemory: 'KV Cache',
 				modelWeights: 'Model Weights',
 				
-				layersLabel: 'Layers:',
-				hiddenLabel: 'Hidden Size:',
+				layersLabel: 'Layers',
+				hiddenLabel: 'Hidden Size',
 				
 				categorySuffix: '•',
 				categoryToy: 'Toy',
@@ -582,7 +672,7 @@
 				
 				warningKvCache: '⚠️ KV cache >50% of VRAM. Reduce context.',
 				warningInsufficient: '❌ Insufficient VRAM for model.',
-				insufficient: 'INSUFFICIENT VRAM',
+				insufficient: 'INSUFFICIENT',
 				
 				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param<br>• KV Cache: 2 × layers × hidden × context × bytes<br>• Overhead: Fixed amount (OS, Display, Framework)',
 				architecture: '<strong>Reference Data:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv heads)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
@@ -595,15 +685,15 @@
 				lightTheme: 'Terang',
 				darkTheme: 'Gelap',
 				vramLabel: 'Memori GPU',
-				vramSizeLabel: 'Ukuran VRAM:',
-				systemRamLabel: 'Total RAM Sistem:',
+				vramSizeLabel: 'Ukuran VRAM',
+				systemRamLabel: 'Total RAM Sistem',
 				gpuTypeLabel: 'Tipe GPU',
-				overheadLabel: 'Deduksi Overhead Sistem:',
+				overheadLabel: 'Deduksi Overhead Sistem',
 				quantizationLabel: 'Kuantisasi',
 				modelQuantLabel: 'Presisi Model',
 				kvCacheLabel: 'KV Cache',
 				contextLabel: 'Jendela Konteks',
-				maxContextLabel: 'Konteks Maks:',
+				maxContextLabel: 'Konteks Maks',
 				maxParamsLabel: 'Parameter Maksimum',
 				memoryAllocationLabel: 'Alokasi Memori',
 				presetsLabel: 'Preset Cepat',
@@ -614,8 +704,8 @@
 				kvCacheMemory: 'KV Cache',
 				modelWeights: 'Bobot Model',
 				
-				layersLabel: 'Lapisan:',
-				hiddenLabel: 'Ukuran Tersembunyi:',
+				layersLabel: 'Lapisan',
+				hiddenLabel: 'Ukuran Tersembunyi',
 				
 				categorySuffix: '•',
 				categoryToy: 'Mainan',
@@ -627,7 +717,7 @@
 				
 				warningKvCache: '⚠️ KV cache >50% dari VRAM. Kurangi konteks.',
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
-				insufficient: 'VRAM TIDAK CUKUP',
+				insufficient: 'TIDAK CUKUP',
 				
 				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param<br>• KV Cache: 2 × lapisan × tersembunyi × konteks × byte<br>• Overhead: Jumlah tetap (OS, Tampilan, Framework)',
 				architecture: '<strong>Data Referensi:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv head)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
@@ -883,23 +973,31 @@
 				
 				const mbPerToken = (results.kvCacheGB * 1024 / this.contextWindow).toFixed(2);
 				elements.metricsList.innerHTML = `
-					<div class="metric-card">
-						<div class="metric-label">${t.totalVram}</div>
-						<div class="metric-value">${results.totalVram} GB</div>
+					<div class="metric-row">
+						<span class="metric-label">${t.totalVram}</span>
+						<div class="metric-value-group">
+							<div class="metric-val">${results.totalVram} GB</div>
+						</div>
 					</div>
-					<div class="metric-card">
-						<div class="metric-label">${t.systemOverhead}</div>
-						<div class="metric-value">-${results.overheadGB.toFixed(1)} GB</div>
-						${results.overheadMsg ? `<div class="metric-detail">${results.overheadMsg}</div>` : ''}
+					<div class="metric-row">
+						<span class="metric-label">${t.systemOverhead}</span>
+						<div class="metric-value-group">
+							<div class="metric-val" style="color: var(--danger)">-${results.overheadGB.toFixed(1)} GB</div>
+							${results.overheadMsg ? `<span class="metric-sub">${results.overheadMsg}</span>` : ''}
+						</div>
 					</div>
-					<div class="metric-card">
-						<div class="metric-label">${t.kvCacheMemory}</div>
-						<div class="metric-value">-${results.kvCacheGB.toFixed(2)} GB</div>
-						<div class="metric-detail">${mbPerToken} MB/token</div>
+					<div class="metric-row">
+						<span class="metric-label">${t.kvCacheMemory}</span>
+						<div class="metric-value-group">
+							<div class="metric-val" style="color: var(--warning)">-${results.kvCacheGB.toFixed(2)} GB</div>
+							<span class="metric-sub">${mbPerToken} MB/token</span>
+						</div>
 					</div>
-					<div class="metric-card" style="border-left-color: var(--primary); border-left-width: 3px;">
-						<div class="metric-label">${t.modelWeights}</div>
-						<div class="metric-value" style="color: var(--primary);">${Math.max(0, results.modelMemoryGB).toFixed(2)} GB</div>
+					<div class="metric-row" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
+						<span class="metric-label" style="font-weight: 700; color: var(--text)">${t.modelWeights}</span>
+						<div class="metric-value-group">
+							<div class="metric-val" style="color: var(--primary);">${Math.max(0, results.modelMemoryGB).toFixed(2)} GB</div>
+						</div>
 					</div>
 				`;
 				
