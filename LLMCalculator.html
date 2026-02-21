@@ -488,7 +488,7 @@
 							<label id="vramSizeLabel">VRAM Size</label>
 							<span class="value" id="vramValue">24 GB</span>
 						</div>
-						<input type="range" id="vramSlider" min="4" max="256" step="4" value="24">
+						<input type="range" id="vramSlider" min="4" max="256" step="4" value="24" aria-labelledby="vramSizeLabel">
 						<div class="slider-labels">
 							<span>4GB</span>
 							<span>64GB</span>
@@ -513,7 +513,7 @@
 							<label id="overheadLabel">System Overhead</label>
 							<span class="value" id="overheadValueDisplay">1.5 GB</span>
 						</div>
-						<input type="range" id="overheadSlider" min="0" max="16" step="0.1" value="1.5">
+						<input type="range" id="overheadSlider" min="0" max="16" step="0.1" value="1.5" aria-labelledby="overheadLabel">
 						<div class="slider-labels">
 							<span>0GB</span>
 							<span>8GB</span>
@@ -552,6 +552,16 @@
 							<option value="int4">INT4 (0.5 bytes)</option>
 						</select>
 					</div>
+
+					<div class="form-group">
+						<div class="label-row">
+							<label id="attentionLabel">Attention</label>
+						</div>
+						<select id="attention" class="full-width">
+							<option value="mha">MHA (Standard)</option>
+							<option value="gqa" selected>GQA (Modern)</option>
+						</select>
+					</div>
 				</div>
 				
 				<div class="card">
@@ -561,7 +571,7 @@
 							<label id="maxContextLabel">Max Context</label>
 							<span class="value" id="contextValue">8,192 tokens</span>
 						</div>
-						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13">
+						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13" aria-labelledby="maxContextLabel">
 						<div class="slider-labels">
 							<span>512</span>
 							<span>8K</span>
@@ -638,6 +648,7 @@
 				quantizationLabel: 'Quantization',
 				modelQuantLabel: 'Model Precision',
 				kvCacheLabel: 'KV Cache',
+				attentionLabel: 'Attention Mechanism',
 				contextLabel: 'Context Window',
 				maxContextLabel: 'Max Context',
 				maxParamsLabel: 'Maximum Parameters',
@@ -686,6 +697,7 @@
 				quantizationLabel: 'Kuantisasi',
 				modelQuantLabel: 'Presisi Model',
 				kvCacheLabel: 'KV Cache',
+				attentionLabel: 'Mekanisme Atensi',
 				contextLabel: 'Jendela Konteks',
 				maxContextLabel: 'Konteks Maks',
 				maxParamsLabel: 'Parameter Maksimum',
@@ -736,8 +748,6 @@
 		];
 
 		function estimateArchitecture(params) {
-			referenceConfigs.sort((a, b) => a.size - b.size);
-
 			if (params <= referenceConfigs[0].size) {
 				return {
 					layers: referenceConfigs[0].layers,
@@ -779,6 +789,7 @@
 				this.quantization = 'fp16';
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
+				this.attention = 'gqa';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
 				
@@ -807,6 +818,11 @@
 					this.kvCacheQuant = e.target.value;
 					this.calculate();
 				};
+
+				elements.attention.onchange = e => {
+					this.attention = e.target.value;
+					this.calculate();
+				};
 				
 				elements.contextSlider.oninput = e => {
 					this.contextWindow = Math.pow(2, Number(e.target.value));
@@ -832,12 +848,12 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5 },
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5 },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5 },
-					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5 },
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc' },
-					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon' }
+					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa' },
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa' },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
+					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', attention: 'gqa' },
+					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'gqa' }
 				};
 				
 				const p = presets[preset];
@@ -846,12 +862,14 @@
 					this.quantization = p.quant;
 					this.contextWindow = p.context;
 					this.gpuType = p.gpu;
+					this.attention = p.attention || 'mha';
 					if (p.overhead !== undefined) this.manualOverhead = p.overhead;
 					
 					elements.vramSlider.value = p.vram;
 					elements.quantization.value = p.quant;
 					elements.contextSlider.value = Math.log2(p.context);
 					elements.gpuType.value = p.gpu;
+					elements.attention.value = this.attention;
 					elements.overheadSlider.value = this.manualOverhead;
 					
 					this.updateVramDisplay();
@@ -914,8 +932,9 @@
 				let estimatedArchitecture = { layers: 0, hidden: 0 };
 				
 				for (let i = 0; i < 5; i++) {
+					const gqaRatio = this.attention === 'gqa' ? Math.min(1, 1024 / (estimatedArchitecture.hidden || 4096)) : 1;
 					const kvCache = estimatedArchitecture.layers ?
-						(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
+						(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * gqaRatio) / (1024 ** 3) : 0;
 					
 					const memoryForWeights = availableForUse - kvCache;
 					
@@ -928,8 +947,9 @@
 					estimatedArchitecture = estimateArchitecture(maxParams);
 				}
 				
+				const finalGqaRatio = this.attention === 'gqa' ? Math.min(1, 1024 / (estimatedArchitecture.hidden || 4096)) : 1;
 				const kvCacheGB = estimatedArchitecture.layers ?
-					(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement) / (1024 ** 3) : 0;
+					(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * finalGqaRatio) / (1024 ** 3) : 0;
 				
 				const results = {
 					totalVram: this.vramSize,
