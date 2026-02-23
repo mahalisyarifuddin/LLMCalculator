@@ -734,7 +734,7 @@
 			}
 		};
 		
-		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
+		const elements = new Proxy({}, { get: (_,id)=>document.getElementById(id) });
 		
 		const referenceConfigs = [
 			{ size: 0.5, layers: 24, hidden: 896 },
@@ -747,36 +747,18 @@
 			{ size: 405.0, layers: 126, hidden: 16384 }
 		];
 
-		function estimateArchitecture(params) {
-			if (params <= referenceConfigs[0].size) {
-				return {
-					layers: referenceConfigs[0].layers,
-					hidden: referenceConfigs[0].hidden
-				};
-			}
-
-			if (params >= referenceConfigs[referenceConfigs.length - 1].size) {
-				return {
-					layers: referenceConfigs[referenceConfigs.length - 1].layers,
-					hidden: referenceConfigs[referenceConfigs.length - 1].hidden
-				};
-			}
-
-			for (let i = 0; i < referenceConfigs.length - 1; i++) {
-				const lower = referenceConfigs[i];
-				const upper = referenceConfigs[i+1];
-
-				if (params >= lower.size && params <= upper.size) {
-					const ratio = (params - lower.size) / (upper.size - lower.size);
+		const estimateArchitecture = params=>params <= referenceConfigs[0].size
+			? {layers: referenceConfigs[0].layers,hidden: referenceConfigs[0].hidden}
+			: params >= referenceConfigs[referenceConfigs.length - 1].size
+				? {layers: referenceConfigs[referenceConfigs.length - 1].layers,hidden: referenceConfigs[referenceConfigs.length - 1].hidden}
+				: (()=>{
+					const i = referenceConfigs.findIndex((c,idx)=>params >= c.size && params <= referenceConfigs[idx+1]?.size);
+					const lower = referenceConfigs[i],upper = referenceConfigs[i+1],ratio = (params - lower.size) / (upper.size - lower.size);
 					return {
 						layers: Math.round(lower.layers + (upper.layers - lower.layers) * ratio),
 						hidden: Math.round(lower.hidden + (upper.hidden - lower.hidden) * ratio)
 					};
-				}
-			}
-
-			return referenceConfigs[0];
-		}
+				})();
 		
 		const quantizationBits = {
 			'fp32': 32, 'fp16': 16, 'bf16': 16, 'fp8': 8,
@@ -800,50 +782,17 @@
 			}
 			
 			setup() {
-				elements.language.onchange = e => this.lang(e.target.value);
-				elements.theme.onchange = e => this.theme(e.target.value);
-				
-				elements.vramSlider.oninput = e => {
-					this.vramSize = Number(e.target.value);
-					this.updateVramDisplay();
-					this.calculate();
-				};
-
-				elements.quantization.onchange = e => {
-					this.quantization = e.target.value;
-					this.calculate();
-				};
-				
-				elements.kvCache.onchange = e => {
-					this.kvCacheQuant = e.target.value;
-					this.calculate();
-				};
-
-				elements.attention.onchange = e => {
-					this.attention = e.target.value;
-					this.calculate();
-				};
-				
-				elements.contextSlider.oninput = e => {
-					this.contextWindow = Math.pow(2, Number(e.target.value));
-					this.updateContextDisplay();
-					this.calculate();
-				};
-				
-				elements.gpuType.onchange = e => {
-					this.gpuType = e.target.value;
-					this.updateVramDisplay();
-					this.calculate();
-				};
-
-				elements.overheadSlider.oninput = e => {
-					this.manualOverhead = Number(e.target.value);
-					this.calculate();
-				};
-				
-				document.querySelectorAll('.preset-btn').forEach(btn => {
-					btn.onclick = () => this.applyPreset(btn.dataset.preset);
-				});
+				(elements.language.onchange = e=>this.lang(e.target.value),
+				elements.theme.onchange = e=>this.theme(e.target.value),
+				elements.vramSlider.oninput = e=>(this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
+				elements.quantization.onchange = e=>(this.quantization = e.target.value,this.calculate()),
+				elements.kvCache.onchange = e=>(this.kvCacheQuant = e.target.value,this.calculate()),
+				elements.attention.onchange = e=>(this.attention = e.target.value,this.calculate()),
+				elements.contextSlider.oninput = e=>(this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
+				elements.gpuType.onchange = e=>(this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
+				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate()),
+				document.querySelectorAll('.preset-btn')
+					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
 			}
 			
 			applyPreset(preset) {
@@ -854,37 +803,30 @@
 					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
 					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', attention: 'gqa' },
 					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'gqa' }
-				};
-				
-				const p = presets[preset];
-				if (p) {
-					this.vramSize = p.vram;
-					this.quantization = p.quant;
-					this.contextWindow = p.context;
-					this.gpuType = p.gpu;
-					this.attention = p.attention || 'mha';
-					if (p.overhead !== undefined) this.manualOverhead = p.overhead;
-					
-					elements.vramSlider.value = p.vram;
-					elements.quantization.value = p.quant;
-					elements.contextSlider.value = Math.log2(p.context);
-					elements.gpuType.value = p.gpu;
-					elements.attention.value = this.attention;
-					elements.overheadSlider.value = this.manualOverhead;
-					
-					this.updateVramDisplay();
-					this.updateContextDisplay();
-					this.calculate();
-				}
+				}, p = presets[preset];
+				p && (
+					this.vramSize = p.vram,
+					this.quantization = p.quant,
+					this.contextWindow = p.context,
+					this.gpuType = p.gpu,
+					this.attention = p.attention || 'mha',
+					p.overhead !== undefined && (this.manualOverhead = p.overhead),
+					elements.vramSlider.value = p.vram,
+					elements.quantization.value = p.quant,
+					elements.contextSlider.value = Math.log2(p.context),
+					elements.gpuType.value = p.gpu,
+					elements.attention.value = this.attention,
+					elements.overheadSlider.value = this.manualOverhead,
+					this.updateVramDisplay(),
+					this.updateContextDisplay(),
+					this.calculate()
+				);
 			}
 			
 			updateVramDisplay() {
-				elements.vramValue.textContent = `${this.vramSize} GB`;
-
-				// Update label based on GPU type
-				const isSoc = this.gpuType === 'soc' || this.gpuType === 'snapdragon';
-				elements.vramSizeLabel.textContent = isSoc ?
-					this.string('systemRamLabel') : this.string('vramSizeLabel');
+				(elements.vramValue.textContent = `${this.vramSize} GB`,
+				elements.vramSizeLabel.textContent = (this.gpuType === 'soc' || this.gpuType === 'snapdragon') ?
+					this.string('systemRamLabel') : this.string('vramSizeLabel'));
 			}
 			
 			updateContextDisplay() {
@@ -892,104 +834,62 @@
 			}
 			
 			calculate() {
-				const bytesPerParam = quantizationBits[this.quantization] / 8;
-				const kvQuantBits = this.kvCacheQuant === 'same' ? 
-					quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant];
-				const t = text[this.language];
-				const bytesPerKvElement = kvQuantBits / 8;
+				const bytesPerParam = quantizationBits[this.quantization] / 8,
+					kvQuantBits = this.kvCacheQuant === 'same' ? quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant],
+					t = text[this.language],
+					bytesPerKvElement = kvQuantBits / 8;
 				
-				let overheadGB = 0;
-				let availableVram = 0;
-				let overheadMsg = "";
+				const [overheadGB,availableVram,overheadMsg] = this.gpuType === 'discrete'
+					? [this.manualOverhead,this.vramSize - this.manualOverhead,""]
+					: this.gpuType === 'soc'
+						? [this.vramSize * 0.25,this.vramSize * 0.75,`${t.reserved} (25%)`]
+						: [this.vramSize * 0.50,this.vramSize * 0.50,`${t.reserved} (50%)`];
 
-				if (this.gpuType === 'discrete') {
-					overheadGB = this.manualOverhead;
-					availableVram = this.vramSize - overheadGB;
-					elements.overheadSlider.disabled = false;
-					elements.overheadSlider.value = this.manualOverhead;
-				} else {
-					elements.overheadSlider.disabled = true;
-					if (this.gpuType === 'soc') {
-						// Apple Silicon: ~75% available for GPU
-						availableVram = this.vramSize * 0.75;
-						overheadGB = this.vramSize - availableVram;
-						overheadMsg = `${t.reserved} (25%)`;
-					} else if (this.gpuType === 'snapdragon') {
-						// Snapdragon/Windows SoC: ~50% available for GPU
-						availableVram = this.vramSize * 0.50;
-						overheadGB = this.vramSize - availableVram;
-						overheadMsg = `${t.reserved} (50%)`;
-					}
-					// Update slider display for read-only view
-					elements.overheadSlider.value = overheadGB;
-				}
+				(elements.overheadSlider.disabled = this.gpuType !== 'discrete',
+				elements.overheadSlider.value = overheadGB,
+				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`);
 
-				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`;
-
-				const availableForUse = Math.max(0, availableVram);
-				
-				let maxParams = 0;
-				let estimatedArchitecture = { layers: 0, hidden: 0 };
+				const availableForUse = Math.max(0,availableVram);
+				let maxParams = 0,estimatedArchitecture = {layers: 0,hidden: 0};
 				
 				for (let i = 0; i < 5; i++) {
-					const gqaRatio = this.attention === 'gqa' ? Math.min(1, 1024 / (estimatedArchitecture.hidden || 4096)) : 1;
-					const kvCache = estimatedArchitecture.layers ?
-						(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * gqaRatio) / (1024 ** 3) : 0;
-					
+					const gqaRatio = this.attention === 'gqa' ? Math.min(1,1024 / (estimatedArchitecture.hidden || 4096)) : 1;
+					const kvCache = estimatedArchitecture.layers ? (2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * gqaRatio) / (1024 ** 3) : 0;
 					const memoryForWeights = availableForUse - kvCache;
-					
-					if (memoryForWeights <= 0) {
-						maxParams = 0;
-						break;
-					}
-					
-					maxParams = memoryForWeights / bytesPerParam;
-					estimatedArchitecture = estimateArchitecture(maxParams);
+					if (memoryForWeights <= 0) { (maxParams = 0); break; }
+					(maxParams = memoryForWeights / bytesPerParam,estimatedArchitecture = estimateArchitecture(maxParams));
 				}
 				
-				const finalGqaRatio = this.attention === 'gqa' ? Math.min(1, 1024 / (estimatedArchitecture.hidden || 4096)) : 1;
-				const kvCacheGB = estimatedArchitecture.layers ?
-					(2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * finalGqaRatio) / (1024 ** 3) : 0;
+				const finalGqaRatio = this.attention === 'gqa' ? Math.min(1,1024 / (estimatedArchitecture.hidden || 4096)) : 1;
+				const kvCacheGB = estimatedArchitecture.layers ? (2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * finalGqaRatio) / (1024 ** 3) : 0;
 				
-				const results = {
+				this.displayResults({
 					totalVram: this.vramSize,
 					overheadGB: overheadGB,
 					overheadMsg: overheadMsg,
 					availableVram: availableForUse,
 					kvCacheGB: kvCacheGB,
-					modelMemoryGB: Math.max(0, availableForUse - kvCacheGB),
+					modelMemoryGB: Math.max(0,availableForUse - kvCacheGB),
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
-				};
-				
-				this.displayResults(results);
+				});
 			}
 			
 			displayResults(results) {
-				const t = text[this.language];
-				
-				if (results.modelMemoryGB > 0) {
-					elements.resultValue.textContent = `${Math.floor(results.maxParams)}B`;
-					elements.resultValue.className = 'result-value';
-					
-					const category = this.getModelCategory(results.maxParams);
-					elements.resultCategory.textContent = `${category} ${t.categorySuffix} ${t.estimatedArchitecture}`;
-					
-					if (results.estimatedArchitecture) {
-						elements.modelDetails.classList.remove('hidden');
-						elements.layersValue.textContent = results.estimatedArchitecture.layers;
-						elements.hiddenValue.textContent = results.estimatedArchitecture.hidden;
-					} else {
-						elements.modelDetails.classList.add('hidden');
-					}
-				} else {
-					elements.resultValue.textContent = t.insufficient;
-					elements.resultValue.className = 'result-value insufficient';
-					elements.resultCategory.textContent = '';
-					elements.modelDetails.classList.add('hidden');
-				}
-				
-				const mbPerToken = (results.kvCacheGB * 1024 / this.contextWindow).toFixed(2);
+				const t = text[this.language],mbPerToken = (results.kvCacheGB * 1024 / this.contextWindow).toFixed(2);
+				(results.modelMemoryGB > 0
+					? (elements.resultValue.textContent = `${Math.floor(results.maxParams)}B`,
+						elements.resultValue.className = 'result-value',
+						elements.resultCategory.textContent = `${this.getModelCategory(results.maxParams)} ${t.categorySuffix} ${t.estimatedArchitecture}`,
+						results.estimatedArchitecture
+							? (elements.modelDetails.classList.remove('hidden'),
+								elements.layersValue.textContent = results.estimatedArchitecture.layers,
+								elements.hiddenValue.textContent = results.estimatedArchitecture.hidden)
+							: elements.modelDetails.classList.add('hidden'))
+					: (elements.resultValue.textContent = t.insufficient,
+						elements.resultValue.className = 'result-value insufficient',
+						elements.resultCategory.textContent = '',
+						elements.modelDetails.classList.add('hidden')),
 				elements.metricsList.innerHTML = `
 					<div class="metric-row">
 						<span class="metric-label">${t.totalVram}</span>
@@ -1014,70 +914,36 @@
 					<div class="metric-row" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
 						<span class="metric-label" style="font-weight: 700; color: var(--text)">${t.modelWeights}</span>
 						<div class="metric-value-group">
-							<div class="metric-val" style="color: var(--primary);">${Math.max(0, results.modelMemoryGB).toFixed(2)} GB</div>
+							<div class="metric-val" style="color: var(--primary);">${Math.max(0,results.modelMemoryGB).toFixed(2)} GB</div>
 						</div>
 					</div>
-				`;
-				
-				const warnings = [];
-				if (results.kvCacheGB > results.availableVram * 0.5) {
-					warnings.push(t.warningKvCache);
-				}
-				if (results.modelMemoryGB <= 0) {
-					warnings.push(t.warningInsufficient);
-				}
-				
-				if (warnings.length > 0) {
-					elements.warningBox.innerHTML = warnings.map(w => `<p>${w}</p>`).join('');
-					elements.warningBox.classList.remove('hidden');
-				} else {
-					elements.warningBox.classList.add('hidden');
-				}
+				`,
+				((warnings)=>(warnings.length > 0
+					? (elements.warningBox.innerHTML = warnings.map(w=>`<p>${w}</p>`).join(''),elements.warningBox.classList.remove('hidden'))
+					: elements.warningBox.classList.add('hidden')))([
+						results.kvCacheGB > results.availableVram * 0.5 ? t.warningKvCache : null,
+						results.modelMemoryGB <= 0 ? t.warningInsufficient : null
+					].filter(Boolean)));
 			}
 			
 			getModelCategory(params) {
 				const t = text[this.language];
-				if (params < 1) return t.categoryToy;
-				if (params < 3) return t.categorySmall;
-				if (params < 10) return t.categoryMedium;
-				if (params < 20) return t.categoryLarge;
-				if (params < 40) return t.categoryVeryLarge;
-				return t.categoryMassive;
+				return params < 1 ? t.categoryToy : params < 3 ? t.categorySmall : params < 10 ? t.categoryMedium : params < 20 ? t.categoryLarge : params < 40 ? t.categoryVeryLarge : t.categoryMassive;
 			}
 			
-			format(value, options = {}) {
-				return value.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US', options);
-			}
-			
-			string(key) {
-				return text[this.language]?.[key] ?? key;
-			}
-			
-			theme(themeName) {
-				document.documentElement.className = themeName === 'auto' ? '' : themeName;
-				elements.theme.value = themeName;
-			}
-			
-			lang(language) {
-				this.language = elements.language.value = document.documentElement.lang = language;
-				
-				Object.keys(text.en).forEach(key => {
-					if (elements[key]) {
-						elements[key].textContent = this.string(key);
-					}
-				});
-				
-				[...elements.theme.options].forEach(option => {
-					option.textContent = this.string(option.value + 'Theme');
-				});
-				
-				elements.formulasSection.innerHTML = this.string('formulas');
-				elements.architectureSection.innerHTML = this.string('architecture');
-				elements.sourcesText.innerHTML = this.string('sources');
-				
-				this.updateVramDisplay();
-				this.updateContextDisplay();
-				this.calculate();
+			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
+			string(k) { return text[this.language]?.[k] ?? k; }
+			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			lang(l) {
+				(this.language = elements.language.value = document.documentElement.lang = l,
+				Object.keys(text.en).forEach(k=>elements[k] && (elements[k].textContent = this.string(k))),
+				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
+				elements.formulasSection.innerHTML = this.string('formulas'),
+				elements.architectureSection.innerHTML = this.string('architecture'),
+				elements.sourcesText.innerHTML = this.string('sources'),
+				this.updateVramDisplay(),
+				this.updateContextDisplay(),
+				this.calculate());
 			}
 		}
 		
