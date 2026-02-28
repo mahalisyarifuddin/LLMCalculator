@@ -488,7 +488,7 @@
 							<label id="vramSizeLabel">VRAM Size</label>
 							<span class="value" id="vramValue">24 GB</span>
 						</div>
-						<input type="range" id="vramSlider" min="4" max="256" step="4" value="24" aria-labelledby="vramSizeLabel">
+						<input type="range" id="vramSlider" min="4" max="256" step="1" value="24" aria-labelledby="vramSizeLabel">
 						<div class="slider-labels">
 							<span>4GB</span>
 							<span>64GB</span>
@@ -501,7 +501,7 @@
 						<div class="label-row">
 							<label id="gpuTypeLabel">GPU Type</label>
 						</div>
-						<select id="gpuType" class="full-width">
+						<select id="gpuType" class="full-width" aria-labelledby="gpuTypeLabel">
 							<option value="discrete">Discrete GPU (NVIDIA/AMD)</option>
 							<option value="soc">Apple Silicon (M-series)</option>
 							<option value="snapdragon">Snapdragon (Windows on Arm)</option>
@@ -528,7 +528,7 @@
 						<div class="label-row">
 							<label id="modelQuantLabel">Model Precision</label>
 						</div>
-						<select id="quantization" class="full-width">
+						<select id="quantization" class="full-width" aria-labelledby="modelQuantLabel">
 							<option value="fp32">FP32 (4.0 bytes)</option>
 							<option value="fp16" selected>FP16 (2.0 bytes)</option>
 							<option value="bf16">BF16 (2.0 bytes)</option>
@@ -544,7 +544,7 @@
 						<div class="label-row">
 							<label id="kvCacheLabel">KV Cache</label>
 						</div>
-						<select id="kvCache" class="full-width">
+						<select id="kvCache" class="full-width" aria-labelledby="kvCacheLabel">
 							<option value="same" selected>Same as Model</option>
 							<option value="fp16">FP16 (2.0 bytes)</option>
 							<option value="fp8">FP8 (1.0 byte)</option>
@@ -557,7 +557,7 @@
 						<div class="label-row">
 							<label id="attentionLabel">Attention</label>
 						</div>
-						<select id="attention" class="full-width">
+						<select id="attention" class="full-width" aria-labelledby="attentionLabel">
 							<option value="mha">MHA (Standard)</option>
 							<option value="gqa" selected>GQA (Modern)</option>
 						</select>
@@ -655,6 +655,8 @@
 				memoryAllocationLabel: 'Memory Allocation',
 				presetsLabel: 'Quick Presets',
 				referenceTitle: 'References & Methodology',
+				languageLabel: 'Select Language',
+				themeLabel: 'Select Theme',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'System Overhead',
@@ -704,6 +706,8 @@
 				memoryAllocationLabel: 'Alokasi Memori',
 				presetsLabel: 'Preset Cepat',
 				referenceTitle: 'Referensi & Metodologi',
+				languageLabel: 'Pilih Bahasa',
+				themeLabel: 'Pilih Tema',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'Overhead Sistem',
@@ -878,7 +882,7 @@
 			displayResults(results) {
 				const t = text[this.language],mbPerToken = (results.kvCacheGB * 1024 / this.contextWindow).toFixed(2);
 				(results.modelMemoryGB > 0
-					? (elements.resultValue.textContent = `${Math.floor(results.maxParams)}B`,
+					? (elements.resultValue.textContent = results.maxParams < 1 ? `${Math.floor(results.maxParams * 1000)}M` : `${(Math.floor(results.maxParams * 10) / 10).toFixed(1)}B`,
 						elements.resultValue.className = 'result-value',
 						elements.resultCategory.textContent = `${this.getModelCategory(results.maxParams)} ${t.categorySuffix} ${t.estimatedArchitecture}`,
 						results.estimatedArchitecture
@@ -936,6 +940,8 @@
 			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
+				elements.language.setAttribute('aria-label', this.string('languageLabel')),
+				elements.theme.setAttribute('aria-label', this.string('themeLabel')),
 				Object.keys(text.en).forEach(k=>elements[k] && (elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
 				elements.formulasSection.innerHTML = this.string('formulas'),
