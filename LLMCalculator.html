@@ -295,6 +295,26 @@
 			border-bottom: none;
 		}
 
+		/* Memory Bar */
+		.memory-bar-container {
+			display: flex;
+			height: 12px;
+			background: var(--input-bg);
+			border-radius: 6px;
+			overflow: hidden;
+			margin-bottom: 1.5rem;
+			border: 1px solid var(--border);
+		}
+
+		.memory-bar-segment {
+			height: 100%;
+			transition: width 0.3s ease;
+		}
+
+		.segment-overhead { background: var(--danger); }
+		.segment-kv { background: var(--warning); }
+		.segment-model { background: var(--primary); }
+
 		.metric-label {
 			font-size: 0.9rem;
 			color: var(--text-muted);
@@ -586,7 +606,7 @@
 			<div class="results-column">
 				<div class="result-card">
 					<h3 class="result-category" id="maxParamsLabel">Maximum Parameters</h3>
-					<div class="result-value" id="resultValue">0B</div>
+					<div class="result-value" id="resultValue" aria-live="polite">0B</div>
 					<div class="result-category" id="resultCategory"></div>
 
 					<div class="model-details hidden" id="modelDetails">
@@ -605,6 +625,11 @@
 
 				<div class="card">
 					<h2 id="memoryAllocationLabel">Memory Allocation</h2>
+					<div class="memory-bar-container" aria-labelledby="memoryAllocationLabel">
+						<div id="barOverhead" class="memory-bar-segment segment-overhead" style="width: 0%" role="img"></div>
+						<div id="barKv" class="memory-bar-segment segment-kv" style="width: 0%" role="img"></div>
+						<div id="barModel" class="memory-bar-segment segment-model" style="width: 0%" role="img"></div>
+					</div>
 					<div id="metricsList"></div>
 				</div>
 				
@@ -881,6 +906,16 @@
 			
 			displayResults(results) {
 				const t = text[this.language],mbPerToken = (results.kvCacheGB * 1024 / this.contextWindow).toFixed(2);
+
+				const total = results.totalVram || 1, ohPct = (results.overheadGB / total) * 100, kvPct = (results.kvCacheGB / total) * 100, modPct = (Math.max(0, results.modelMemoryGB) / total) * 100;
+
+				(elements.barOverhead.style.width = ohPct + '%',
+				elements.barKv.style.width = kvPct + '%',
+				elements.barModel.style.width = modPct + '%',
+				elements.barOverhead.title = elements.barOverhead.ariaLabel = `${t.systemOverhead}: ${results.overheadGB.toFixed(1)} GB`,
+				elements.barKv.title = elements.barKv.ariaLabel = `${t.kvCacheMemory}: ${results.kvCacheGB.toFixed(2)} GB`,
+				elements.barModel.title = elements.barModel.ariaLabel = `${t.modelWeights}: ${Math.max(0, results.modelMemoryGB).toFixed(2)} GB`);
+
 				(results.modelMemoryGB > 0
 					? (elements.resultValue.textContent = results.maxParams < 1 ? `${Math.floor(results.maxParams * 1000)}M` : `${(Math.floor(results.maxParams * 10) / 10).toFixed(1)}B`,
 						elements.resultValue.className = 'result-value',
