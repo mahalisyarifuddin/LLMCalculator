@@ -619,6 +619,7 @@
 							<span id="hiddenValue">-</span>
 						</div>
 					</div>
+					<button id="copyBtn" class="preset-btn" style="margin-top:1rem;width:100%"></button>
 				</div>
 				
 				<div id="warningBox" class="warning-box hidden"></div>
@@ -637,6 +638,7 @@
 					<h2 id="presetsLabel">Quick Presets</h2>
 					<div class="presets-grid">
 						<button class="preset-btn" data-preset="rtx5050">RTX 5050</button>
+						<button class="preset-btn" data-preset="rtx5090">RTX 5090</button>
 						<button class="preset-btn" data-preset="rtx4090">RTX 4090</button>
 						<button class="preset-btn" data-preset="a100">A100 80GB</button>
 						<button class="preset-btn" data-preset="h200">H200</button>
@@ -682,6 +684,8 @@
 				referenceTitle: 'References & Methodology',
 				languageLabel: 'Select Language',
 				themeLabel: 'Select Theme',
+				copyBtn: 'Copy Summary',
+				copied: 'Copied!',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'System Overhead',
@@ -733,6 +737,8 @@
 				referenceTitle: 'Referensi & Metodologi',
 				languageLabel: 'Pilih Bahasa',
 				themeLabel: 'Pilih Tema',
+				copyBtn: 'Salin Ringkasan',
+				copied: 'Tersalin!',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'Overhead Sistem',
@@ -763,7 +769,7 @@
 			}
 		};
 		
-		const elements = new Proxy({}, { get: (_,id)=>document.getElementById(id) });
+		const _c = {}, elements = new Proxy({}, { get: (_,id)=>_c[id]||(_c[id]=document.getElementById(id)) });
 		
 		const referenceConfigs = [
 			{ size: 0.5, layers: 24, hidden: 896 },
@@ -820,13 +826,33 @@
 				elements.contextSlider.oninput = e=>(this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
 				elements.gpuType.onchange = e=>(this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
 				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate()),
-				document.querySelectorAll('.preset-btn')
+				elements.copyBtn.onclick = ()=>this.copy(),
+				document.querySelectorAll('.preset-btn[data-preset]')
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
+			}
+
+			copy() {
+				const t = text[this.language],
+					summary = `${t.title} Summary:\n` + [
+						`${elements.vramSizeLabel.textContent}: ${elements.vramValue.textContent}`,
+						`${t.gpuTypeLabel}: ${elements.gpuType.options[elements.gpuType.selectedIndex].text}`,
+						`${t.modelQuantLabel}: ${elements.quantization.options[elements.quantization.selectedIndex].text}`,
+						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
+						`---`,
+						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+					].filter(Boolean).join('\n');
+				navigator.clipboard.writeText(summary).then(()=>{
+					const _b = elements.copyBtn.textContent;
+					elements.copyBtn.textContent = t.copied;
+					setTimeout(() => elements.copyBtn.textContent = _b, 2000);
+				});
 			}
 			
 			applyPreset(preset) {
 				const presets = {
 					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa' },
+					rtx5090: { vram: 32, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa' },
 					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa' },
 					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
 					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
