@@ -250,6 +250,13 @@
 			color: var(--danger);
 		}
 
+		.result-value.toy { color: var(--text-muted); }
+		.result-value.small { color: var(--success); }
+		.result-value.medium { color: var(--primary); }
+		.result-value.large { color: var(--warning); }
+		.result-value.very-large { color: var(--danger); }
+		.result-value.massive { color: var(--danger); }
+
 		.result-category {
 			font-weight: 600;
 			color: var(--text-muted);
@@ -880,12 +887,14 @@
 			
 			updateVramDisplay() {
 				(elements.vramValue.textContent = `${this.vramSize} GB`,
+				elements.vramSlider.setAttribute('aria-valuetext',elements.vramValue.textContent),
 				elements.vramSizeLabel.textContent = (this.gpuType === 'soc' || this.gpuType === 'snapdragon') ?
 					this.string('systemRamLabel') : this.string('vramSizeLabel'));
 			}
 			
 			updateContextDisplay() {
-				elements.contextValue.textContent = `${this.format(this.contextWindow)} tokens`;
+				(elements.contextValue.textContent = `${this.format(this.contextWindow)} tokens`,
+				elements.contextSlider.setAttribute('aria-valuetext',elements.contextValue.textContent));
 			}
 			
 			calculate() {
@@ -944,7 +953,7 @@
 
 				(results.modelMemoryGB > 0
 					? (elements.resultValue.textContent = results.maxParams < 1 ? `${Math.floor(results.maxParams * 1000)}M` : `${(Math.floor(results.maxParams * 10) / 10).toFixed(1)}B`,
-						elements.resultValue.className = 'result-value',
+						elements.resultValue.className = 'result-value ' + (results.maxParams < 1 ? 'toy' : results.maxParams < 3 ? 'small' : results.maxParams < 10 ? 'medium' : results.maxParams < 20 ? 'large' : results.maxParams < 40 ? 'very-large' : 'massive'),
 						elements.resultCategory.textContent = `${this.getModelCategory(results.maxParams)} ${t.categorySuffix} ${t.estimatedArchitecture}`,
 						results.estimatedArchitecture
 							? (elements.modelDetails.classList.remove('hidden'),
@@ -965,21 +974,21 @@
 					<div class="metric-row">
 						<span class="metric-label">${t.systemOverhead}</span>
 						<div class="metric-value-group">
-							<div class="metric-val" style="color: var(--danger)">-${results.overheadGB.toFixed(1)} GB</div>
+							<div class="metric-val" style="color: var(--danger)">-${results.overheadGB.toFixed(1)} GB (${ohPct.toFixed(0)}%)</div>
 							${results.overheadMsg ? `<span class="metric-sub">${results.overheadMsg}</span>` : ''}
 						</div>
 					</div>
 					<div class="metric-row">
 						<span class="metric-label">${t.kvCacheMemory}</span>
 						<div class="metric-value-group">
-							<div class="metric-val" style="color: var(--warning)">-${results.kvCacheGB.toFixed(2)} GB</div>
+							<div class="metric-val" style="color: var(--warning)">-${results.kvCacheGB.toFixed(2)} GB (${kvPct.toFixed(0)}%)</div>
 							<span class="metric-sub">${mbPerToken} ${t.mbPerToken}</span>
 						</div>
 					</div>
 					<div class="metric-row" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
 						<span class="metric-label" style="font-weight: 700; color: var(--text)">${t.modelWeights}</span>
 						<div class="metric-value-group">
-							<div class="metric-val" style="color: var(--primary);">${Math.max(0,results.modelMemoryGB).toFixed(2)} GB</div>
+							<div class="metric-val" style="color: var(--primary);">${Math.max(0,results.modelMemoryGB).toFixed(2)} GB (${modPct.toFixed(0)}%)</div>
 						</div>
 					</div>
 				`,
