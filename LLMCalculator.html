@@ -212,11 +212,28 @@
 		}
 
 		.slider-labels {
-			display: flex;
-			justify-content: space-between;
+			position: relative;
+			height: 1rem;
 			font-size: 0.75rem;
 			color: var(--text-muted);
 			margin-top: 0.5rem;
+		}
+
+		.slider-labels span {
+			position: absolute;
+			transform: translateX(-50%);
+			white-space: nowrap;
+		}
+
+		.slider-labels span:first-child {
+			left: 0 !important;
+			transform: none;
+		}
+
+		.slider-labels span:last-child {
+			left: auto !important;
+			right: 0;
+			transform: none;
 		}
 
 		select.full-width {
@@ -243,6 +260,7 @@
 			color: var(--primary);
 			margin: 0.5rem 0;
 			letter-spacing: -0.05em;
+			transition: color 0.3s ease, font-size 0.3s ease;
 		}
 
 		.result-value.insufficient {
@@ -517,10 +535,10 @@
 						</div>
 						<input type="range" id="vramSlider" min="4" max="256" step="1" value="24" aria-labelledby="vramSizeLabel">
 						<div class="slider-labels">
-							<span>4GB</span>
-							<span>64GB</span>
-							<span>128GB</span>
-							<span>256GB</span>
+							<span style="left: 0%">4GB</span>
+							<span style="left: 23.8%">64GB</span>
+							<span style="left: 49.2%">128GB</span>
+							<span style="left: 100%">256GB</span>
 						</div>
 					</div>
 					
@@ -542,9 +560,9 @@
 						</div>
 						<input type="range" id="overheadSlider" min="0" max="16" step="0.1" value="1.5" aria-labelledby="overheadLabel">
 						<div class="slider-labels">
-							<span>0GB</span>
-							<span>8GB</span>
-							<span>16GB</span>
+							<span style="left: 0%">0GB</span>
+							<span style="left: 50%">8GB</span>
+							<span style="left: 100%">16GB</span>
 						</div>
 					</div>
 				</div>
@@ -600,10 +618,10 @@
 						</div>
 						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13" aria-labelledby="maxContextLabel">
 						<div class="slider-labels">
-							<span>512</span>
-							<span>8K</span>
-							<span>128K</span>
-							<span>1M</span>
+							<span style="left: 0%">512</span>
+							<span style="left: 36.4%">8K</span>
+							<span style="left: 72.7%">128K</span>
+							<span style="left: 100%">1M</span>
 						</div>
 					</div>
 				</div>
@@ -779,6 +797,8 @@
 		
 		const _c = {}, elements = new Proxy({}, { get: (_,id)=>_c[id]||(_c[id]=document.getElementById(id)) });
 		
+		const CLIPBOARD_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem;vertical-align:text-bottom"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+
 		const referenceConfigs = [
 			{ size: 0.5, layers: 24, hidden: 896 },
 			{ size: 1.5, layers: 28, hidden: 1536 },
@@ -839,7 +859,7 @@
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
 			}
 
-			copy() {
+			async copy() {
 				const t = text[this.language],
 					summary = `${t.title} Summary:\n` + [
 						`${elements.vramSizeLabel.textContent}: ${elements.vramValue.textContent}`,
@@ -850,11 +870,12 @@
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
 						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
 					].filter(Boolean).join('\n');
-				navigator.clipboard.writeText(summary).then(()=>{
-					const _b = elements.copyBtn.textContent;
-					elements.copyBtn.textContent = t.copied;
-					setTimeout(() => elements.copyBtn.textContent = _b, 2000);
-				});
+				try {
+					await navigator.clipboard.writeText(summary);
+					const _b = elements.copyBtn.innerHTML;
+					elements.copyBtn.innerHTML = CLIPBOARD_ICON + t.copied;
+					setTimeout(() => elements.copyBtn.innerHTML = _b, 2000);
+				} catch (e) { console.error(e); }
 			}
 			
 			applyPreset(preset) {
@@ -1014,7 +1035,7 @@
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
 				elements.theme.setAttribute('aria-label', this.string('themeLabel')),
-				Object.keys(text.en).forEach(k=>elements[k] && (elements[k].textContent = this.string(k))),
+				Object.keys(text.en).forEach(k=>elements[k] && (k === 'copyBtn' ? elements[k].innerHTML = CLIPBOARD_ICON + this.string(k) : elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
 				elements.formulasSection.innerHTML = this.string('formulas'),
 				elements.architectureSection.innerHTML = this.string('architecture'),
