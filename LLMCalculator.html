@@ -650,6 +650,7 @@
 						<button class="preset-btn" data-preset="a100">A100 80GB</button>
 						<button class="preset-btn" data-preset="h200">H200</button>
 						<button class="preset-btn" data-preset="m4max">M4 Max</button>
+						<button class="preset-btn" data-preset="macbookneo">Macbook neo</button>
 						<button class="preset-btn" data-preset="snapdragon">Snapdragon</button>
 					</div>
 				</div>
@@ -864,6 +865,7 @@
 					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
 					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
 					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', attention: 'gqa' },
+					macbookneo: { vram: 8, quant: 'int4', context: 8192, gpu: 'soc', attention: 'gqa' },
 					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'gqa' }
 				}, p = presets[preset];
 				p && (
