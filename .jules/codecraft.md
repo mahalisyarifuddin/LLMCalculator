@@ -7,3 +7,8 @@
 **Mode:** Palette
 **Learning:** The codebase uses a `Proxy` object for `elements` which dynamically calls `document.getElementById(id)`. This means new UI elements do not need manual registration in a central mapping object.
 **Action:** Simply ensure new elements have unique IDs and access them via `elements.id`.
+
+## 2025-05-15 - Precise Slider Label Alignment
+**Mode:** Palette
+**Learning:** In single-file HTML tools with custom ranges (e.g., 4-256GB), default Flexbox 'space-between' for labels leads to misalignment with slider thumbs. Absolute positioning using calculated percentage offsets `((value - min) / (max - min) * 100)` ensures visual precision across different scales.
+**Action:** Use absolute positioning and inline `left` styles for slider labels to maintain professional UI standards.
