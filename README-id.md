@@ -30,7 +30,7 @@ Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yan
 5.  Pilih **Presisi Model** (Kuantisasi) dan presisi **KV Cache**.
 6.  Sesuaikan **Jendela Konteks** (misalnya, 8K, 32K token).
 7.  Lihat estimasi **Parameter Maksimum** dan rincian memori.
-8.  Gunakan **Preset Cepat** untuk mensimulasikan konfigurasi perangkat keras populer seperti RTX 5050, RTX 4090, A100, H200, atau M4 Max.
+8.  Gunakan **Preset Cepat** untuk mensimulasikan konfigurasi perangkat keras populer seperti RTX 5050, RTX 4090, A100, H200, M4 Max, atau Macbook neo.
 
 ## Fitur Utama
 -   **Dukungan Multi-bahasa**: Beralih antara Bahasa Inggris dan Indonesia.
@@ -38,7 +38,7 @@ Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yan
 -   **Logika Arsitektur Cerdas**: Aturan reservasi memori yang berbeda untuk GPU Diskrit vs SoC (Apple/Snapdragon).
 -   **Overhead yang Dapat Disesuaikan**: Atur deduksi memori sistem secara presisi untuk server Linux headless vs desktop Windows.
 -   **Rincian Memori Mendetail**: Memvisualisasikan penggunaan untuk Overhead Sistem, KV Cache, dan Bobot Model.
--   **Preset Perangkat Keras**: Konfigurasi satu klik untuk GPU umum, termasuk **RTX 5050** baru.
+-   **Preset Perangkat Keras**: Konfigurasi satu klik untuk GPU umum, termasuk **RTX 5050** baru dan **Macbook neo**.
 -   **Opsi Lanjutan**: Dukungan untuk berbagai format kuantisasi (hingga FP2) dan presisi KV cache terpisah.
 -   **Estimasi Model**: Secara dinamis mengestimasi arsitektur model (Lapisan dan Ukuran Tersembunyi) berdasarkan konfigurasi LLM modern (misalnya Llama 3, Qwen 2.5) untuk jumlah parameter yang dihitung.
 -   **Berkas HTML tunggal**: Tidak ada instalasi, tidak ada dependensi, bekerja sepenuhnya offline.
