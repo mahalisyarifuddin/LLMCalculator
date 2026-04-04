@@ -839,8 +839,49 @@
 				this.manualOverhead = 1.5;
 				
 				this.setup();
-				this.theme('auto');
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.loadHash();
+				this.calculate();
+			}
+
+			updateHash() {
+				const p = new URLSearchParams();
+				p.set('v', this.vramSize);
+				p.set('q', this.quantization);
+				p.set('c', this.contextWindow);
+				p.set('k', this.kvCacheQuant);
+				p.set('a', this.attention);
+				p.set('g', this.gpuType);
+				p.set('o', this.manualOverhead.toFixed(1));
+				p.set('l', this.language);
+				p.set('t', elements.theme.value);
+				history.replaceState(null, '', '#' + p.toString());
+			}
+
+			loadHash() {
+				const p = new URLSearchParams(location.hash.slice(1));
+				if (!p.has('v')) {
+					this.theme('auto');
+					this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+					this.lang(this.language);
+					return;
+				}
+				this.vramSize = Number(p.get('v'));
+				this.quantization = p.get('q');
+				this.contextWindow = Number(p.get('c'));
+				this.kvCacheQuant = p.get('k');
+				this.attention = p.get('a');
+				this.gpuType = p.get('g');
+				this.manualOverhead = Number(p.get('o'));
+				this.language = p.get('l');
+
+				elements.vramSlider.value = this.vramSize;
+				elements.quantization.value = this.quantization;
+				elements.contextSlider.value = Math.log2(this.contextWindow);
+				elements.kvCache.value = this.kvCacheQuant;
+				elements.attention.value = this.attention;
+				elements.gpuType.value = this.gpuType;
+				elements.overheadSlider.value = this.manualOverhead;
+				this.theme(p.get('t') || 'auto');
 				this.lang(this.language);
 			}
 			
@@ -855,6 +896,7 @@
 				elements.gpuType.onchange = e=>(this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
 				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate()),
 				elements.copyBtn.onclick = ()=>this.copy(),
+				window.onhashchange = ()=> (this.loadHash(), this.calculate()),
 				document.querySelectorAll('.preset-btn[data-preset]')
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
 			}
@@ -868,7 +910,8 @@
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
-						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`,
+						`URL: ${location.href}`
 					].filter(Boolean).join('\n');
 				try {
 					await navigator.clipboard.writeText(summary);
@@ -960,6 +1003,7 @@
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
 				});
+				this.updateHash();
 			}
 			
 			displayResults(results) {
