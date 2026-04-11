@@ -837,11 +837,13 @@
 				this.attention = 'gqa';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
+				this.themeMode = 'auto';
 				
 				this.setup();
-				this.theme('auto');
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.loadHash();
+				this.language = this.language || (navigator.language?.startsWith('id') ? 'id' : 'en');
 				this.lang(this.language);
+				window.onhashchange = ()=>this.loadHash();
 			}
 			
 			setup() {
@@ -868,7 +870,9 @@
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
-						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`,
+						`---`,
+						location.href
 					].filter(Boolean).join('\n');
 				try {
 					await navigator.clipboard.writeText(summary);
@@ -960,6 +964,7 @@
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
 				});
+				this.updateHash();
 			}
 			
 			displayResults(results) {
@@ -1028,9 +1033,30 @@
 				return params < 1 ? t.categoryToy : params < 3 ? t.categorySmall : params < 10 ? t.categoryMedium : params < 20 ? t.categoryLarge : params < 40 ? t.categoryVeryLarge : t.categoryMassive;
 			}
 			
+			updateHash() {
+				const p = new URLSearchParams();
+				(p.set('v',this.vramSize),p.set('q',this.quantization),p.set('c',this.contextWindow),p.set('k',this.kvCacheQuant),p.set('a',this.attention),p.set('g',this.gpuType),p.set('o',this.manualOverhead),p.set('l',this.language),p.set('t',this.themeMode));
+				history.replaceState(null,'','#'+p.toString());
+			}
+
+			loadHash() {
+				const p = new URLSearchParams(location.hash.slice(1));
+				if (!p.toString()) return;
+				(p.has('v') && (this.vramSize = Number(p.get('v')),elements.vramSlider.value = this.vramSize),
+				p.has('q') && (this.quantization = p.get('q'),elements.quantization.value = this.quantization),
+				p.has('c') && (this.contextWindow = Number(p.get('c')),elements.contextSlider.value = Math.log2(this.contextWindow)),
+				p.has('k') && (this.kvCacheQuant = p.get('k'),elements.kvCache.value = this.kvCacheQuant),
+				p.has('a') && (this.attention = p.get('a'),elements.attention.value = this.attention),
+				p.has('g') && (this.gpuType = p.get('g'),elements.gpuType.value = this.gpuType),
+				p.has('o') && (this.manualOverhead = Number(p.get('o')),elements.overheadSlider.value = this.manualOverhead),
+				p.has('l') && (this.language = p.get('l'),elements.language.value = this.language),
+				p.has('t') && (this.themeMode = p.get('t'),this.theme(this.themeMode)));
+				this.updateVramDisplay(),this.updateContextDisplay(),this.calculate();
+			}
+
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
-			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			theme(n) { (this.themeMode = n,document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n,this.updateHash()); }
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),

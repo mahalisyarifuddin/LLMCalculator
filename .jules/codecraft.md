@@ -12,3 +12,8 @@
 **Mode:** Palette
 **Learning:** In single-file HTML tools with custom ranges (e.g., 4-256GB), default Flexbox 'space-between' for labels leads to misalignment with slider thumbs. Absolute positioning using calculated percentage offsets `((value - min) / (max - min) * 100)` ensures visual precision across different scales.
 **Action:** Use absolute positioning and inline `left` styles for slider labels to maintain professional UI standards.
+
+## 2025-05-16 - Lifecycle Order for URL State Persistence
+**Mode:** Palette
+**Learning:** For deep-linking to work reliably in single-file tools, the initialization order must be: 1. setup DOM listeners, 2. load URL hash into internal state, 3. apply localization and initial calculation. Reversing 2 and 3 can lead to default values overwriting URL-provided parameters during the first render.
+**Action:** Always call state restoration methods after event registration but before the initial UI render/calculation pass.
