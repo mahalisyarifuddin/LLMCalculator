@@ -12,3 +12,8 @@
 **Mode:** Palette
 **Learning:** In single-file HTML tools with custom ranges (e.g., 4-256GB), default Flexbox 'space-between' for labels leads to misalignment with slider thumbs. Absolute positioning using calculated percentage offsets `((value - min) / (max - min) * 100)` ensures visual precision across different scales.
 **Action:** Use absolute positioning and inline `left` styles for slider labels to maintain professional UI standards.
+
+## 2025-05-16 - Full UI Re-hydration Pattern
+**Mode:** Palette
+**Learning:** In this single-file architecture, updating slider values alone doesn't trigger UI label updates or calculations. State restoration from URL hash must explicitly trigger the hydration chain (`theme()` and `lang()`) because `lang()` is the primary entry point for localized UI refreshes and calculation runs.
+**Action:** Trigger `theme()` and `lang()` after `loadHash()` in both the constructor and `onhashchange` listener to ensure visual parity.
