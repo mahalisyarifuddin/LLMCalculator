@@ -712,6 +712,7 @@
 				themeLabel: 'Select Theme',
 				copyBtn: 'Copy Summary',
 				copied: 'Copied!',
+				shareUrl: 'Shareable URL',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'System Overhead',
@@ -765,6 +766,7 @@
 				themeLabel: 'Pilih Tema',
 				copyBtn: 'Salin Ringkasan',
 				copied: 'Tersalin!',
+				shareUrl: 'URL Berbagi',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'Overhead Sistem',
@@ -837,10 +839,12 @@
 				this.attention = 'gqa';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
+				this.themeMode = 'auto';
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				
 				this.setup();
-				this.theme('auto');
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.loadHash();
+				this.theme(this.themeMode);
 				this.lang(this.language);
 			}
 			
@@ -856,7 +860,30 @@
 				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate()),
 				elements.copyBtn.onclick = ()=>this.copy(),
 				document.querySelectorAll('.preset-btn[data-preset]')
-					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
+					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)),
+				window.onhashchange = ()=>(this.loadHash(),this.theme(this.themeMode),this.lang(this.language)));
+			}
+
+			// Synchronizes current state to URL hash
+			updateHash() {
+				const p = new URLSearchParams();
+				(p.set('v',this.vramSize),p.set('q',this.quantization),p.set('c',Math.log2(this.contextWindow)),p.set('k',this.kvCacheQuant),p.set('a',this.attention),p.set('g',this.gpuType),p.set('o',this.manualOverhead),p.set('l',this.language),p.set('t',this.themeMode));
+				history.replaceState(null,null,'#'+p.toString());
+			}
+
+			// Restores state from URL hash and updates UI
+			loadHash() {
+				const p = new URLSearchParams(location.hash.slice(1));
+				(p.has('v') && (this.vramSize = elements.vramSlider.value = Number(p.get('v'))),
+				p.has('q') && (this.quantization = elements.quantization.value = p.get('q')),
+				p.has('c') && (this.contextWindow = Math.pow(2,Number(p.get('c'))),elements.contextSlider.value = p.get('c')),
+				p.has('k') && (this.kvCacheQuant = elements.kvCache.value = p.get('k')),
+				p.has('a') && (this.attention = elements.attention.value = p.get('a')),
+				p.has('g') && (this.gpuType = elements.gpuType.value = p.get('g')),
+				p.has('o') && (this.manualOverhead = elements.overheadSlider.value = Number(p.get('o'))),
+				p.has('l') && (this.language = p.get('l')),
+				p.has('t') && (this.themeMode = p.get('t')),
+				this.updateVramDisplay(),this.updateContextDisplay());
 			}
 
 			async copy() {
@@ -868,7 +895,8 @@
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
-						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`,
+						`${t.shareUrl}: ${location.href}`
 					].filter(Boolean).join('\n');
 				try {
 					await navigator.clipboard.writeText(summary);
@@ -950,7 +978,7 @@
 				const finalGqaRatio = this.attention === 'gqa' ? Math.min(1,1024 / (estimatedArchitecture.hidden || 4096)) : 1;
 				const kvCacheGB = estimatedArchitecture.layers ? (2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * finalGqaRatio) / (1024 ** 3) : 0;
 				
-				this.displayResults({
+				(this.displayResults({
 					totalVram: this.vramSize,
 					overheadGB: overheadGB,
 					overheadMsg: overheadMsg,
@@ -959,7 +987,7 @@
 					modelMemoryGB: Math.max(0,availableForUse - kvCacheGB),
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
-				});
+				}),this.updateHash());
 			}
 			
 			displayResults(results) {
@@ -1030,7 +1058,7 @@
 			
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
-			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			theme(n) { (document.documentElement.className = (this.themeMode = n) === 'auto' ? '' : n,elements.theme.value = n); }
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
