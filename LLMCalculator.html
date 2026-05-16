@@ -712,6 +712,7 @@
 				themeLabel: 'Select Theme',
 				copyBtn: 'Copy Summary',
 				copied: 'Copied!',
+				shareUrl: 'Share URL',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'System Overhead',
@@ -765,6 +766,7 @@
 				themeLabel: 'Pilih Tema',
 				copyBtn: 'Salin Ringkasan',
 				copied: 'Tersalin!',
+				shareUrl: 'URL Bagikan',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'Overhead Sistem',
@@ -837,10 +839,12 @@
 				this.attention = 'gqa';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
-				
-				this.setup();
-				this.theme('auto');
+				this.themeMode = 'auto';
 				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+
+				this.setup();
+				this.loadHash();
+				this.theme(this.themeMode);
 				this.lang(this.language);
 			}
 			
@@ -855,6 +859,7 @@
 				elements.gpuType.onchange = e=>(this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
 				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate()),
 				elements.copyBtn.onclick = ()=>this.copy(),
+				window.onhashchange = ()=> (this.loadHash(), this.theme(this.themeMode), this.lang(this.language)),
 				document.querySelectorAll('.preset-btn[data-preset]')
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
 			}
@@ -868,7 +873,8 @@
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
-						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`,
+						`${t.shareUrl}: ${location.href}`
 					].filter(Boolean).join('\n');
 				try {
 					await navigator.clipboard.writeText(summary);
@@ -939,6 +945,8 @@
 				const availableForUse = Math.max(0,availableVram);
 				let maxParams = 0,estimatedArchitecture = {layers: 0,hidden: 0};
 				
+				this.updateHash();
+
 				for (let i = 0; i < 5; i++) {
 					const gqaRatio = this.attention === 'gqa' ? Math.min(1,1024 / (estimatedArchitecture.hidden || 4096)) : 1;
 					const kvCache = estimatedArchitecture.layers ? (2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * gqaRatio) / (1024 ** 3) : 0;
@@ -1030,7 +1038,7 @@
 			
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
-			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			theme(n) { (this.themeMode = n, document.documentElement.className = n === 'auto' ? '' : n, elements.theme.value = n, this.updateHash()); }
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
@@ -1042,7 +1050,27 @@
 				elements.sourcesText.innerHTML = this.string('sources'),
 				this.updateVramDisplay(),
 				this.updateContextDisplay(),
+				this.updateHash(),
 				this.calculate());
+			}
+
+			updateHash() {
+				const p = new URLSearchParams();
+				(p.set('v', this.vramSize), p.set('q', this.quantization), p.set('c', this.contextWindow), p.set('k', this.kvCacheQuant), p.set('a', this.attention), p.set('g', this.gpuType), p.set('o', this.manualOverhead), p.set('l', this.language), p.set('t', this.themeMode));
+				history.replaceState(null, '', '#' + p.toString());
+			}
+
+			loadHash() {
+				const p = new URLSearchParams(location.hash.substring(1));
+				(p.has('v') && (this.vramSize = elements.vramSlider.value = Number(p.get('v'))),
+				p.has('q') && (this.quantization = elements.quantization.value = p.get('q')),
+				p.has('c') && (this.contextWindow = Number(p.get('c')), elements.contextSlider.value = Math.log2(this.contextWindow)),
+				p.has('k') && (this.kvCacheQuant = elements.kvCache.value = p.get('k')),
+				p.has('a') && (this.attention = elements.attention.value = p.get('a')),
+				p.has('g') && (this.gpuType = elements.gpuType.value = p.get('g')),
+				p.has('o') && (this.manualOverhead = elements.overheadSlider.value = Number(p.get('o'))),
+				p.has('l') && (this.language = p.get('l')),
+				p.has('t') && (this.themeMode = p.get('t')));
 			}
 		}
 		
