@@ -712,6 +712,7 @@
 				themeLabel: 'Select Theme',
 				copyBtn: 'Copy Summary',
 				copied: 'Copied!',
+				shareUrl: 'Shareable URL',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'System Overhead',
@@ -765,6 +766,7 @@
 				themeLabel: 'Pilih Tema',
 				copyBtn: 'Salin Ringkasan',
 				copied: 'Tersalin!',
+				shareUrl: 'URL Berbagi',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'Overhead Sistem',
@@ -837,11 +839,13 @@
 				this.attention = 'gqa';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				
 				this.setup();
-				this.theme('auto');
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.loadHash();
+				this.theme(this.themeMode || 'auto');
 				this.lang(this.language);
+				window.onhashchange = ()=> (this.loadHash(),this.theme(this.themeMode || 'auto'),this.lang(this.language));
 			}
 			
 			setup() {
@@ -859,6 +863,46 @@
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
 			}
 
+			// Persist current state to URL hash
+			updateHash() {
+				const p = new URLSearchParams();
+				p.set('v', this.vramSize); // VRAM GB
+				p.set('q', this.quantization); // Model Quant
+				p.set('c', Math.log2(this.contextWindow)); // Log2 Context
+				p.set('k', this.kvCacheQuant); // KV Quant
+				p.set('a', this.attention); // GQA/MHA
+				p.set('g', this.gpuType); // Discrete/SOC/Snapdragon
+				p.set('o', this.manualOverhead); // System Overhead GB
+				p.set('l', this.language); // en/id
+				p.set('t', this.themeMode || 'auto'); // Theme mode
+				history.replaceState(null, '', '#' + p.toString());
+			}
+
+			// Restore state from URL hash
+			loadHash() {
+				const p = new URLSearchParams(location.hash.slice(1));
+				if (p.has('v')) this.vramSize = Number(p.get('v'));
+				if (p.has('q')) this.quantization = p.get('q');
+				if (p.has('c')) this.contextWindow = Math.pow(2, Number(p.get('c')));
+				if (p.has('k')) this.kvCacheQuant = p.get('k');
+				if (p.has('a')) this.attention = p.get('a');
+				if (p.has('g')) this.gpuType = p.get('g');
+				if (p.has('o')) this.manualOverhead = Number(p.get('o'));
+				if (p.has('l')) this.language = p.get('l');
+				if (p.has('t')) this.themeMode = p.get('t');
+
+				// Sync DOM elements with state
+				elements.vramSlider.value = this.vramSize;
+				elements.quantization.value = this.quantization;
+				elements.contextSlider.value = Math.log2(this.contextWindow);
+				elements.kvCache.value = this.kvCacheQuant;
+				elements.attention.value = this.attention;
+				elements.gpuType.value = this.gpuType;
+				elements.overheadSlider.value = this.manualOverhead;
+				elements.language.value = this.language;
+				elements.theme.value = this.themeMode || 'auto';
+			}
+
 			async copy() {
 				const t = text[this.language],
 					summary = `${t.title} Summary:\n` + [
@@ -868,7 +912,9 @@
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
-						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`,
+						`---`,
+						`${t.shareUrl}: ${location.href}`
 					].filter(Boolean).join('\n');
 				try {
 					await navigator.clipboard.writeText(summary);
@@ -960,6 +1006,7 @@
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
 				});
+				this.updateHash();
 			}
 			
 			displayResults(results) {
@@ -970,9 +1017,12 @@
 				(elements.barOverhead.style.width = ohPct + '%',
 				elements.barKv.style.width = kvPct + '%',
 				elements.barModel.style.width = modPct + '%',
-				elements.barOverhead.title = elements.barOverhead.ariaLabel = `${t.systemOverhead}: ${results.overheadGB.toFixed(1)} GB`,
-				elements.barKv.title = elements.barKv.ariaLabel = `${t.kvCacheMemory}: ${results.kvCacheGB.toFixed(2)} GB`,
-				elements.barModel.title = elements.barModel.ariaLabel = `${t.modelWeights}: ${Math.max(0, results.modelMemoryGB).toFixed(2)} GB`);
+				elements.barOverhead.title = `${t.systemOverhead}: ${results.overheadGB.toFixed(1)} GB`,
+				elements.barKv.title = `${t.kvCacheMemory}: ${results.kvCacheGB.toFixed(2)} GB`,
+				elements.barModel.title = `${t.modelWeights}: ${Math.max(0, results.modelMemoryGB).toFixed(2)} GB`,
+				elements.barOverhead.setAttribute('aria-label', elements.barOverhead.title),
+				elements.barKv.setAttribute('aria-label', elements.barKv.title),
+				elements.barModel.setAttribute('aria-label', elements.barModel.title));
 
 				(results.modelMemoryGB > 0
 					? (elements.resultValue.textContent = results.maxParams < 1 ? `${Math.floor(results.maxParams * 1000)}M` : `${(Math.floor(results.maxParams * 10) / 10).toFixed(1)}B`,
@@ -1030,7 +1080,7 @@
 			
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
-			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			theme(n) { (this.themeMode = n, document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
