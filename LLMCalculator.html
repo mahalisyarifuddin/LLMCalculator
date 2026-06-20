@@ -211,6 +211,22 @@
 			transform: scale(1.1);
 		}
 
+		input[type="range"]:focus {
+			outline: 2px solid var(--primary);
+			outline-offset: 4px;
+			border-radius: 2px;
+		}
+
+		input[type="range"]:focus:not(:focus-visible) {
+			outline: none;
+		}
+
+		input[type="range"]:focus-visible {
+			outline: 2px solid var(--primary);
+			outline-offset: 4px;
+			border-radius: 2px;
+		}
+
 		.slider-labels {
 			position: relative;
 			height: 1rem;
@@ -712,6 +728,7 @@
 				themeLabel: 'Select Theme',
 				copyBtn: 'Copy Summary',
 				copied: 'Copied!',
+				shareUrl: 'Shareable URL',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'System Overhead',
@@ -765,6 +782,7 @@
 				themeLabel: 'Pilih Tema',
 				copyBtn: 'Salin Ringkasan',
 				copied: 'Tersalin!',
+				shareUrl: 'URL Bagikan',
 				
 				totalVram: 'Total VRAM',
 				systemOverhead: 'Overhead Sistem',
@@ -830,6 +848,7 @@
 		
 		class LLMCalculator {
 			constructor() {
+				// Default configuration
 				this.vramSize = 24;
 				this.quantization = 'fp16';
 				this.contextWindow = 8192;
@@ -837,16 +856,25 @@
 				this.attention = 'gqa';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
+				this.themeMode = 'auto';
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				
 				this.setup();
-				this.theme('auto');
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.loadHash(); // Restore state from URL if present
+				this.theme(this.themeMode);
 				this.lang(this.language);
+
+				// Listen for back/forward navigation or manual URL edits
+				window.addEventListener('hashchange', () => {
+					this.loadHash();
+					this.theme(this.themeMode);
+					this.lang(this.language);
+				});
 			}
 			
 			setup() {
-				(elements.language.onchange = e=>this.lang(e.target.value),
-				elements.theme.onchange = e=>this.theme(e.target.value),
+				(elements.language.onchange = e=>(this.lang(e.target.value),this.updateHash()),
+				elements.theme.onchange = e=>(this.theme(e.target.value),this.updateHash()),
 				elements.vramSlider.oninput = e=>(this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
 				elements.quantization.onchange = e=>(this.quantization = e.target.value,this.calculate()),
 				elements.kvCache.onchange = e=>(this.kvCacheQuant = e.target.value,this.calculate()),
@@ -859,6 +887,50 @@
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
 			}
 
+			// Persist current state to URL hash for shareable links
+			updateHash() {
+				const p = new URLSearchParams();
+				p.set('v', this.vramSize);
+				p.set('q', this.quantization);
+				p.set('c', Math.log2(this.contextWindow));
+				p.set('k', this.kvCacheQuant);
+				p.set('a', this.attention);
+				p.set('g', this.gpuType);
+				p.set('o', this.manualOverhead);
+				p.set('l', this.language);
+				p.set('t', this.themeMode);
+				history.replaceState(null, '', '#' + p.toString());
+			}
+
+			// Restore state from URL hash parameters
+			loadHash() {
+				const p = new URLSearchParams(location.hash.substring(1));
+				if (p.has('v')) this.vramSize = Number(p.get('v'));
+				if (p.has('q')) this.quantization = p.get('q');
+				if (p.has('c')) this.contextWindow = Math.pow(2, Number(p.get('c')));
+				if (p.has('k')) this.kvCacheQuant = p.get('k');
+				if (p.has('a')) this.attention = p.get('a');
+				if (p.has('g')) this.gpuType = p.get('g');
+				if (p.has('o')) this.manualOverhead = Number(p.get('o'));
+				if (p.has('l')) this.language = p.get('l');
+				if (p.has('t')) this.themeMode = p.get('t');
+
+				// Update UI elements to match internal state
+				elements.vramSlider.value = this.vramSize;
+				elements.quantization.value = this.quantization;
+				elements.contextSlider.value = Math.log2(this.contextWindow);
+				elements.kvCache.value = this.kvCacheQuant;
+				elements.attention.value = this.attention;
+				elements.gpuType.value = this.gpuType;
+				elements.overheadSlider.value = this.manualOverhead;
+				elements.language.value = this.language;
+				elements.theme.value = this.themeMode;
+
+				this.updateVramDisplay();
+				this.updateContextDisplay();
+				this.calculate(); // Recalculate results based on restored state
+			}
+
 			async copy() {
 				const t = text[this.language],
 					summary = `${t.title} Summary:\n` + [
@@ -868,7 +940,9 @@
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
-						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`,
+						`---`,
+						`${t.shareUrl}: ${location.href}`
 					].filter(Boolean).join('\n');
 				try {
 					await navigator.clipboard.writeText(summary);
@@ -960,6 +1034,7 @@
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
 				});
+					this.updateHash();
 			}
 			
 			displayResults(results) {
@@ -1030,7 +1105,7 @@
 			
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
-			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			theme(n) { (this.themeMode = n, document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
