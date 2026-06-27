@@ -738,7 +738,8 @@
 				
 				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param<br>• KV Cache: 2 × layers × hidden × context × bytes<br>• Overhead: Fixed amount (OS, Display, Framework)',
 				architecture: '<strong>Reference Data:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv heads)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
-				sources: '<strong>Sources:</strong> Meta Llama Technical Reports (2024-2025), Mistral AI Docs & Papers (2023-2024), Google Gemma Blog & HF Docs (2024), Qwen 2.5 Technical Report (2024), HuggingFace Model Cards, NVIDIA Technical Blogs, vLLM Documentation'
+				sources: '<strong>Sources:</strong> Meta Llama Technical Reports (2024-2025), Mistral AI Docs & Papers (2023-2024), Google Gemma Blog & HF Docs (2024), Qwen 2.5 Technical Report (2024), HuggingFace Model Cards, NVIDIA Technical Blogs, vLLM Documentation',
+				shareUrl: 'Share URL'
 			},
 			id: {
 				title: 'Kalkulator VRAM LLM',
@@ -791,7 +792,8 @@
 				
 				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param<br>• KV Cache: 2 × lapisan × tersembunyi × konteks × byte<br>• Overhead: Jumlah tetap (OS, Tampilan, Framework)',
 				architecture: '<strong>Data Referensi:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv head)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
-				sources: '<strong>Sumber:</strong> Laporan Teknis Meta Llama (2024-2025), Dokumen & Makalah Mistral AI (2023-2024), Blog Google Gemma & Dokumen HF (2024), Laporan Teknis Qwen 2.5 (2024), Kartu Model HuggingFace, Blog Teknis NVIDIA, Dokumentasi vLLM'
+				sources: '<strong>Sumber:</strong> Laporan Teknis Meta Llama (2024-2025), Dokumen & Makalah Mistral AI (2023-2024), Blog Google Gemma & Dokumen HF (2024), Laporan Teknis Qwen 2.5 (2024), Kartu Model HuggingFace, Blog Teknis NVIDIA, Dokumentasi vLLM',
+				shareUrl: 'URL Bagikan'
 			}
 		};
 		
@@ -837,16 +839,19 @@
 				this.attention = 'gqa';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
+				this.themeMode = 'auto';
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				
 				this.setup();
-				this.theme('auto');
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.loadHash();
+				this.theme(this.themeMode);
 				this.lang(this.language);
+				window.addEventListener('hashchange', () => { this.loadHash(); this.theme(this.themeMode); this.lang(this.language); });
 			}
 			
 			setup() {
-				(elements.language.onchange = e=>this.lang(e.target.value),
-				elements.theme.onchange = e=>this.theme(e.target.value),
+				(elements.language.onchange = e=>(this.lang(e.target.value), this.updateHash()),
+				elements.theme.onchange = e=>(this.theme(e.target.value), this.updateHash()),
 				elements.vramSlider.oninput = e=>(this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
 				elements.quantization.onchange = e=>(this.quantization = e.target.value,this.calculate()),
 				elements.kvCache.onchange = e=>(this.kvCacheQuant = e.target.value,this.calculate()),
@@ -868,14 +873,54 @@
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
-						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`,
+						`---`,
+						`${t.shareUrl}: ${location.href}`
 					].filter(Boolean).join('\n');
 				try {
 					await navigator.clipboard.writeText(summary);
-					const _b = elements.copyBtn.innerHTML;
 					elements.copyBtn.innerHTML = CLIPBOARD_ICON + t.copied;
-					setTimeout(() => elements.copyBtn.innerHTML = _b, 2000);
+					setTimeout(() => elements.copyBtn.innerHTML = CLIPBOARD_ICON + this.string('copyBtn'), 2000);
 				} catch (e) { console.error(e); }
+			}
+
+			updateHash() {
+				const p = new URLSearchParams();
+				p.set('v', this.vramSize);
+				p.set('q', this.quantization);
+				p.set('c', Math.log2(this.contextWindow));
+				p.set('k', this.kvCacheQuant);
+				p.set('a', this.attention);
+				p.set('g', this.gpuType);
+				p.set('o', this.manualOverhead);
+				p.set('l', this.language);
+				p.set('t', this.themeMode);
+				history.replaceState(null, null, '#' + p.toString());
+			}
+
+			loadHash() {
+				const p = new URLSearchParams(location.hash.slice(1));
+				if (p.has('v')) this.vramSize = Number(p.get('v'));
+				if (p.has('q')) this.quantization = p.get('q');
+				if (p.has('c')) this.contextWindow = Math.pow(2, Number(p.get('c')));
+				if (p.has('k')) this.kvCacheQuant = p.get('k');
+				if (p.has('a')) this.attention = p.get('a');
+				if (p.has('g')) this.gpuType = p.get('g');
+				if (p.has('o')) this.manualOverhead = Number(p.get('o'));
+				if (p.has('l')) this.language = p.get('l');
+				if (p.has('t')) this.themeMode = p.get('t');
+
+				elements.vramSlider.value = this.vramSize;
+				elements.quantization.value = this.quantization;
+				elements.contextSlider.value = Math.log2(this.contextWindow);
+				elements.kvCache.value = this.kvCacheQuant;
+				elements.attention.value = this.attention;
+				elements.gpuType.value = this.gpuType;
+				elements.overheadSlider.value = this.manualOverhead;
+
+				this.updateVramDisplay();
+				this.updateContextDisplay();
+				this.calculate();
 			}
 			
 			applyPreset(preset) {
@@ -960,6 +1005,7 @@
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
 				});
+				this.updateHash();
 			}
 			
 			displayResults(results) {
@@ -1030,7 +1076,7 @@
 			
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
-			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			theme(n) { (this.themeMode = n, document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
