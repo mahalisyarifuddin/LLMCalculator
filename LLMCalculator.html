@@ -568,7 +568,20 @@
 				</div>
 				
 				<div class="card">
-					<h2 id="quantizationLabel">Quantization</h2>
+					<h2 id="modelLabel">Model Configuration</h2>
+					<div class="form-group">
+						<div class="label-row">
+							<label id="modelFamilyLabel">Model Family</label>
+						</div>
+						<select id="modelFamily" class="full-width" aria-labelledby="modelFamilyLabel">
+							<option value="auto" selected>Auto-Estimate (General)</option>
+							<option value="llama3">Llama 3 / 3.1</option>
+							<option value="gemma2">Gemma 2 / 3</option>
+							<option value="qwen25">Qwen 2.5</option>
+							<option value="deepseek">DeepSeek V3 (MLA)</option>
+						</select>
+					</div>
+
 					<div class="form-group">
 						<div class="label-row">
 							<label id="modelQuantLabel">Model Precision</label>
@@ -577,11 +590,15 @@
 							<option value="fp32">FP32 (4.0 bytes)</option>
 							<option value="fp16" selected>FP16 (2.0 bytes)</option>
 							<option value="bf16">BF16 (2.0 bytes)</option>
-							<option value="fp8">FP8 (1.0 byte)</option>
-							<option value="int8">INT8 (1.0 byte)</option>
-							<option value="int4">INT4 (0.5 bytes)</option>
-							<option value="fp4">FP4 (0.5 bytes)</option>
-							<option value="fp2">FP2 (0.25 bytes)</option>
+							<option value="fp8">FP8/INT8 (1.0 byte)</option>
+							<option value="gguf_q8">GGUF Q8_0 (~1.06 bytes)</option>
+							<option value="gguf_q6">GGUF Q6_K (~0.83 bytes)</option>
+							<option value="gguf_q5">GGUF Q5_K_M (~0.69 bytes)</option>
+							<option value="gguf_q4">GGUF Q4_K_M / GPTQ 4-bit (~0.6 bytes)</option>
+							<option value="int4">INT4/FP4 (0.5 bytes, Ideal)</option>
+							<option value="gguf_q3">GGUF Q3_K_M (~0.46 bytes)</option>
+							<option value="gguf_q2">GGUF Q2_K (~0.41 bytes)</option>
+							<option value="fp2">FP2 (0.25 bytes, Ideal)</option>
 						</select>
 					</div>
 
@@ -604,8 +621,32 @@
 						</div>
 						<select id="attention" class="full-width" aria-labelledby="attentionLabel">
 							<option value="mha">MHA (Standard)</option>
-							<option value="gqa" selected>GQA (Modern)</option>
+							<option value="gqa_8" selected>GQA (8-head, Llama 3)</option>
+							<option value="gqa_16">GQA (16-head, Gemma 3)</option>
+							<option value="mla">MLA (DeepSeek V3)</option>
 						</select>
+					</div>
+
+					<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
+						<label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem; font-weight: 600;">
+							<input type="checkbox" id="advancedToggle"> Advanced Architecture Overrides
+						</label>
+						<div id="advancedFields" class="hidden" style="margin-top: 1rem;">
+							<div class="form-group">
+								<div class="label-row">
+									<label>Custom Layers</label>
+									<span class="value" id="customLayersValue">32</span>
+								</div>
+								<input type="range" id="customLayers" min="1" max="160" step="1" value="32">
+							</div>
+							<div class="form-group">
+								<div class="label-row">
+									<label>Custom Hidden Size</label>
+									<span class="value" id="customHiddenValue">4096</span>
+								</div>
+								<input type="range" id="customHidden" min="128" max="16384" step="128" value="4096">
+							</div>
+						</div>
 					</div>
 				</div>
 				
@@ -662,7 +703,7 @@
 				<div class="card">
 					<h2 id="presetsLabel">Quick Presets</h2>
 					<div class="presets-grid">
-						<button class="preset-btn" data-preset="rtx5050">RTX 5050</button>
+						<button class="preset-btn" data-preset="rtx5050">RTX 5050 Laptop</button>
 						<button class="preset-btn" data-preset="rtx5090">RTX 5090</button>
 						<button class="preset-btn" data-preset="rtx4090">RTX 4090</button>
 						<button class="preset-btn" data-preset="a100">A100 80GB</button>
@@ -695,13 +736,15 @@
 				darkTheme: 'Dark',
 				vramLabel: 'GPU Memory',
 				vramSizeLabel: 'VRAM Size',
-				systemRamLabel: 'Total System RAM',
+				unifiedMemoryLabel: 'Unified Memory',
+				sharedMemoryLabel: 'Shared Memory',
 				gpuTypeLabel: 'GPU Type',
 				overheadLabel: 'System Overhead Deduction',
-				quantizationLabel: 'Quantization',
+				modelLabel: 'Model Configuration',
+				modelFamilyLabel: 'Model Family',
 				modelQuantLabel: 'Model Precision',
 				kvCacheLabel: 'KV Cache',
-				attentionLabel: 'Attention Mechanism',
+				attentionLabel: 'Attention Architecture',
 				contextLabel: 'Context Window',
 				maxContextLabel: 'Max Context',
 				maxParamsLabel: 'Maximum Parameters',
@@ -736,9 +779,9 @@
 				warningInsufficient: '❌ Insufficient VRAM for model.',
 				insufficient: 'INSUFFICIENT',
 				
-				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param<br>• KV Cache: 2 × layers × hidden × context × bytes<br>• Overhead: Fixed amount (OS, Display, Framework)',
-				architecture: '<strong>Reference Data:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv heads)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
-				sources: '<strong>Sources:</strong> Meta Llama Technical Reports (2024-2025), Mistral AI Docs & Papers (2023-2024), Google Gemma Blog & HF Docs (2024), Qwen 2.5 Technical Report (2024), HuggingFace Model Cards, NVIDIA Technical Blogs, vLLM Documentation'
+				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param × 1.05 (overhead)<br>• KV (MHA/GQA): 2 × layers × kv_heads × head_dim × context × bytes<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes',
+				architecture: '<strong>Reference Data:</strong><br>• Llama 3.1: 8B (32L, GQA-8), 70B (80L, GQA-8)<br>• Gemma 2: 9B (42L, GQA-16), 27B (46L, GQA-16)<br>• Qwen 2.5: 7B (28L, GQA-8), 72B (80L, GQA-8)<br>• DeepSeek V3: 671B (61L, MLA)',
+				sources: '<strong>Sources:</strong> Meta Llama 3.1 Report (2024), Google Gemma 2 Report (2024), Qwen 2.5 Paper (2024), DeepSeek V3 Paper (2024), NVIDIA H200 Specs (141GB HBM3e)'
 			},
 			id: {
 				title: 'Kalkulator VRAM LLM',
@@ -748,13 +791,15 @@
 				darkTheme: 'Gelap',
 				vramLabel: 'Memori GPU',
 				vramSizeLabel: 'Ukuran VRAM',
-				systemRamLabel: 'Total RAM Sistem',
+				unifiedMemoryLabel: 'Memori Terpadu (Unified)',
+				sharedMemoryLabel: 'Memori Bersama (Shared)',
 				gpuTypeLabel: 'Tipe GPU',
 				overheadLabel: 'Deduksi Overhead Sistem',
-				quantizationLabel: 'Kuantisasi',
+				modelLabel: 'Konfigurasi Model',
+				modelFamilyLabel: 'Keluarga Model',
 				modelQuantLabel: 'Presisi Model',
 				kvCacheLabel: 'KV Cache',
-				attentionLabel: 'Mekanisme Atensi',
+				attentionLabel: 'Arsitektur Atensi',
 				contextLabel: 'Jendela Konteks',
 				maxContextLabel: 'Konteks Maks',
 				maxParamsLabel: 'Parameter Maksimum',
@@ -789,9 +834,9 @@
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
 				insufficient: 'TIDAK CUKUP',
 				
-				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param<br>• KV Cache: 2 × lapisan × tersembunyi × konteks × byte<br>• Overhead: Jumlah tetap (OS, Tampilan, Framework)',
-				architecture: '<strong>Data Referensi:</strong><br>• Llama 3/3.1: 8B=32L×4096d, 70B=80L×8192d<br>• Mistral 7B: 32L×4096d, GQA(32q/8kv head)<br>• Gemma 2: 9B=42L×3584d, 27B=46L×4608d<br>• Qwen 2.5: 7B=28L×3584d, 72B=80L×8192d',
-				sources: '<strong>Sumber:</strong> Laporan Teknis Meta Llama (2024-2025), Dokumen & Makalah Mistral AI (2023-2024), Blog Google Gemma & Dokumen HF (2024), Laporan Teknis Qwen 2.5 (2024), Kartu Model HuggingFace, Blog Teknis NVIDIA, Dokumentasi vLLM'
+				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param × 1.05 (overhead)<br>• KV (MHA/GQA): 2 × lapisan × kv_head × head_dim × konteks × byte<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte',
+				architecture: '<strong>Data Referensi:</strong><br>• Llama 3.1: 8B (32L, GQA-8), 70B (80L, GQA-8)<br>• Gemma 2: 9B (42L, GQA-16), 27B (46L, GQA-16)<br>• Qwen 2.5: 7B (28L, GQA-8), 72B (80L, GQA-8)<br>• DeepSeek V3: 671B (61L, MLA)',
+				sources: '<strong>Sumber:</strong> Laporan Llama 3.1 (2024), Laporan Gemma 2 (2024), Makalah Qwen 2.5 (2024), Makalah DeepSeek V3 (2024), Spek NVIDIA H200 (141GB HBM3e)'
 			}
 		};
 		
@@ -799,33 +844,58 @@
 		
 		const CLIPBOARD_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem;vertical-align:text-bottom"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
-		const referenceConfigs = [
-			{ size: 0.5, layers: 24, hidden: 896 },
-			{ size: 1.5, layers: 28, hidden: 1536 },
-			{ size: 3.0, layers: 28, hidden: 3072 },
-			{ size: 7.0, layers: 32, hidden: 4096 },
-			{ size: 14.0, layers: 48, hidden: 5120 },
-			{ size: 32.0, layers: 64, hidden: 5120 },
-			{ size: 70.0, layers: 80, hidden: 8192 },
-			{ size: 405.0, layers: 126, hidden: 16384 }
-		];
+		const referenceConfigs = {
+			auto: [
+				{ size: 0.5, layers: 24, hidden: 896 },
+				{ size: 1.5, layers: 28, hidden: 1536 },
+				{ size: 3.0, layers: 28, hidden: 3072 },
+				{ size: 7.0, layers: 32, hidden: 4096 },
+				{ size: 14.0, layers: 48, hidden: 5120 },
+				{ size: 32.0, layers: 64, hidden: 5120 },
+				{ size: 70.0, layers: 80, hidden: 8192 },
+				{ size: 405.0, layers: 126, hidden: 16384 }
+			],
+			llama3: [
+				{ size: 8, layers: 32, hidden: 4096 },
+				{ size: 70, layers: 80, hidden: 8192 },
+				{ size: 405, layers: 126, hidden: 16384 }
+			],
+			gemma2: [
+				{ size: 2, layers: 26, hidden: 2304 },
+				{ size: 9, layers: 42, hidden: 3584 },
+				{ size: 27, layers: 46, hidden: 4608 }
+			],
+			qwen25: [
+				{ size: 0.5, layers: 24, hidden: 896 },
+				{ size: 1.5, layers: 28, hidden: 1536 },
+				{ size: 3, layers: 36, hidden: 2048 },
+				{ size: 7, layers: 28, hidden: 3584 },
+				{ size: 14, layers: 48, hidden: 5120 },
+				{ size: 32, layers: 64, hidden: 5120 },
+				{ size: 72, layers: 80, hidden: 8192 }
+			],
+			deepseek: [
+				{ size: 16, layers: 27, hidden: 2048 },
+				{ size: 671, layers: 61, hidden: 7168 }
+			]
+		};
 
-		const estimateArchitecture = params=>params <= referenceConfigs[0].size
-			? {layers: referenceConfigs[0].layers,hidden: referenceConfigs[0].hidden}
-			: params >= referenceConfigs[referenceConfigs.length - 1].size
-				? {layers: referenceConfigs[referenceConfigs.length - 1].layers,hidden: referenceConfigs[referenceConfigs.length - 1].hidden}
-				: (()=>{
-					const i = referenceConfigs.findIndex((c,idx)=>params >= c.size && params <= referenceConfigs[idx+1]?.size);
-					const lower = referenceConfigs[i],upper = referenceConfigs[i+1],ratio = (params - lower.size) / (upper.size - lower.size);
-					return {
-						layers: Math.round(lower.layers + (upper.layers - lower.layers) * ratio),
-						hidden: Math.round(lower.hidden + (upper.hidden - lower.hidden) * ratio)
-					};
-				})();
+		const estimateArchitecture = (params, family = 'auto') => {
+			const configs = referenceConfigs[family] || referenceConfigs.auto;
+			if (params <= configs[0].size) return { layers: configs[0].layers, hidden: configs[0].hidden };
+			if (params >= configs[configs.length - 1].size) return { layers: configs[configs.length - 1].layers, hidden: configs[configs.length - 1].hidden };
+			const i = configs.findIndex((c, idx) => params >= c.size && params <= configs[idx + 1]?.size);
+			const lower = configs[i], upper = configs[i + 1], ratio = (params - lower.size) / (upper.size - lower.size);
+			return {
+				layers: Math.round(lower.layers + (upper.layers - lower.layers) * ratio),
+				hidden: Math.round(lower.hidden + (upper.hidden - lower.hidden) * ratio)
+			};
+		};
 		
-		const quantizationBits = {
-			'fp32': 32, 'fp16': 16, 'bf16': 16, 'fp8': 8,
-			'int8': 8, 'int4': 4, 'fp4': 4, 'fp2': 2
+		const quantizationBytes = {
+			'fp32': 4.0, 'fp16': 2.0, 'bf16': 2.0, 'fp8': 1.0, 'int8': 1.0,
+			'gguf_q8': 1.06, 'gguf_q6': 0.83, 'gguf_q5': 0.69, 'gguf_q4': 0.60,
+			'int4': 0.5, 'fp4': 0.5, 'gguf_q3': 0.46, 'gguf_q2': 0.41, 'fp2': 0.25
 		};
 		
 		class LLMCalculator {
@@ -834,9 +904,10 @@
 				this.quantization = 'fp16';
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
-				this.attention = 'gqa';
+				this.attention = 'gqa_8';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
+				this.modelFamily = 'auto';
 				
 				this.setup();
 				this.theme('auto');
@@ -848,15 +919,45 @@
 				(elements.language.onchange = e=>this.lang(e.target.value),
 				elements.theme.onchange = e=>this.theme(e.target.value),
 				elements.vramSlider.oninput = e=>(this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
+				elements.modelFamily.onchange = e=>{
+					this.modelFamily = e.target.value;
+					if (this.modelFamily === 'llama3') elements.attention.value = this.attention = 'gqa_8';
+					else if (this.modelFamily === 'gemma2') elements.attention.value = this.attention = 'gqa_16';
+					else if (this.modelFamily === 'deepseek') elements.attention.value = this.attention = 'mla';
+					else if (this.modelFamily === 'auto') elements.attention.value = this.attention = 'gqa_8';
+					this.calculate();
+				},
 				elements.quantization.onchange = e=>(this.quantization = e.target.value,this.calculate()),
 				elements.kvCache.onchange = e=>(this.kvCacheQuant = e.target.value,this.calculate()),
 				elements.attention.onchange = e=>(this.attention = e.target.value,this.calculate()),
 				elements.contextSlider.oninput = e=>(this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
 				elements.gpuType.onchange = e=>(this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
 				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate()),
+				elements.advancedToggle.onchange = e=>{
+					elements.advancedFields.classList.toggle('hidden', !e.target.checked);
+					this.calculate();
+				},
+				elements.customLayers.oninput = e=>(elements.customLayersValue.textContent = e.target.value, this.calculate()),
+				elements.customHidden.oninput = e=>(elements.customHiddenValue.textContent = e.target.value, this.calculate()),
 				elements.copyBtn.onclick = ()=>this.copy(),
 				document.querySelectorAll('.preset-btn[data-preset]')
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
+			}
+
+			calculateKvCache(arch, context, bytesPerElement) {
+				if (!arch.layers || !arch.hidden) return 0;
+				let kvWidth = 0;
+				if (this.attention === 'mla') {
+					// DeepSeek MLA: (kv_lora_rank + qk_rope_head_dim)
+					// V3/V3.2 use 512 + 64 = 576.
+					kvWidth = 576;
+					return (arch.layers * context * kvWidth * bytesPerElement) / (1024 ** 3);
+				} else {
+					if (this.attention === 'mha') kvWidth = arch.hidden;
+					else if (this.attention === 'gqa_16') kvWidth = 2048; // 16 heads * 128 dim
+					else kvWidth = 1024; // GQA-8: 8 heads * 128 dim
+					return (2 * arch.layers * kvWidth * context * bytesPerElement) / (1024 ** 3);
+				}
 			}
 
 			async copy() {
@@ -880,14 +981,14 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa' },
-					rtx5090: { vram: 32, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa' },
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa' },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
-					h200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'gqa' },
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', attention: 'gqa' },
-					macbookneo: { vram: 8, quant: 'int4', context: 8192, gpu: 'soc', attention: 'gqa' },
-					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'gqa' }
+					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa_8' },
+					rtx5090: { vram: 32, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa_8' },
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa_8' },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'gqa_8' },
+					h200: { vram: 141, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'gqa_8' },
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', attention: 'gqa_8' },
+					macbookneo: { vram: 8, quant: 'int4', context: 8192, gpu: 'soc', attention: 'gqa_8' },
+					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'gqa_8' }
 				}, p = presets[preset];
 				p && (
 					this.vramSize = p.vram,
@@ -911,8 +1012,8 @@
 			updateVramDisplay() {
 				(elements.vramValue.textContent = `${this.vramSize} GB`,
 				elements.vramSlider.setAttribute('aria-valuetext',elements.vramValue.textContent),
-				elements.vramSizeLabel.textContent = (this.gpuType === 'soc' || this.gpuType === 'snapdragon') ?
-					this.string('systemRamLabel') : this.string('vramSizeLabel'));
+				elements.vramSizeLabel.textContent = this.gpuType === 'soc' ? this.string('unifiedMemoryLabel') :
+					this.gpuType === 'snapdragon' ? this.string('sharedMemoryLabel') : this.string('vramSizeLabel'));
 			}
 			
 			updateContextDisplay() {
@@ -921,10 +1022,9 @@
 			}
 			
 			calculate() {
-				const bytesPerParam = quantizationBits[this.quantization] / 8,
-					kvQuantBits = this.kvCacheQuant === 'same' ? quantizationBits[this.quantization] : quantizationBits[this.kvCacheQuant],
-					t = text[this.language],
-					bytesPerKvElement = kvQuantBits / 8;
+				const bytesPerParam = quantizationBytes[this.quantization],
+					kvBytesPerElement = this.kvCacheQuant === 'same' ? quantizationBytes[this.quantization] : quantizationBytes[this.kvCacheQuant],
+					t = text[this.language];
 				
 				const [overheadGB,availableVram,overheadMsg] = this.gpuType === 'discrete'
 					? [this.manualOverhead,this.vramSize - this.manualOverhead,""]
@@ -939,16 +1039,23 @@
 				const availableForUse = Math.max(0,availableVram);
 				let maxParams = 0,estimatedArchitecture = {layers: 0,hidden: 0};
 				
+				const WEIGHT_OVERHEAD = 1.05; // 5% for metadata, scales, and alignment
+
 				for (let i = 0; i < 5; i++) {
-					const gqaRatio = this.attention === 'gqa' ? Math.min(1,1024 / (estimatedArchitecture.hidden || 4096)) : 1;
-					const kvCache = estimatedArchitecture.layers ? (2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * gqaRatio) / (1024 ** 3) : 0;
+					if (elements.advancedToggle.checked) {
+						estimatedArchitecture = {
+							layers: Number(elements.customLayers.value) || 32,
+							hidden: Number(elements.customHidden.value) || 4096
+						};
+					}
+					const kvCache = this.calculateKvCache(estimatedArchitecture, this.contextWindow, kvBytesPerElement);
 					const memoryForWeights = availableForUse - kvCache;
 					if (memoryForWeights <= 0) { (maxParams = 0); break; }
-					(maxParams = memoryForWeights / bytesPerParam,estimatedArchitecture = estimateArchitecture(maxParams));
+					(maxParams = memoryForWeights / (bytesPerParam * WEIGHT_OVERHEAD),
+					 estimatedArchitecture = elements.advancedToggle.checked ? estimatedArchitecture : estimateArchitecture(maxParams, this.modelFamily));
 				}
 				
-				const finalGqaRatio = this.attention === 'gqa' ? Math.min(1,1024 / (estimatedArchitecture.hidden || 4096)) : 1;
-				const kvCacheGB = estimatedArchitecture.layers ? (2 * estimatedArchitecture.layers * estimatedArchitecture.hidden * this.contextWindow * bytesPerKvElement * finalGqaRatio) / (1024 ** 3) : 0;
+				const kvCacheGB = this.calculateKvCache(estimatedArchitecture, this.contextWindow, kvBytesPerElement);
 				
 				this.displayResults({
 					totalVram: this.vramSize,

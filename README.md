@@ -30,17 +30,17 @@ It iteratively calculates the maximum parameter count (in Billions) that fits wi
 5.  Choose the **Model Precision** (Quantization) and **KV Cache** precision.
 6.  Adjust the **Context Window** (e.g., 8K, 32K tokens).
 7.  View the estimated **Max Parameters** and detailed memory breakdown.
-8.  Use **Quick Presets** to simulate popular hardware configurations like RTX 5050, RTX 4090, A100, H200, M4 Max, or Macbook neo.
+8.  Use **Quick Presets** to simulate popular hardware configurations like RTX 5050 Laptop, RTX 4090, A100, H200, M4 Max, or Macbook neo.
 
 ## Key Features
 -   **Multi-language Support**: Toggle between English and Indonesian.
 -   **Real-time Calculation**: Instant updates as you adjust sliders and dropdowns.
--   **Architecture-Aware Logic**: Different memory reservation rules for Discrete GPUs vs SoCs (Apple/Snapdragon).
+-   **Architecture-Aware Logic**: Specific attention mechanisms (MHA, GQA, MLA) and GPU-specific memory reservation rules (Unified vs Shared vs Discrete).
 -   **Adjustable Overhead**: Fine-tune system memory deduction for headless Linux servers vs Windows desktops.
 -   **Detailed Memory Breakdown**: Visualizes usage for System Overhead, KV Cache, and Model Weights.
--   **Hardware Presets**: One-click configuration for common GPUs, including the new **RTX 5050** and **Macbook neo**.
--   **Advanced Options**: Support for various quantization formats (up to FP2) and separate KV cache precision.
--   **Model Estimation**: Dynamically estimates model architecture (Layers and Hidden Size) based on modern LLM configurations (e.g. Llama 3, Qwen 2.5) for the calculated parameter count.
+-   **Hardware Presets**: One-click configuration for common GPUs, including the **RTX 5050 Laptop** and **H200 (141GB)**.
+-   **Advanced Options**: Support for various quantization formats (GGUF, GPTQ, FP8) and manual architecture overrides.
+-   **Model Templates**: Dynamically estimates model architecture based on family-specific templates (Llama 3.1, Gemma 2, Qwen 2.5, DeepSeek MLA).
 -   **Single HTML file**: No installation, no dependencies, works completely offline.
 -   **Responsive design**: Works on desktop, tablet, and mobile devices.
 
