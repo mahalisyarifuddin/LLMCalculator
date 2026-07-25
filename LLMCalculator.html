@@ -932,6 +932,8 @@
 		
 		class LLMCalculator {
 			constructor() {
+				this.themeMode = 'auto';
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				this.vramSize = 24;
 				this.quantization = 'fp16';
 				this.contextWindow = 8192;
@@ -942,9 +944,84 @@
 				this.modelFamily = 'auto';
 				
 				this.setup();
-				this.theme('auto');
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.loadHash();
+				window.addEventListener('hashchange',()=>this.loadHash());
+			}
+
+			loadHash() {
+				// Parse URL hash parameters to restore calculator state
+				const hash = location.hash.slice(1);
+				if (hash) {
+					const params = new URLSearchParams(hash);
+
+					// Retrieve state with shorthand keys
+					if (params.has('v')) this.vramSize = Number(params.get('v'));
+					if (params.has('q')) this.quantization = params.get('q');
+					if (params.has('c')) this.contextWindow = Math.pow(2, Number(params.get('c')));
+					if (params.has('k')) this.kvCacheQuant = params.get('k');
+					if (params.has('a')) this.attention = params.get('a');
+					if (params.has('g')) this.gpuType = params.get('g');
+					if (params.has('o')) this.manualOverhead = Number(params.get('o'));
+					if (params.has('l')) this.language = params.get('l');
+					if (params.has('t')) this.themeMode = params.get('t');
+					if (params.has('mf')) this.modelFamily = params.get('mf');
+
+					// Handle advanced architecture overrides
+					if (params.has('ly') && params.has('h')) {
+						elements.advancedToggle.checked = true;
+						elements.advancedFields.classList.remove('hidden');
+						elements.customLayers.value = params.get('ly');
+						elements.customLayersValue.textContent = params.get('ly');
+						elements.customHidden.value = params.get('h');
+						elements.customHiddenValue.textContent = params.get('h');
+					} else {
+						elements.advancedToggle.checked = false;
+						elements.advancedFields.classList.add('hidden');
+					}
+				} else {
+					// Default to unchecked advanced toggles if no hash
+					elements.advancedToggle.checked = false;
+					elements.advancedFields.classList.add('hidden');
+				}
+
+				// Synchronize DOM inputs with class properties
+				elements.vramSlider.value = this.vramSize;
+				elements.quantization.value = this.quantization;
+				elements.contextSlider.value = Math.log2(this.contextWindow);
+				elements.kvCache.value = this.kvCacheQuant;
+				elements.attention.value = this.attention;
+				elements.gpuType.value = this.gpuType;
+				elements.overheadSlider.value = this.manualOverhead;
+				elements.language.value = this.language;
+				elements.theme.value = this.themeMode;
+				elements.modelFamily.value = this.modelFamily;
+
+				// Apply settings and trigger calculations
+				this.theme(this.themeMode);
 				this.lang(this.language);
+				this.updateVramDisplay();
+				this.updateContextDisplay();
+				this.calculate();
+			}
+
+			updateHash() {
+				// Serialize all calculator states to URL hash using shorthand keys
+				const params = new URLSearchParams();
+				params.set('v', this.vramSize);
+				params.set('q', this.quantization);
+				params.set('c', Math.log2(this.contextWindow));
+				params.set('k', this.kvCacheQuant);
+				params.set('a', this.attention);
+				params.set('g', this.gpuType);
+				params.set('o', this.manualOverhead);
+				params.set('l', this.language);
+				params.set('t', this.themeMode);
+				params.set('mf', this.modelFamily);
+				if (elements.advancedToggle.checked) {
+					params.set('ly', elements.customLayers.value);
+					params.set('h', elements.customHidden.value);
+				}
+				history.replaceState(null, '', '#' + params.toString());
 			}
 			
 			setup() {
@@ -1099,6 +1176,7 @@
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
 				});
+				this.updateHash();
 			}
 			
 			displayResults(results) {
@@ -1169,7 +1247,7 @@
 			
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
-			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			theme(n) { (this.themeMode = n,document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n,this.updateHash()); }
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
@@ -1181,7 +1259,8 @@
 				elements.sourcesText.innerHTML = this.string('sources'),
 				this.updateVramDisplay(),
 				this.updateContextDisplay(),
-				this.calculate());
+				this.calculate(),
+				this.updateHash());
 			}
 		}
 		
