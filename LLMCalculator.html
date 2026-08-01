@@ -940,17 +940,18 @@
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
 				this.modelFamily = 'auto';
+				this.themeMode = 'auto';
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				
 				this.setup();
-				this.theme('auto');
-				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
-				this.lang(this.language);
+				this.loadHash();
+				window.addEventListener('hashchange',()=>this.loadHash());
 			}
 			
 			setup() {
 				(elements.language.onchange = e=>this.lang(e.target.value),
 				elements.theme.onchange = e=>this.theme(e.target.value),
-				elements.vramSlider.oninput = e=>(this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
+				elements.vramSlider.oninput = e=>(this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate(),this.updateHash()),
 				elements.modelFamily.onchange = e=>{
 					this.modelFamily = e.target.value;
 					if (this.modelFamily === 'llama3') elements.attention.value = this.attention = 'gqa_8';
@@ -958,19 +959,21 @@
 					else if (this.modelFamily === 'deepseek') elements.attention.value = this.attention = 'mla';
 					else if (this.modelFamily === 'auto') elements.attention.value = this.attention = 'gqa_8';
 					this.calculate();
+					this.updateHash();
 				},
-				elements.quantization.onchange = e=>(this.quantization = e.target.value,this.calculate()),
-				elements.kvCache.onchange = e=>(this.kvCacheQuant = e.target.value,this.calculate()),
-				elements.attention.onchange = e=>(this.attention = e.target.value,this.calculate()),
-				elements.contextSlider.oninput = e=>(this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
-				elements.gpuType.onchange = e=>(this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
-				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate()),
+				elements.quantization.onchange = e=>(this.quantization = e.target.value,this.calculate(),this.updateHash()),
+				elements.kvCache.onchange = e=>(this.kvCacheQuant = e.target.value,this.calculate(),this.updateHash()),
+				elements.attention.onchange = e=>(this.attention = e.target.value,this.calculate(),this.updateHash()),
+				elements.contextSlider.oninput = e=>(this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate(),this.updateHash()),
+				elements.gpuType.onchange = e=>(this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate(),this.updateHash()),
+				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate(),this.updateHash()),
 				elements.advancedToggle.onchange = e=>{
 					elements.advancedFields.classList.toggle('hidden', !e.target.checked);
 					this.calculate();
+					this.updateHash();
 				},
-				elements.customLayers.oninput = e=>(elements.customLayersValue.textContent = e.target.value, this.calculate()),
-				elements.customHidden.oninput = e=>(elements.customHiddenValue.textContent = e.target.value, this.calculate()),
+				elements.customLayers.oninput = e=>(elements.customLayersValue.textContent = e.target.value, this.calculate(),this.updateHash()),
+				elements.customHidden.oninput = e=>(elements.customHiddenValue.textContent = e.target.value, this.calculate(),this.updateHash()),
 				elements.copyBtn.onclick = ()=>this.copy(),
 				document.querySelectorAll('.preset-btn[data-preset]')
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
@@ -1169,7 +1172,132 @@
 			
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
-			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
+			theme(n) {
+				this.themeMode = n;
+				document.documentElement.className = n === 'auto' ? '' : n;
+				elements.theme.value = n;
+				this.updateHash();
+			}
+
+			updateHash() {
+				// Create new URLSearchParams for the hash
+				const params = new URLSearchParams();
+				params.set('v', this.vramSize);
+				params.set('q', this.quantization);
+				params.set('c', Math.round(Math.log2(this.contextWindow)));
+				params.set('k', this.kvCacheQuant);
+				params.set('a', this.attention);
+				params.set('g', this.gpuType);
+				params.set('o', this.manualOverhead);
+				params.set('l', this.language);
+				params.set('t', this.themeMode);
+				params.set('mf', this.modelFamily);
+
+				// Persist advanced custom architecture overrides if active
+				if (elements.advancedToggle.checked) {
+					params.set('ly', elements.customLayers.value);
+					params.set('h', elements.customHidden.value);
+				}
+
+				// Update hash in address bar without triggering hashchange event
+				history.replaceState(null, '', '#' + params.toString());
+			}
+
+			loadHash() {
+				// Parse URL hash parameters using URLSearchParams
+				const hash = window.location.hash.substring(1);
+				if (!hash) {
+					// Fallback to default language and theme if hash is empty
+					this.theme(this.themeMode || 'auto');
+					this.lang(this.language || 'en');
+					return;
+				}
+				const params = new URLSearchParams(hash);
+
+				// Restore VRAM size
+				if (params.has('v')) {
+					this.vramSize = Number(params.get('v'));
+					elements.vramSlider.value = this.vramSize;
+				}
+
+				// Restore Quantization/Precision
+				if (params.has('q')) {
+					this.quantization = params.get('q');
+					elements.quantization.value = this.quantization;
+				}
+
+				// Restore Context Window (logarithmic scale)
+				if (params.has('c')) {
+					const logVal = Number(params.get('c'));
+					this.contextWindow = Math.pow(2, logVal);
+					elements.contextSlider.value = logVal;
+				}
+
+				// Restore KV Cache Quantization
+				if (params.has('k')) {
+					this.kvCacheQuant = params.get('k');
+					elements.kvCache.value = this.kvCacheQuant;
+				}
+
+				// Restore Attention
+				if (params.has('a')) {
+					this.attention = params.get('a');
+					elements.attention.value = this.attention;
+				}
+
+				// Restore GPU Type
+				if (params.has('g')) {
+					this.gpuType = params.get('g');
+					elements.gpuType.value = this.gpuType;
+				}
+
+				// Restore Manual Overhead
+				if (params.has('o')) {
+					this.manualOverhead = Number(params.get('o'));
+					elements.overheadSlider.value = this.manualOverhead;
+				}
+
+				// Restore Model Family
+				if (params.has('mf')) {
+					this.modelFamily = params.get('mf');
+					elements.modelFamily.value = this.modelFamily;
+				}
+
+				// Restore Advanced Custom Architecture Overrides
+				if (params.has('ly') || params.has('h')) {
+					elements.advancedToggle.checked = true;
+					elements.advancedFields.classList.remove('hidden');
+					if (params.has('ly')) {
+						elements.customLayers.value = params.get('ly');
+						elements.customLayersValue.textContent = params.get('ly');
+					}
+					if (params.has('h')) {
+						elements.customHidden.value = params.get('h');
+						elements.customHiddenValue.textContent = params.get('h');
+					}
+				} else {
+					elements.advancedToggle.checked = false;
+					elements.advancedFields.classList.add('hidden');
+				}
+
+				// Restore Theme Mode (calls theme() to apply)
+				if (params.has('t')) {
+					this.themeMode = params.get('t');
+				}
+				this.theme(this.themeMode || 'auto');
+
+				// Restore Language (calls lang() to apply)
+				if (params.has('l')) {
+					this.language = params.get('l');
+				}
+				this.lang(this.language || 'en');
+
+				// Ensure displays are updated and calculation is rerun
+				this.updateVramDisplay();
+				this.updateContextDisplay();
+				this.calculate();
+			}
+
 			lang(l) {
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
