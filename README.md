@@ -40,7 +40,8 @@ It iteratively calculates the maximum parameter count (in Billions) that fits wi
 -   **Detailed Memory Breakdown**: Visualizes usage for System Overhead, KV Cache, and Model Weights.
 -   **Hardware Presets**: One-click configuration for common GPUs, including the **RTX 5050 Laptop** and **H200 (141GB)**.
 -   **Advanced Options**: Support for various quantization formats (GGUF, GPTQ, FP8) and manual architecture overrides.
--   **Model Templates**: Dynamically estimates model architecture based on family-specific templates (Llama 3.1, Gemma 2, Qwen 2.5, DeepSeek MLA).
+-   **Multi-Generational Auto-Estimate Model & Attention Architecture**: Dynamically estimates both model architecture (Layers and Hidden Size) and attention mechanism (GQA-4 for <2B, GQA-8 for 2B–276B, MLA for 300B+ MoEs) by synthesizing calculations across all generation versions of modern LLM families: Gemma (Gen 1–4), Qwen (Gen 1–3), MiniCPM (Gen 1–5), G9 (v1–v3), Ling (1.0–2.0), Inkling (Gen 1), DeepSeek (V1–V3, R1), GLM (1–4), and Kimi (V1–K2.5).
+-   **Standardized Model Size Buckets (Artificial Analysis)**: Categorizes models into 4 standardized tiers: **Tiny (<4B)**, **Small (4B–40B)**, **Medium (40B–150B)**, and **Large (150B+)** based on Artificial Analysis taxonomy.
 -   **Single HTML file**: No installation, no dependencies, works completely offline.
 -   **Responsive design**: Works on desktop, tablet, and mobile devices.
 

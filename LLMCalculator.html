@@ -313,12 +313,10 @@
 			color: var(--danger);
 		}
 
-		.result-value.toy { color: var(--text-muted); }
-		.result-value.small { color: var(--success); }
-		.result-value.medium { color: var(--primary); }
-		.result-value.large { color: var(--warning); }
-		.result-value.very-large { color: var(--danger); }
-		.result-value.massive { color: var(--danger); }
+		.result-value.tiny { color: var(--success); }
+		.result-value.small { color: var(--primary); }
+		.result-value.medium { color: var(--warning); }
+		.result-value.large { color: var(--danger); }
 
 		.result-category {
 			font-weight: 600;
@@ -635,10 +633,6 @@
 						</div>
 						<select id="modelFamily" class="full-width" aria-labelledby="modelFamilyLabel">
 							<option value="auto" selected>Auto-Estimate (General)</option>
-							<option value="llama3">Llama 3 / 3.1</option>
-							<option value="gemma2">Gemma 2 / 3</option>
-							<option value="qwen25">Qwen 2.5</option>
-							<option value="deepseek">DeepSeek V3 (MLA)</option>
 						</select>
 					</div>
 
@@ -680,10 +674,7 @@
 							<label id="attentionLabel">Attention</label>
 						</div>
 						<select id="attention" class="full-width" aria-labelledby="attentionLabel">
-							<option value="mha">MHA (Standard)</option>
-							<option value="gqa_8" selected>GQA (8-head, Llama 3)</option>
-							<option value="gqa_16">GQA (16-head, Gemma 3)</option>
-							<option value="mla">MLA (DeepSeek V3)</option>
+							<option value="auto" selected>Auto-Estimate (General)</option>
 						</select>
 					</div>
 
@@ -743,6 +734,10 @@
 						<div class="detail-item">
 							<span id="hiddenLabel">Hidden Size</span>
 							<span id="hiddenValue">-</span>
+						</div>
+						<div class="detail-item">
+							<span id="attentionDetailLabel">Attention</span>
+							<span id="attentionDetailValue">-</span>
 						</div>
 					</div>
 					<button id="copyBtn"></button>
@@ -826,6 +821,7 @@
 				modelQuantLabel: 'Model Precision',
 				kvCacheLabel: 'KV Cache',
 				attentionLabel: 'Attention Architecture',
+				attentionDetailLabel: 'Attention',
 				contextLabel: 'Context Window',
 				maxContextLabel: 'Max Context',
 				maxParamsLabel: 'Maximum Parameters',
@@ -846,12 +842,10 @@
 				hiddenLabel: 'Hidden Size',
 				
 				categorySuffix: '•',
-				categoryToy: 'Toy',
-				categorySmall: 'Small',
-				categoryMedium: 'Medium',
-				categoryLarge: 'Large',
-				categoryVeryLarge: 'Very Large',
-				categoryMassive: 'Massive',
+				categoryTiny: 'Tiny (<4B)',
+				categorySmall: 'Small (4B–40B)',
+				categoryMedium: 'Medium (40B–150B)',
+				categoryLarge: 'Large (150B+)',
 				estimatedArchitecture: 'Estimated Architecture',
 				reserved: 'Reserved',
 				mbPerToken: 'MB/token',
@@ -860,9 +854,9 @@
 				warningInsufficient: '❌ Insufficient VRAM for model.',
 				insufficient: 'INSUFFICIENT',
 				
-				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param × 1.05 (overhead)<br>• KV (MHA/GQA): 2 × layers × kv_heads × head_dim × context × bytes<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes',
-				architecture: '<strong>Reference Data:</strong><br>• Llama 3.1: 8B (32L, GQA-8), 70B (80L, GQA-8)<br>• Gemma 2: 9B (42L, GQA-16), 27B (46L, GQA-16)<br>• Qwen 2.5: 7B (28L, GQA-8), 72B (80L, GQA-8)<br>• DeepSeek V3: 671B (61L, MLA)',
-				sources: '<strong>Sources:</strong> Meta Llama 3.1 Report (2024), Google Gemma 2 Report (2024), Qwen 2.5 Paper (2024), DeepSeek V3 Paper (2024), NVIDIA H200 Specs (141GB HBM3e)'
+				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param × 1.05 (overhead)<br>• Attention (Auto-Estimate): GQA-4 (<2B), GQA-8 (2B–276B), MLA (300B+ MoE)<br>• KV (MHA/GQA): 2 × layers × kv_heads × head_dim × context × bytes<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes',
+				architecture: '<strong>Reference Data (Multi-Generational Auto-Estimate Synthesis):</strong><br>• ~0.5B–1.5B (24–40L, 896–1536H): Qwen (Gen 1.5, 2.5, 3), MiniCPM (Gen 1, 5)<br>• ~2B–4B (32–34L, 2304–3072H): Gemma (Gen 1, 2, 3, 4), Qwen (Gen 2.5, 3), MiniCPM (Gen 1, 2, 3, 4), G9 (v1, v2, v3)<br>• ~6.5B–9B (28–38L, 3584–4096H): Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5)<br>• ~15B–39B (38–62L, 3584–6144H): DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 active)<br>• ~70B–1000B (61–80L, 6144–10240H): Qwen (72B, 110B, 235B MoE), DeepSeek (V1, V2, V3, R1), Ling (1.0, 1.5, 2.0/1T), Inkling (Small/276B, Base/975B), GLM (130B), Kimi (V1, k1.5, K2, K2.5 1T)',
+				sources: '<strong>Sources:</strong> Gemma Gen 1–4 Reports (Google), Qwen Gen 1–3 Papers (Alibaba), MiniCPM Gen 1–5 Technical Reports (OpenBMB), G9 v1–v3 Specs (AI9Stars), Ling Gen 1–2 / 1000B Reports (InclusionAI), Inkling Gen 1 Specs (Thinking Machines), DeepSeek V1–V3 & R1 Reports, GLM 1–4 Specs (Zhipu AI), Kimi V1–K2.5 Technical Reports (Moonshot AI, 2023–2026)'
 			},
 			id: {
 				title: 'Kalkulator VRAM LLM',
@@ -881,6 +875,7 @@
 				modelQuantLabel: 'Presisi Model',
 				kvCacheLabel: 'KV Cache',
 				attentionLabel: 'Arsitektur Atensi',
+				attentionDetailLabel: 'Atensi',
 				contextLabel: 'Jendela Konteks',
 				maxContextLabel: 'Konteks Maks',
 				maxParamsLabel: 'Parameter Maksimum',
@@ -901,12 +896,10 @@
 				hiddenLabel: 'Ukuran Tersembunyi',
 				
 				categorySuffix: '•',
-				categoryToy: 'Mainan',
-				categorySmall: 'Kecil',
-				categoryMedium: 'Sedang',
-				categoryLarge: 'Besar',
-				categoryVeryLarge: 'Sangat Besar',
-				categoryMassive: 'Masif',
+				categoryTiny: 'Sangat Kecil (<4B)',
+				categorySmall: 'Kecil (4B–40B)',
+				categoryMedium: 'Sedang (40B–150B)',
+				categoryLarge: 'Besar (150B+)',
 				estimatedArchitecture: 'Arsitektur Terestimasi',
 				reserved: 'Dicadangkan',
 				mbPerToken: 'MB/token',
@@ -915,9 +908,9 @@
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
 				insufficient: 'TIDAK CUKUP',
 				
-				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param × 1.05 (overhead)<br>• KV (MHA/GQA): 2 × lapisan × kv_head × head_dim × konteks × byte<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte',
-				architecture: '<strong>Data Referensi:</strong><br>• Llama 3.1: 8B (32L, GQA-8), 70B (80L, GQA-8)<br>• Gemma 2: 9B (42L, GQA-16), 27B (46L, GQA-16)<br>• Qwen 2.5: 7B (28L, GQA-8), 72B (80L, GQA-8)<br>• DeepSeek V3: 671B (61L, MLA)',
-				sources: '<strong>Sumber:</strong> Laporan Llama 3.1 (2024), Laporan Gemma 2 (2024), Makalah Qwen 2.5 (2024), Makalah DeepSeek V3 (2024), Spek NVIDIA H200 (141GB HBM3e)'
+				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param × 1.05 (overhead)<br>• Atensi (Estimasi Otomatis): GQA-4 (<2B), GQA-8 (2B–276B), MLA (300B+ MoE)<br>• KV (MHA/GQA): 2 × lapisan × kv_head × head_dim × konteks × byte<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte',
+				architecture: '<strong>Data Referensi (Sintesis Estimasi Otomatis Multi-Generasi):</strong><br>• ~0.5B–1.5B (24–40L, 896–1536H): Qwen (Gen 1.5, 2.5, 3), MiniCPM (Gen 1, 5)<br>• ~2B–4B (32–34L, 2304–3072H): Gemma (Gen 1, 2, 3, 4), Qwen (Gen 2.5, 3), MiniCPM (Gen 1, 2, 3, 4), G9 (v1, v2, v3)<br>• ~6.5B–9B (28–38L, 3584–4096H): Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5)<br>• ~15B–39B (38–62L, 3584–6144H): DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 aktif)<br>• ~70B–1000B (61–80L, 6144–10240H): Qwen (72B, 110B, 235B MoE), DeepSeek (V1, V2, V3, R1), Ling (1.0, 1.5, 2.0/1T), Inkling (Small/276B, Base/975B), GLM (130B), Kimi (V1, k1.5, K2, K2.5 1T)',
+				sources: '<strong>Sumber:</strong> Laporan Gemma Gen 1–4 (Google), Makalah Qwen Gen 1–3 (Alibaba), Laporan Teknis MiniCPM Gen 1–5 (OpenBMB), Spek G9 v1–v3 (AI9Stars), Laporan Ling Gen 1–2 / 1000B (InclusionAI), Spek Inkling Gen 1 (Thinking Machines), Laporan DeepSeek V1–V3 & R1, Spek GLM 1–4 (Zhipu AI), Laporan Teknis Kimi V1–K2.5 (Moonshot AI, 2023–2026)'
 			}
 		};
 		
@@ -925,39 +918,29 @@
 		
 		const CLIPBOARD_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem;vertical-align:text-bottom"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
+		// Synthesized auto-estimate reference configurations from ALL generation versions of modern LLM families:
+		// Gemma (Gen 1, Gen 2, Gen 3, Gen 4), Qwen (Gen 1/1.5, Gen 2/2.5, Gen 3), MiniCPM (Gen 1, Gen 2/V2.6, Gen 3, Gen 4/o 4.5, Gen 5),
+		// G9 (Gen 1, Gen 2, Gen 3), Ling (1.0, 1.5, 2.0/Ling-1T), Inkling (Small/276B, Base/975B), DeepSeek (V1, V2, V3, R1),
+		// GLM (GLM-1, GLM-2/ChatGLM2, GLM-3/ChatGLM3, GLM-4), and Kimi (V1, k1.5, K2, K2.5).
 		const referenceConfigs = {
 			auto: [
-				{ size: 0.5, layers: 24, hidden: 896 },
-				{ size: 1.5, layers: 28, hidden: 1536 },
-				{ size: 3.0, layers: 28, hidden: 3072 },
-				{ size: 7.0, layers: 32, hidden: 4096 },
-				{ size: 14.0, layers: 48, hidden: 5120 },
-				{ size: 32.0, layers: 64, hidden: 5120 },
-				{ size: 70.0, layers: 80, hidden: 8192 },
-				{ size: 405.0, layers: 126, hidden: 16384 }
-			],
-			llama3: [
-				{ size: 8, layers: 32, hidden: 4096 },
-				{ size: 70, layers: 80, hidden: 8192 },
-				{ size: 405, layers: 126, hidden: 16384 }
-			],
-			gemma2: [
-				{ size: 2, layers: 26, hidden: 2304 },
-				{ size: 9, layers: 42, hidden: 3584 },
-				{ size: 27, layers: 46, hidden: 4608 }
-			],
-			qwen25: [
-				{ size: 0.5, layers: 24, hidden: 896 },
-				{ size: 1.5, layers: 28, hidden: 1536 },
-				{ size: 3, layers: 36, hidden: 2048 },
-				{ size: 7, layers: 28, hidden: 3584 },
-				{ size: 14, layers: 48, hidden: 5120 },
-				{ size: 32, layers: 64, hidden: 5120 },
-				{ size: 72, layers: 80, hidden: 8192 }
-			],
-			deepseek: [
-				{ size: 16, layers: 27, hidden: 2048 },
-				{ size: 671, layers: 61, hidden: 7168 }
+				{ size: 0.5, layers: 24, hidden: 896 },    // Qwen 1.5/2.5 0.5B
+				{ size: 0.6, layers: 28, hidden: 1152 },   // Qwen 3 0.6B
+				{ size: 1.5, layers: 40, hidden: 1536 },   // MiniCPM 1/2 1.2B (52L), Qwen 1.5/2.5 1.5B & Qwen 3 1.7B avg
+				{ size: 2.2, layers: 32, hidden: 2304 },   // Gemma 1/2/4 2B (18-26L, 2048-2304H), MiniCPM 1/2 2.4B (40L) avg
+				{ size: 3.0, layers: 32, hidden: 2560 },   // Qwen 2.5 3B (36L), G9v1/v2/v3 3B (28L), MiniCPM 3B avg
+				{ size: 4.0, layers: 34, hidden: 3072 },   // Gemma 3/4 4B, Qwen 3 4B, MiniCPM 4.0 4B
+				{ size: 6.5, layers: 28, hidden: 3584 },   // GLM 1/2/3/4 6B, Gemma 1 7B, Qwen 1.5/2.5 7B, DeepSeek V1 7B avg
+				{ size: 8.5, layers: 38, hidden: 4096 },   // Qwen 3 8B, Gemma 2 9B, MiniCPM-o 4.5 9B, GLM-4 9B avg
+				{ size: 15.0, layers: 38, hidden: 3584 },  // Qwen 1.5/2.5/3 14B, DeepSeek V1/V2 16B avg
+				{ size: 27.0, layers: 46, hidden: 4608 },  // Gemma 2/3 27B, Gemma 4 26B MoE / 31B Dense
+				{ size: 32.0, layers: 62, hidden: 6144 },  // Qwen 1.5/2.5/3 32B, Kimi K2/K2.5 32B active avg
+				{ size: 39.0, layers: 58, hidden: 5760 },  // G9v1/v2/v3 39A5B, DeepSeek-V3/R1 37B active, Inkling 41B active avg
+				{ size: 70.0, layers: 80, hidden: 8192 },  // Qwen 1.5/2.5 72B, Ling 1/2 50B active, DeepSeek 67B
+				{ size: 130.0, layers: 75, hidden: 10240 },// GLM-130B, Qwen 1.5 110B
+				{ size: 250.0, layers: 64, hidden: 6144 }, // Qwen 3 235B MoE, Inkling-Small 276B MoE
+				{ size: 671.0, layers: 61, hidden: 7168 }, // DeepSeek-V3 & DeepSeek R1 671B MoE
+				{ size: 1000.0, layers: 67, hidden: 7168 } // Inkling 975B, Ling 2.0 (Ling-1T) 1T, Kimi K1.5/K2/K2.5 1T-1.04T MoE
 			]
 		};
 
@@ -985,7 +968,7 @@
 				this.quantization = 'fp16';
 				this.contextWindow = 8192;
 				this.kvCacheQuant = 'same';
-				this.attention = 'gqa_8';
+				this.attention = 'auto';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
 				this.modelFamily = 'auto';
@@ -1002,10 +985,7 @@
 				elements.vramSlider.oninput = e=>(this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
 				elements.modelFamily.onchange = e=>{
 					this.modelFamily = e.target.value;
-					if (this.modelFamily === 'llama3') elements.attention.value = this.attention = 'gqa_8';
-					else if (this.modelFamily === 'gemma2') elements.attention.value = this.attention = 'gqa_16';
-					else if (this.modelFamily === 'deepseek') elements.attention.value = this.attention = 'mla';
-					else if (this.modelFamily === 'auto') elements.attention.value = this.attention = 'gqa_8';
+					if (this.modelFamily === 'auto') elements.attention.value = this.attention = 'auto';
 					this.calculate();
 				},
 				elements.quantization.onchange = e=>(this.quantization = e.target.value,this.calculate()),
@@ -1025,18 +1005,38 @@
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
 			}
 
+			getAutoAttentionType(arch) {
+				if (!arch || !arch.layers || !arch.hidden) return 'gqa_8';
+				// Frontier 300B–1000B MoE models (DeepSeek V3/R1, Kimi K2/K2.5, Inkling Base, Ling-1T) use MLA (Multi-head Latent Attention)
+				if (arch.layers >= 61 && arch.hidden >= 6144) return 'mla';
+				// Ultra-small models (~0.5B-1.5B, arch.hidden <= 1536) use GQA with 4 KV heads
+				if (arch.hidden <= 1536) return 'gqa_4';
+				// Standard models (2B–276B, Qwen 2-72B, Gemma 1-4, MiniCPM 2-9B, G9 3-39B, GLM-4 9B) use GQA-8
+				return 'gqa_8';
+			}
+
+			getAttentionDisplayName(arch) {
+				const type = this.attention === 'auto' ? this.getAutoAttentionType(arch) : this.attention;
+				if (type === 'mla') return 'MLA (DeepSeek/Kimi)';
+				if (type === 'gqa_4') return 'GQA (4-head)';
+				if (type === 'gqa_16') return 'GQA (16-head)';
+				if (type === 'mha') return 'MHA';
+				return 'GQA (8-head)';
+			}
+
 			calculateKvCache(arch, context, bytesPerElement) {
 				if (!arch.layers || !arch.hidden) return 0;
+				const attnType = this.attention === 'auto' ? this.getAutoAttentionType(arch) : this.attention;
 				let kvWidth = 0;
-				if (this.attention === 'mla') {
-					// DeepSeek MLA: (kv_lora_rank + qk_rope_head_dim)
-					// V3/V3.2 use 512 + 64 = 576.
+				if (attnType === 'mla') {
+					// DeepSeek V3/R1, Kimi K2/K2.5 MLA: (kv_lora_rank + qk_rope_head_dim) = 512 + 64 = 576
 					kvWidth = 576;
 					return (arch.layers * context * kvWidth * bytesPerElement) / (1024 ** 3);
 				} else {
-					if (this.attention === 'mha') kvWidth = arch.hidden;
-					else if (this.attention === 'gqa_16') kvWidth = 2048; // 16 heads * 128 dim
-					else kvWidth = 1024; // GQA-8: 8 heads * 128 dim
+					if (attnType === 'mha') kvWidth = arch.hidden;
+					else if (attnType === 'gqa_16') kvWidth = 2048; // 16 heads * 128 dim
+					else if (attnType === 'gqa_4') kvWidth = 512;   // 4 heads * 128 dim (small 0.5B-1.5B LLMs)
+					else kvWidth = 1024;                            // GQA-8: 8 heads * 128 dim (standard 2B-276B LLMs)
 					return (2 * arch.layers * kvWidth * context * bytesPerElement) / (1024 ** 3);
 				}
 			}
@@ -1062,21 +1062,21 @@
 			
 			applyPreset(preset) {
 				const presets = {
-					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa_8' },
-					rtx5090: { vram: 32, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa_8' },
-					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'gqa_8' },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'gqa_8' },
-					h200: { vram: 141, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'gqa_8' },
-					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', attention: 'gqa_8' },
-					macbookneo: { vram: 8, quant: 'int4', context: 8192, gpu: 'soc', attention: 'gqa_8' },
-					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'gqa_8' }
+					rtx5050: { vram: 8, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
+					rtx5090: { vram: 32, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
+					rtx4090: { vram: 24, quant: 'int4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
+					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
+					h200: { vram: 141, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
+					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', attention: 'auto' },
+					macbookneo: { vram: 8, quant: 'int4', context: 8192, gpu: 'soc', attention: 'auto' },
+					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'auto' }
 				}, p = presets[preset];
 				p && (
 					this.vramSize = p.vram,
 					this.quantization = p.quant,
 					this.contextWindow = p.context,
 					this.gpuType = p.gpu,
-					this.attention = p.attention || 'mha',
+					this.attention = p.attention || 'auto',
 					p.overhead !== undefined && (this.manualOverhead = p.overhead),
 					elements.vramSlider.value = p.vram,
 					elements.quantization.value = p.quant,
@@ -1164,12 +1164,13 @@
 
 				(results.modelMemoryGB > 0
 					? (elements.resultValue.textContent = results.maxParams < 1 ? `${Math.floor(results.maxParams * 1000)}M` : `${(Math.floor(results.maxParams * 10) / 10).toFixed(1)}B`,
-						elements.resultValue.className = 'result-value ' + (results.maxParams < 1 ? 'toy' : results.maxParams < 3 ? 'small' : results.maxParams < 10 ? 'medium' : results.maxParams < 20 ? 'large' : results.maxParams < 40 ? 'very-large' : 'massive'),
+						elements.resultValue.className = 'result-value ' + (results.maxParams < 4 ? 'tiny' : results.maxParams < 40 ? 'small' : results.maxParams < 150 ? 'medium' : 'large'),
 						elements.resultCategory.textContent = `${this.getModelCategory(results.maxParams)} ${t.categorySuffix} ${t.estimatedArchitecture}`,
 						results.estimatedArchitecture
 							? (elements.modelDetails.classList.remove('hidden'),
 								elements.layersValue.textContent = results.estimatedArchitecture.layers,
-								elements.hiddenValue.textContent = results.estimatedArchitecture.hidden)
+								elements.hiddenValue.textContent = results.estimatedArchitecture.hidden,
+								elements.attentionDetailValue && (elements.attentionDetailValue.textContent = this.getAttentionDisplayName(results.estimatedArchitecture)))
 							: elements.modelDetails.classList.add('hidden'))
 					: (elements.resultValue.textContent = t.insufficient,
 						elements.resultValue.className = 'result-value insufficient',
@@ -1213,7 +1214,7 @@
 			
 			getModelCategory(params) {
 				const t = text[this.language];
-				return params < 1 ? t.categoryToy : params < 3 ? t.categorySmall : params < 10 ? t.categoryMedium : params < 20 ? t.categoryLarge : params < 40 ? t.categoryVeryLarge : t.categoryMassive;
+				return params < 4 ? t.categoryTiny : params < 40 ? t.categorySmall : params < 150 ? t.categoryMedium : t.categoryLarge;
 			}
 			
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }

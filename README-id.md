@@ -40,7 +40,8 @@ Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yan
 -   **Rincian Memori Mendetail**: Memvisualisasikan penggunaan untuk Overhead Sistem, KV Cache, dan Bobot Model.
 -   **Preset Perangkat Keras**: Konfigurasi satu klik untuk GPU umum, termasuk **RTX 5050** baru dan **Macbook neo**.
 -   **Opsi Lanjutan**: Dukungan untuk berbagai format kuantisasi (hingga FP2) dan presisi KV cache terpisah.
--   **Estimasi Model**: Secara dinamis mengestimasi arsitektur model (Lapisan dan Ukuran Tersembunyi) berdasarkan konfigurasi LLM modern (misalnya Llama 3, Qwen 2.5) untuk jumlah parameter yang dihitung.
+-   **Estimasi Model & Atensi Otomatis Multi-Generasi**: Secara dinamis mengestimasi arsitektur model (Lapisan dan Ukuran Tersembunyi) serta mekanisme atensi (GQA-4 untuk <2B, GQA-8 untuk 2B–276B, MLA untuk 300B+ MoE) melalui sintesis perhitungan dari semua generasi keluarga LLM modern: Gemma (Gen 1–4), Qwen (Gen 1–3), MiniCPM (Gen 1–5), G9 (v1–v3), Ling (1.0–2.0), Inkling (Gen 1), DeepSeek (V1–V3, R1), GLM (1–4), dan Kimi (V1–K2.5).
+-   **Kategori Ukuran Model Standar (Artificial Analysis)**: Mengelompokkan model ke dalam 4 tingkatan standar: **Sangat Kecil (<4B)**, **Kecil (4B–40B)**, **Sedang (40B–150B)**, dan **Besar (150B+)** berdasarkan taksonomi Artificial Analysis.
 -   **Berkas HTML tunggal**: Tidak ada instalasi, tidak ada dependensi, bekerja sepenuhnya offline.
 -   **Desain responsif**: Bekerja di desktop, tablet, dan perangkat seluler.
 
