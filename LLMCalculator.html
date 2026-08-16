@@ -442,6 +442,13 @@
 			border-color: var(--primary);
 		}
 
+		.preset-btn.active {
+			background: var(--highlight-bg);
+			border-color: var(--primary);
+			color: var(--primary);
+			font-weight: 600;
+		}
+
 		#copyBtn {
 			background: var(--primary);
 			color: var(--on-primary);
@@ -680,22 +687,22 @@
 
 					<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
 						<label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem; font-weight: 600;">
-							<input type="checkbox" id="advancedToggle"> Advanced Architecture Overrides
+							<input type="checkbox" id="advancedToggle" aria-expanded="false" aria-controls="advancedFields"> Advanced Architecture Overrides
 						</label>
 						<div id="advancedFields" class="hidden" style="margin-top: 1rem;">
 							<div class="form-group">
 								<div class="label-row">
-									<label>Custom Layers</label>
+									<label id="customLayersLabel">Custom Layers</label>
 									<span class="value" id="customLayersValue">32</span>
 								</div>
-								<input type="range" id="customLayers" min="1" max="160" step="1" value="32">
+								<input type="range" id="customLayers" min="1" max="160" step="1" value="32" aria-labelledby="customLayersLabel">
 							</div>
 							<div class="form-group">
 								<div class="label-row">
-									<label>Custom Hidden Size</label>
+									<label id="customHiddenLabel">Custom Hidden Size</label>
 									<span class="value" id="customHiddenValue">4096</span>
 								</div>
-								<input type="range" id="customHidden" min="128" max="16384" step="128" value="4096">
+								<input type="range" id="customHidden" min="128" max="16384" step="128" value="4096" aria-labelledby="customHiddenLabel">
 							</div>
 						</div>
 					</div>
@@ -743,7 +750,7 @@
 					<button id="copyBtn"></button>
 				</div>
 				
-				<div id="warningBox" class="warning-box hidden"></div>
+				<div id="warningBox" class="warning-box hidden" role="alert"></div>
 
 				<div class="card">
 					<h2 id="memoryAllocationLabel">Memory Allocation</h2>
@@ -758,14 +765,14 @@
 				<div class="card">
 					<h2 id="presetsLabel">Quick Presets</h2>
 					<div class="presets-grid">
-						<button class="preset-btn" data-preset="rtx5050">RTX 5050 Laptop</button>
-						<button class="preset-btn" data-preset="rtx5090">RTX 5090</button>
-						<button class="preset-btn" data-preset="rtx4090">RTX 4090</button>
-						<button class="preset-btn" data-preset="a100">A100 80GB</button>
-						<button class="preset-btn" data-preset="h200">H200</button>
-						<button class="preset-btn" data-preset="m4max">M4 Max</button>
-						<button class="preset-btn" data-preset="macbookneo">Macbook neo</button>
-						<button class="preset-btn" data-preset="snapdragon">Snapdragon</button>
+						<button class="preset-btn" data-preset="rtx5050" aria-pressed="false">RTX 5050 Laptop</button>
+						<button class="preset-btn" data-preset="rtx5090" aria-pressed="false">RTX 5090</button>
+						<button class="preset-btn" data-preset="rtx4090" aria-pressed="false">RTX 4090</button>
+						<button class="preset-btn" data-preset="a100" aria-pressed="false">A100 80GB</button>
+						<button class="preset-btn" data-preset="h200" aria-pressed="false">H200</button>
+						<button class="preset-btn" data-preset="m4max" aria-pressed="false">M4 Max</button>
+						<button class="preset-btn" data-preset="macbookneo" aria-pressed="false">Macbook neo</button>
+						<button class="preset-btn" data-preset="snapdragon" aria-pressed="false">Snapdragon</button>
 					</div>
 				</div>
 			</div>
@@ -979,27 +986,37 @@
 				this.lang(this.language);
 			}
 			
+			clearActivePreset() {
+				document.querySelectorAll('.preset-btn[data-preset]').forEach(btn => {
+					btn.classList.remove('active');
+					btn.setAttribute('aria-pressed', 'false');
+				});
+			}
+
 			setup() {
 				(elements.language.onchange = e=>this.lang(e.target.value),
 				elements.theme.onchange = e=>this.theme(e.target.value),
-				elements.vramSlider.oninput = e=>(this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
+				elements.vramSlider.oninput = e=>(this.clearActivePreset(),this.vramSize = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
 				elements.modelFamily.onchange = e=>{
+					this.clearActivePreset();
 					this.modelFamily = e.target.value;
 					if (this.modelFamily === 'auto') elements.attention.value = this.attention = 'auto';
 					this.calculate();
 				},
-				elements.quantization.onchange = e=>(this.quantization = e.target.value,this.calculate()),
-				elements.kvCache.onchange = e=>(this.kvCacheQuant = e.target.value,this.calculate()),
-				elements.attention.onchange = e=>(this.attention = e.target.value,this.calculate()),
-				elements.contextSlider.oninput = e=>(this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
-				elements.gpuType.onchange = e=>(this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
-				elements.overheadSlider.oninput = e=>(this.manualOverhead = Number(e.target.value),this.calculate()),
+				elements.quantization.onchange = e=>(this.clearActivePreset(),this.quantization = e.target.value,this.calculate()),
+				elements.kvCache.onchange = e=>(this.clearActivePreset(),this.kvCacheQuant = e.target.value,this.calculate()),
+				elements.attention.onchange = e=>(this.clearActivePreset(),this.attention = e.target.value,this.calculate()),
+				elements.contextSlider.oninput = e=>(this.clearActivePreset(),this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
+				elements.gpuType.onchange = e=>(this.clearActivePreset(),this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
+				elements.overheadSlider.oninput = e=>(this.clearActivePreset(),this.manualOverhead = Number(e.target.value),this.calculate()),
 				elements.advancedToggle.onchange = e=>{
+					this.clearActivePreset();
+					elements.advancedToggle.setAttribute('aria-expanded', e.target.checked);
 					elements.advancedFields.classList.toggle('hidden', !e.target.checked);
 					this.calculate();
 				},
-				elements.customLayers.oninput = e=>(elements.customLayersValue.textContent = e.target.value, this.calculate()),
-				elements.customHidden.oninput = e=>(elements.customHiddenValue.textContent = e.target.value, this.calculate()),
+				elements.customLayers.oninput = e=>(this.clearActivePreset(),elements.customLayersValue.textContent = e.target.value, this.calculate()),
+				elements.customHidden.oninput = e=>(this.clearActivePreset(),elements.customHiddenValue.textContent = e.target.value, this.calculate()),
 				elements.copyBtn.onclick = ()=>this.copy(),
 				document.querySelectorAll('.preset-btn[data-preset]')
 					.forEach(btn=>btn.onclick = ()=>this.applyPreset(btn.dataset.preset)));
@@ -1071,7 +1088,14 @@
 					macbookneo: { vram: 8, quant: 'int4', context: 8192, gpu: 'soc', attention: 'auto' },
 					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'auto' }
 				}, p = presets[preset];
-				p && (
+				if (!p) return;
+				this.clearActivePreset();
+				const targetBtn = document.querySelector(`.preset-btn[data-preset="${preset}"]`);
+				if (targetBtn) {
+					targetBtn.classList.add('active');
+					targetBtn.setAttribute('aria-pressed', 'true');
+				}
+				(
 					this.vramSize = p.vram,
 					this.quantization = p.quant,
 					this.contextWindow = p.context,
@@ -1158,9 +1182,12 @@
 				(elements.barOverhead.style.width = ohPct + '%',
 				elements.barKv.style.width = kvPct + '%',
 				elements.barModel.style.width = modPct + '%',
-				elements.barOverhead.title = elements.barOverhead.ariaLabel = `${t.systemOverhead}: ${results.overheadGB.toFixed(1)} GB`,
-				elements.barKv.title = elements.barKv.ariaLabel = `${t.kvCacheMemory}: ${results.kvCacheGB.toFixed(2)} GB`,
-				elements.barModel.title = elements.barModel.ariaLabel = `${t.modelWeights}: ${Math.max(0, results.modelMemoryGB).toFixed(2)} GB`);
+				elements.barOverhead.title = `${t.systemOverhead}: ${results.overheadGB.toFixed(1)} GB`,
+				elements.barOverhead.setAttribute('aria-label', `${t.systemOverhead}: ${results.overheadGB.toFixed(1)} GB`),
+				elements.barKv.title = `${t.kvCacheMemory}: ${results.kvCacheGB.toFixed(2)} GB`,
+				elements.barKv.setAttribute('aria-label', `${t.kvCacheMemory}: ${results.kvCacheGB.toFixed(2)} GB`),
+				elements.barModel.title = `${t.modelWeights}: ${Math.max(0, results.modelMemoryGB).toFixed(2)} GB`,
+				elements.barModel.setAttribute('aria-label', `${t.modelWeights}: ${Math.max(0, results.modelMemoryGB).toFixed(2)} GB`));
 
 				(results.modelMemoryGB > 0
 					? (elements.resultValue.textContent = results.maxParams < 1 ? `${Math.floor(results.maxParams * 1000)}M` : `${(Math.floor(results.maxParams * 10) / 10).toFixed(1)}B`,
