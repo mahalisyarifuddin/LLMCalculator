@@ -656,8 +656,8 @@
 							<option value="gguf_q6">GGUF Q6_K (~0.83 bytes)</option>
 							<option value="gguf_q5">GGUF Q5_K_M (~0.69 bytes)</option>
 								<option value="gguf_q4">GGUF Q4_K_M / GPTQ 4-bit (~0.6 bytes)</option>
-								<option value="nvfp4">NVFP4 (~0.56 bytes, Laguna/Blackwell Native)</option>
-								<option value="mxfp4">MXFP4 (~0.53 bytes, GPT-OSS/Kimi K3 Native)</option>
+								<option value="nvfp4">NVFP4 (~0.56 bytes, Laguna/Step 3.7/Blackwell Native)</option>
+								<option value="mxfp4">MXFP4 (~0.53 bytes, GPT-OSS/Kimi K3/MiMo Pro Native)</option>
 								<option value="int4">INT4/FP4 (0.5 bytes, Ideal)</option>
 							<option value="gguf_q3">GGUF Q3_K_M (~0.46 bytes)</option>
 							<option value="gguf_q2">GGUF Q2_K (~0.41 bytes)</option>
@@ -882,9 +882,9 @@
 				warningInsufficient: '❌ Insufficient VRAM for model.',
 				insufficient: 'INSUFFICIENT',
 				
-				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param × 1.05 (overhead); MXFP4 ≈ 0.53 B/param (gpt-oss/Kimi K3 native), NVFP4 ≈ 0.56 B/param (Laguna/Blackwell)<br>• Attention (Auto-Estimate): per-anchor buckets — GQA-2/4 (&lt;2B, North Mini, Trinity Mini, Qwen3-235B), GQA-8 (2B–405B; 64-dim heads on gpt-oss), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4-Flash/Pro), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA): 2 × layers × kv_heads × head_dim × context × bytes<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes<br>• KV (CSA/HCA): shared K=V 512-d; CSA = SWA-128 + ctx/4 compressed + 128-d indexer; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): GQA-8 width with ceil(layers/2) shared-KV layers (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1.5 GB desktop / 0.5 GB headless (configurable), Apple Silicon 25% Metal reservation, Snapdragon/X Elite shared-GPU cap 50%',
-				architecture: '<strong>Reference Data (Multi-Generational Auto-Estimate Synthesis):</strong><br>• ~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)<br>• ~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)<br>• ~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)<br>• ~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B<br>• ~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B active), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 active), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)<br>• ~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, 256K ctx)<br>• ~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, runs on 36 GB Mac)<br>• ~32B (64L, 5120H): Qwen 2.5/3 32B<br>• ~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)<br>• ~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)<br>• ~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)<br>• ~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (MXFP4 native, 64-dim GQA-8), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, 1M ctx)<br>• ~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, 1M ctx), M.1 (225B-A23B, all-global attn)<br>• ~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, 512K ctx), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, 1M ctx, multimodal), MiniMax Text-01 / M1 (456B-A46B, hybrid lightning attn)<br>• ~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)<br>• ~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)<br>• ~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)<br>• ~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, 1M ctx), Kimi K3 (2.8T, 93L×7168H, KDA+MLA)<br><br><strong>Hardware Presets (4 GB–192 GB):</strong> Budget 4–12 GB (GTX 1650 4GB, Arc A380 6GB, RTX 4060 8GB, Arc B570 10GB, RTX 3060 12GB Steam #1, Arc B580 12GB $249) → Mainstream 16–32 GB (Arc A770 16GB cheapest 16GB, RTX 5070 Ti 16GB, RTX 4090 24GB, Arc Pro B60 24GB $599 workstation, RTX 5090 32GB) → Workstation/Server 48–192 GB (L40S 48GB, A100 80GB, RTX PRO 6000 96GB, H200 141GB, B200 192GB) → Apple/Mobile (MacBook Neo 8GB, M4 Max 128GB MBP, M3 Ultra 192GB Studio, Snapdragon X Elite 32GB shared)',
-				sources: '<strong>Sources:</strong> Llama Gen 1–4 Papers & Model Cards (Meta AI, 2023–2025), Gemma Gen 1–4 Reports (Google), Qwen Gen 1–3 Papers (Alibaba), MiniCPM Gen 1–5 Technical Reports (OpenBMB), G9 v1–v3 Specs (AI9Stars), Ling Gen 1–2 / 1000B Reports (InclusionAI), Inkling Gen 1 Specs (Thinking Machines), DeepSeek V1–V4 & R1 Reports (V4 paper arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Tencent Hunyuan / Hy Model Cards — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B (Tencent Hy Team, 2026), GLM 1–4 Specs (Zhipu AI), Kimi V1–K3 Technical Reports (Moonshot AI, 2023–2026), GPT-OSS 20b/120b Model Cards & GptOss Specs (OpenAI, 2025; MXFP4-native MoE), Cohere Command R / R+ / R7B / A / A+ and Aya 101 / 23 / Expanse / Vision plus North Mini Code / Micro Model Cards & Technical Reports (Cohere Labs, 2022–2026), Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 Model Cards & Technical Report (Poolside, 2026; NVFP4/FP8/INT4 variants), Arcee Trinity Nano / Mini / Large Model Cards (Arcee AI, 2025–2026, OpenMDW), Mistral Open-Weight Model Cards & params.json — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), MiniMax Text-01 / M1 / M2→M2.7 / M3 Model Cards + M3 Technical Report arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> NVIDIA RTX 50/40 specs (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Steam HW Survey 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4.8%, 8GB most common); Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra specs (128GB MBP, 64–192GB Studio, 25% Metal cap); Snapdragon X Elite shared-GPU cap 50%'
+				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param × 1.05 (overhead); MXFP4 ≈ 0.53 B/param (gpt-oss/Kimi K3; expert-only on MiMo Pro), NVFP4 ≈ 0.56 B/param (Laguna/Step 3.7/Blackwell)<br>• Attention (Auto-Estimate): per-anchor buckets — GQA/MQA (including 64-dim Granite/gpt-oss), hybrid SWA+global (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): layers × kv_heads × (K head_dim + V head_dim) × context × bytes<br>• KV (hybrid SWA): full layers retain context; SWA layers retain min(context, window), using each family&apos;s exact K/V widths<br>• KV (MFA): layers × context × (256 K + 256 V) × bytes (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes<br>• KV (CSA/HCA): shared K=V 512-d; CSA = SWA-128 + ctx/4 compressed + 128-d indexer; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): GQA-8 width with ceil(layers/2) shared-KV layers (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1.5 GB desktop / 0.5 GB headless (configurable), Apple Silicon 25% Metal reservation, Snapdragon/X Elite shared-GPU cap 50%',
+				architecture: '<strong>Reference Data (Multi-Generational Auto-Estimate Synthesis):</strong><br>• IBM Granite ~0.35B–8.1B: Granite 3.0–3.3 dense/MoE (1.3B-A0.4B, 2.5B, 3.3B-A0.8B, 8.1B; 24–40L, 64/128-d heads), Granite 4.0 dense Nano/Micro plus hybrid Mamba2 H variants, Granite 4.1 dense 3B/8B, Granite SWASH 2.14B / 3.02B-A0.6B (SWA-128 + sinks)<br>• ~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)<br>• ~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)<br>• ~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)<br>• ~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B<br>• ~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B active), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 active), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)<br>• IBM Granite Code / 4.x at 20B–34B: Code 20B/34B (52L/88L×6144H, MQA-1); Granite 4.1 30B dense (64L×4096H, GQA-8) and Granite 4.0 H-Small 32B-A9B (4 attention + 36 Mamba2) overlap general anchors<br>• ~29.6B (52L, 6656H): Muse Glimmer 30B multimodal (13 full + 39 SWA-2048 layers, GQA-2; includes 1.8B perception encoder)<br>• ~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, 256K ctx)<br>• ~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, runs on 36 GB Mac)<br>• ~32B (64L, 5120H): Qwen 2.5/3 32B<br>• ~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)<br>• ~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)<br>• ~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)<br>• ~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (MXFP4 native, 64-dim GQA-8), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, 1M ctx)<br>• ~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, 1M ctx), M.1 (225B-A23B, all-global attn)<br>• ~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, 512K ctx), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, 1M ctx, multimodal), MiniMax Text-01 / M1 (456B-A46B, hybrid lightning attn)<br>• ~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)<br>• ~196.8B–198B (45L×4096H): Step-3.5-Flash / Step-3.7-Flash (196B language backbone, 11B active; 12 full + 33 SWA-512 GQA-8; 3.7 adds 1.8B vision encoder and ships NVFP4)<br>• ~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)<br>• ~309B–321B: MiMo-V2-Flash / V2.5 309–310B-A15B (48L×4096H, 9 global + 39 SWA-128, asymmetric 192/128-d K/V, 256K–1M ctx); Step-3 321B-A38B VLM (61L×7168H, MFA shared 256-d K/V)<br>• ~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)<br>• ~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), MiMo-V2.5-Pro (1.02T-A42B, 70L×6144H, 10 global + 60 SWA-128, expert-only MXFP4 available), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, 1M ctx), Kimi K3 (2.8T, 93L×7168H, KDA+MLA)<br><br><strong>Hardware Presets (4 GB–192 GB):</strong> Budget 4–12 GB (GTX 1650 4GB, Arc A380 6GB, RTX 4060 8GB, Arc B570 10GB, RTX 3060 12GB Steam #1, Arc B580 12GB $249) → Mainstream 16–32 GB (Arc A770 16GB cheapest 16GB, RTX 5070 Ti 16GB, RTX 4090 24GB, Arc Pro B60 24GB $599 workstation, RTX 5090 32GB) → Workstation/Server 48–192 GB (L40S 48GB, A100 80GB, RTX PRO 6000 96GB, H200 141GB, B200 192GB) → Apple/Mobile (MacBook Neo 8GB, M4 Max 128GB MBP, M3 Ultra 192GB Studio, Snapdragon X Elite 32GB shared)',
+				sources: '<strong>Sources:</strong> Llama Gen 1–4 Papers & Model Cards (Meta AI, 2023–2025), Gemma Gen 1–4 Reports (Google), Qwen Gen 1–3 Papers (Alibaba), MiniCPM Gen 1–5 Technical Reports (OpenBMB), G9 v1–v3 Specs (AI9Stars), Ling Gen 1–2 / 1000B Reports (InclusionAI), Inkling Gen 1 Specs (Thinking Machines), DeepSeek V1–V4 & R1 Reports (V4 paper arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Tencent Hunyuan / Hy Model Cards — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B (Tencent Hy Team, 2026), GLM 1–4 Specs (Zhipu AI), Kimi V1–K3 Technical Reports (Moonshot AI, 2023–2026), Xiaomi MiMo-7B / V2-Flash (arXiv:2505.07608 / 2601.02780) and V2.5 / V2.5-Pro official configs & model cards (Xiaomi, 2025–2026), StepFun Step-3 (arXiv:2507.19427), Step-3.5-Flash (arXiv:2602.10604), Step3-VL-10B and Step-3.7-Flash configs/cards, Muse Glimmer 30B config/card (Meta Superintelligence Lab, 2026), IBM Granite Code report (arXiv:2405.04324), Granite 3.0–4.1 and SWASH official configs/cards (IBM, 2024–2026), GPT-OSS 20b/120b Model Cards & GptOss Specs (OpenAI, 2025; MXFP4-native MoE), Cohere Command R / R+ / R7B / A / A+ and Aya 101 / 23 / Expanse / Vision plus North Mini Code / Micro Model Cards & Technical Reports (Cohere Labs, 2022–2026), Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 Model Cards & Technical Report (Poolside, 2026; NVFP4/FP8/INT4 variants), Arcee Trinity Nano / Mini / Large Model Cards (Arcee AI, 2025–2026, OpenMDW), Mistral Open-Weight Model Cards & params.json — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), MiniMax Text-01 / M1 / M2→M2.7 / M3 Model Cards + M3 Technical Report arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> NVIDIA RTX 50/40 specs (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Steam HW Survey 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4.8%, 8GB most common); Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra specs (128GB MBP, 64–192GB Studio, 25% Metal cap); Snapdragon X Elite shared-GPU cap 50%'
 			},
 			id: {
 				title: 'Kalkulator VRAM LLM',
@@ -938,8 +938,8 @@
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
 				insufficient: 'TIDAK CUKUP',
 				
-				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param × 1,05 (overhead); MXFP4 ≈ 0,53 byte/param (native gpt-oss/Kimi K3), NVFP4 ≈ 0,56 byte/param (Laguna/Blackwell)<br>• Atensi (Estimasi Otomatis): bucket per-anchor — GQA-2/4 (&lt;2B, North Mini, Trinity Mini, Qwen3-235B), GQA-8 (2B–405B; kepala 64-dim pada gpt-oss), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4-Flash/Pro), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA): 2 × lapisan × kv_head × head_dim × konteks × byte<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte<br>• KV (CSA/HCA): K=V bersama 512-d; CSA = SWA-128 + ctx/4 terkompresi + indexer 128-d; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): lebar GQA-8 dengan ceil(lapisan/2) lapisan KV bersama (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1,5 GB desktop / 0,5 GB headless (dapat dikonfigurasi), Apple Silicon 25% reservasi Metal, Snapdragon/X Elite cap GPU bersama 50%',
-				architecture: '<strong>Data Referensi (Sintesis Estimasi Otomatis Multi-Generasi):</strong><br>• ~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)<br>• ~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)<br>• ~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)<br>• ~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B<br>• ~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B aktif), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 aktif), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)<br>• ~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, konteks 256K)<br>• ~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, muat di Mac 36 GB)<br>• ~32B (64L, 5120H): Qwen 2.5/3 32B<br>• ~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)<br>• ~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)<br>• ~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)<br>• ~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (native MXFP4, GQA-8 64-dim), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, konteks 1M)<br>• ~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, konteks 1M), M.1 (225B-A23B, atensi global semua lapisan)<br>• ~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, konteks 512K), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, konteks 1M, multimodal), MiniMax Text-01 / M1 (456B-A46B, atensi lightning hibrida)<br>• ~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)<br>• ~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)<br>• ~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)<br>• ~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, konteks 1M), Kimi K3 (2.8T, 93L×7168H, KDA+MLA)<br><br><strong>Preset Hardware (4 GB–192 GB):</strong> Budget 4–12 GB (GTX 1650 4GB, Arc A380 6GB, RTX 4060 8GB, Arc B570 10GB, RTX 3060 12GB #1 Steam, Arc B580 12GB $249) → Mainstream 16–32 GB (Arc A770 16GB termurah 16GB, RTX 5070 Ti 16GB, RTX 4090 24GB, Arc Pro B60 24GB $599 workstation, RTX 5090 32GB) → Workstation/Server 48–192 GB (L40S 48GB, A100 80GB, RTX PRO 6000 96GB, H200 141GB, B200 192GB) → Apple/Mobile (MacBook Neo 8GB, M4 Max 128GB MBP, M3 Ultra 192GB Studio, Snapdragon X Elite 32GB shared)',
+				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param × 1,05 (overhead); MXFP4 ≈ 0,53 byte/param (gpt-oss/Kimi K3; hanya expert pada MiMo Pro), NVFP4 ≈ 0,56 byte/param (Laguna/Step 3.7/Blackwell)<br>• Atensi (Estimasi Otomatis): bucket per-anchor — GQA/MQA (termasuk kepala 64-dim Granite/gpt-oss), SWA+global hibrida (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): lapisan × kv_head × (head_dim K + head_dim V) × konteks × byte<br>• KV (SWA hibrida): lapisan penuh menyimpan konteks; lapisan SWA menyimpan min(konteks, window), dengan lebar K/V tepat per keluarga<br>• KV (MFA): lapisan × konteks × (256 K + 256 V) × byte (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte<br>• KV (CSA/HCA): K=V bersama 512-d; CSA = SWA-128 + ctx/4 terkompresi + indexer 128-d; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): lebar GQA-8 dengan ceil(lapisan/2) lapisan KV bersama (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1,5 GB desktop / 0,5 GB headless (dapat dikonfigurasi), Apple Silicon 25% reservasi Metal, Snapdragon/X Elite cap GPU bersama 50%',
+				architecture: '<strong>Data Referensi (Sintesis Estimasi Otomatis Multi-Generasi):</strong><br>• IBM Granite ~0,35B–8,1B: Granite 3.0–3.3 dense/MoE (1,3B-A0,4B, 2,5B, 3,3B-A0,8B, 8,1B; 24–40L, kepala 64/128-d), Granite 4.0 dense Nano/Micro serta varian H Mamba2 hibrida, Granite 4.1 dense 3B/8B, Granite SWASH 2,14B / 3,02B-A0,6B (SWA-128 + sink)<br>• ~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)<br>• ~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)<br>• ~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)<br>• ~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B<br>• ~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B aktif), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 aktif), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)<br>• IBM Granite Code / 4.x pada 20B–34B: Code 20B/34B (52L/88L×6144H, MQA-1); Granite 4.1 30B dense (64L×4096H, GQA-8) dan Granite 4.0 H-Small 32B-A9B (4 atensi + 36 Mamba2) bertumpang tindih dengan anchor umum<br>• ~29,6B (52L, 6656H): Muse Glimmer 30B multimodal (13 lapisan penuh + 39 SWA-2048, GQA-2; termasuk perception encoder 1,8B)<br>• ~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, konteks 256K)<br>• ~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, muat di Mac 36 GB)<br>• ~32B (64L, 5120H): Qwen 2.5/3 32B<br>• ~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)<br>• ~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)<br>• ~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)<br>• ~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (native MXFP4, GQA-8 64-dim), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, konteks 1M)<br>• ~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, konteks 1M), M.1 (225B-A23B, atensi global semua lapisan)<br>• ~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, konteks 512K), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, konteks 1M, multimodal), MiniMax Text-01 / M1 (456B-A46B, atensi lightning hibrida)<br>• ~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)<br>• ~196,8B–198B (45L×4096H): Step-3.5-Flash / Step-3.7-Flash (backbone bahasa 196B, 11B aktif; 12 penuh + 33 SWA-512 GQA-8; 3.7 menambah vision encoder 1,8B dan menyediakan NVFP4)<br>• ~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)<br>• ~309B–321B: MiMo-V2-Flash / V2.5 309–310B-A15B (48L×4096H, 9 global + 39 SWA-128, K/V asimetris 192/128-d, konteks 256K–1M); Step-3 321B-A38B VLM (61L×7168H, MFA berbagi K/V 256-d)<br>• ~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)<br>• ~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), MiMo-V2.5-Pro (1.02T-A42B, 70L×6144H, 10 global + 60 SWA-128, expert-only MXFP4 available), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, konteks 1M), Kimi K3 (2.8T, 93L×7168H, KDA+MLA)<br><br><strong>Preset Hardware (4 GB–192 GB):</strong> Budget 4–12 GB (GTX 1650 4GB, Arc A380 6GB, RTX 4060 8GB, Arc B570 10GB, RTX 3060 12GB #1 Steam, Arc B580 12GB $249) → Mainstream 16–32 GB (Arc A770 16GB termurah 16GB, RTX 5070 Ti 16GB, RTX 4090 24GB, Arc Pro B60 24GB $599 workstation, RTX 5090 32GB) → Workstation/Server 48–192 GB (L40S 48GB, A100 80GB, RTX PRO 6000 96GB, H200 141GB, B200 192GB) → Apple/Mobile (MacBook Neo 8GB, M4 Max 128GB MBP, M3 Ultra 192GB Studio, Snapdragon X Elite 32GB shared)',
 				sources: '<strong>Sumber:</strong> Makalah & Kartu Model Llama Gen 1–4 (Meta AI, 2023–2025), Laporan Gemma Gen 1–4 (Google), Makalah Qwen Gen 1–3 (Alibaba), Laporan Teknis MiniCPM Gen 1–5 (OpenBMB), Spek G9 v1–v3 (AI9Stars), Laporan Ling Gen 1–2 / 1000B (InclusionAI), Spek Inkling Gen 1 (Thinking Machines), Laporan DeepSeek V1–V4 & R1 (makalah V4 arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Kartu Model Tencent Hunyuan / Hy — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B (Tim Hy Tencent, 2026), Spek GLM 1–4 (Zhipu AI), Laporan Teknis Kimi V1–K3 (Moonshot AI, 2023–2026), Kartu Model & Spek GPT-OSS 20b/120b (OpenAI, 2025; MoE native MXFP4), Kartu Model & Laporan Teknis Cohere Command R / R+ / R7B / A / A+ dan Aya 101 / 23 / Expanse / Vision serta North Mini Code / Micro (Cohere Labs, 2022–2026), Kartu Model & Laporan Teknis Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 (Poolside, 2026; varian NVFP4/FP8/INT4), Kartu Model Arcee Trinity Nano / Mini / Large (Arcee AI, 2025–2026, OpenMDW), Kartu Model & params.json Bobot Terbuka Mistral — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), Kartu Model MiniMax Text-01 / M1 / M2→M2.7 / M3 + Laporan Teknis M3 arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> Spek NVIDIA RTX 50/40 (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Survei HW Steam 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4,8%, 8GB paling umum); Spek Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra (128GB MBP, 64–192GB Studio, cap Metal 25%); cap GPU bersama Snapdragon X Elite 50%'
 			}
 		};
@@ -951,41 +951,56 @@
 			// Synthesized auto-estimate reference configurations from ALL generation versions of modern LLM families:
 			// Llama (Gen 1, Gen 2, Gen 3/3.1, Gen 4 Scout/Maverick), Gemma (Gen 1, Gen 2, Gen 3, Gen 4), Qwen (Gen 1/1.5, Gen 2/2.5, Gen 3),
 			// MiniCPM (Gen 1, Gen 2/V2.6, Gen 3, Gen 4/o 4.5, Gen 5), G9 (Gen 1, Gen 2, Gen 3), Ling (1.0, 1.5, 2.0/Ling-1T), Inkling (Small/276B, Base/975B),
-			// DeepSeek (V1, V2, V3, V3.2, R1, V4-Flash/Pro), Tencent Hunyuan / Hy (dense 0.5B–7B, A13B, Large/A52B, Hy3), GLM (GLM-1, GLM-2/ChatGLM2, GLM-3/ChatGLM3, GLM-4), Kimi (V1, k1.5, K2, K2.5, K3),
-			// GPT-OSS (gpt-oss-20b, gpt-oss-120b — MXFP4-native MoE), Cohere Command (R 35B, R+ 104B, R7B, A 111B, A+ 218B-A25B; the 2022 Command 52B
-			// and Command Light were closed-weight, so no public architecture), Cohere Aya (23, Expanse, Vision — 8B/32B/35B; Aya 101 13B is an mT5
-			// encoder-decoder), Cohere North (Mini Code 30B-A3B, Micro 2B / Micro Vision 2.4B), Poolside Laguna (XS.2 / XS 2.1 33B-A3B,
-			// S 2.1 118B-A8B, M.1 225B-A23B — NVFP4/FP8/INT4 variants shipped for every size), Arcee Trinity (Nano 6B, Mini 26B-A3B,
-			// Large 398B-A13B — afmoe, 1-in-4 global attention), and Mistral open weights (Mistral 7B, Mixtral 8x7B/8x22B, NeMo 12B,
-			// Small 3.x 24B, Devstral 2 123B, Medium 3.5 128B, Small 4 119B-A6B MLA, Ministral 3 3B/8B/14B, Large 3 675B-A41B MLA), and MiniMax (Text-01 / M1 456B-A46B hybrid lightning attention, M2→M2.7 230B-A10B, M3 428B-A23B
-			// with MiniMax Sparse Attention — video/music generators and Qwen-based SynLogic fine-tunes excluded).
+				// DeepSeek (V1, V2, V3, V3.2, R1, V4-Flash/Pro), Tencent Hunyuan / Hy (dense 0.5B–7B, A13B, Large/A52B, Hy3), GLM (GLM-1, GLM-2/ChatGLM2, GLM-3/ChatGLM3, GLM-4), Kimi (V1, k1.5, K2, K2.5, K3),
+				// Xiaomi MiMo (7B, V2-Flash 309B-A15B, V2.5 310B-A15B, V2.5-Pro 1.02T-A42B), StepFun (Step3-VL-10B, Step-3 321B-A38B MFA,
+				// Step-3.5-Flash 196.8B-A11B, Step-3.7-Flash 198B-A11B), Meta Muse Glimmer 30B, IBM Granite (Code 3B/8B/20B/34B,
+				// 3.0–3.3 dense/MoE 1B/2B/3B/8B, 4.0 Nano/Micro/H-Tiny/H-Small, 4.1 3B/8B/30B, experimental SWASH 2B/3B-A600M),
+				// GPT-OSS (gpt-oss-20b, gpt-oss-120b — MXFP4-native MoE), Cohere Command (R 35B, R+ 104B, R7B, A 111B, A+ 218B-A25B; the 2022 Command 52B
+				// and Command Light were closed-weight, so no public architecture), Cohere Aya (23, Expanse, Vision — 8B/32B/35B; Aya 101 13B is an mT5
+				// encoder-decoder), Cohere North (Mini Code 30B-A3B, Micro 2B / Micro Vision 2.4B), Poolside Laguna (XS.2 / XS 2.1 33B-A3B,
+				// S 2.1 118B-A8B, M.1 225B-A23B — NVFP4/FP8/INT4 variants shipped for every size), Arcee Trinity (Nano 6B, Mini 26B-A3B,
+				// Large 398B-A13B — afmoe, 1-in-4 global attention), and Mistral open weights (Mistral 7B, Mixtral 8x7B/8x22B, NeMo 12B,
+				// Small 3.x 24B, Devstral 2 123B, Medium 3.5 128B, Small 4 119B-A6B MLA, Ministral 3 3B/8B/14B, Large 3 675B-A41B MLA), and MiniMax (Text-01 / M1 456B-A46B hybrid lightning attention, M2→M2.7 230B-A10B, M3 428B-A23B
+				// with MiniMax Sparse Attention — image/video/audio generators, embeddings, and third-party fine-tunes excluded).
 			// Rows may carry an `attn` override (applies to the nearest anchor) for exact KV-width buckets that (layers, hidden)
 			// alone cannot disambiguate — e.g. four 2048-hidden models split GQA-4/GQA-8, and 4096H/36L is GQA-8 at 8B but MLA at 119B.
 			const referenceConfigs = {
-				auto: [
-					{ size: 0.5, layers: 24, hidden: 896 },    // Qwen 1.5/2.5 0.5B (24L×896H, 2 KV×128)
-					{ size: 0.6, layers: 28, hidden: 1024, attn: 'gqa_8' }, // Qwen3 0.6B (28L×1024H, 8 KV) + Hunyuan-0.5B (24L×1024H, 8 KV)
-					{ size: 1.5, layers: 40, hidden: 1536 },   // MiniCPM 1/2 1.2B (52L), Qwen 1.5/2.5 1.5B (28L×1536H) avg
-					{ size: 1.7, layers: 28, hidden: 2048 },   // Qwen3 1.7B official (28L×2048H, 8 KV×128)
-					{ size: 1.8, layers: 32, hidden: 2048, attn: 'gqa_4' }, // Hunyuan-1.8B / HY-MT1.5-1.8B (32L×2048H, 4 KV×128)
-					{ size: 2.2, layers: 32, hidden: 2304 },   // Gemma 1/2/4 2B (18-26L, 2048-2304H), MiniCPM 1/2 2.4B (40L), North Micro 2B / Micro Vision 2.4B (28L, 2048H) avg
-					{ size: 3.0, layers: 32, hidden: 2560 },   // Qwen 2.5 3B (36L×2048), G9v1/v2/v3 3B (28L), MiniCPM 3B, Tiny Aya 3.35B, Ministral-3 3B (26L, 262K ctx) avg
-					{ size: 4.0, layers: 34, hidden: 2560 },   // Gemma 3 4B (34L×2560H, 4 KV) & Qwen3 4B (36L×2560H, 8 KV); Hunyuan-4B is 36L×3072H GQA-8 nearby
+					auto: [
+						{ size: 0.35, layers: 28, hidden: 1024, attn: 'gqa_4_64d' }, // Granite 4.0 350M dense (28L×1024H, 4 KV×64); H-350M hybrid sibling has only 4 attention + 28 Mamba2 layers
+						{ size: 0.5, layers: 24, hidden: 896 },    // Qwen 1.5/2.5 0.5B (24L×896H, 2 KV×128)
+						{ size: 0.6, layers: 28, hidden: 1024, attn: 'gqa_8' }, // Qwen3 0.6B (28L×1024H, 8 KV) + Hunyuan-0.5B (24L×1024H, 8 KV)
+						{ size: 1.3, layers: 24, hidden: 1024, attn: 'gqa_8_64d' }, // Granite 3.0/3.1 1B-A400M MoE (24L×1024H, 8 KV×64)
+						{ size: 1.5, layers: 40, hidden: 1536 },   // MiniCPM 1/2 1.2B (52L), Qwen 1.5/2.5 1.5B (28L×1536H) avg
+						{ size: 1.6, layers: 40, hidden: 2048, attn: 'gqa_4' }, // Granite 4.0 1B dense, 1.6B actual (40L×2048H, 4 KV×128); H-1B sibling uses 4 attention + 36 Mamba2
+						{ size: 1.7, layers: 28, hidden: 2048 },   // Qwen3 1.7B official (28L×2048H, 8 KV×128)
+						{ size: 1.8, layers: 32, hidden: 2048, attn: 'gqa_4' }, // Hunyuan-1.8B / HY-MT1.5-1.8B (32L×2048H, 4 KV×128)
+						{ size: 2.14, layers: 24, hidden: 2560, attn: 'granite_swa_2b' }, // Granite-SWASH-2B (2.14B, 7 full + 17 SWA-128, 4 KV×128, attention sinks)
+						{ size: 2.2, layers: 32, hidden: 2304 },   // Gemma 1/2/4 2B (18-26L, 2048-2304H), MiniCPM 1/2 2.4B (40L), North Micro 2B / Micro Vision 2.4B (28L, 2048H) avg
+						{ size: 2.5, layers: 40, hidden: 2048, attn: 'gqa_8_64d' }, // Granite 3.0–3.3 2B dense (2.5B actual, 40L×2048H, 8 KV×64)
+						{ size: 3.0, layers: 32, hidden: 2560 },   // Qwen 2.5 3B (36L×2048), G9v1/v2/v3 3B (28L), MiniCPM 3B, Granite Code/4.0 Micro/4.1 3B, Ministral-3 3B avg
+						{ size: 3.02, layers: 28, hidden: 1280, attn: 'granite_swa_3b' }, // Granite-SWASH-3B-A600M (8 full + 20 SWA-128, 4 KV×64, attention sinks)
+						{ size: 3.3, layers: 32, hidden: 1536, attn: 'gqa_8_64d' }, // Granite 3.0/3.1 3B-A800M MoE (32L×1536H, 8 KV×64)
+						{ size: 4.0, layers: 34, hidden: 2560 },   // Gemma 3 4B (34L×2560H, 4 KV) & Qwen3 4B (36L×2560H, 8 KV); Hunyuan-4B is 36L×3072H GQA-8 nearby
 					{ size: 6.1, layers: 56, hidden: 1024, attn: 'gqa_2' },   // Trinity Nano 6.1B MoE (128 experts x8 + shared, 2 KV heads x128d, 1-in-4 global, SWA 2048)
 					{ size: 6.5, layers: 28, hidden: 3584 },   // GLM 1/2/3/4 6B, Gemma 1 7B, Qwen 1.5/2.5 7B, DeepSeek V1 7B avg
-					{ size: 7.0, layers: 32, hidden: 4096 },   // Mistral 7B, Llama 1/2 7B & Llama 3 8B, Hunyuan-7B / HY-MT1.5-7B (32L×4096H, GQA-8)
-					{ size: 8.0, layers: 34, hidden: 4096 },   // Ministral-3 8B (2512, 262K ctx, multimodal-ready; predecessor Ministral 8B-2410 research licence)
-					{ size: 8.5, layers: 38, hidden: 4096 },   // Qwen 3 8B (36L×4096H), Gemma 2 9B, MiniCPM-o 4.5 9B, GLM-4 9B, Command R7B, Aya 23/Expanse/Vision 8B avg
-					{ size: 14.0, layers: 40, hidden: 5120 },  // Mistral NeMo 12B & Ministral-3 14B (40L×5120H), Llama 1/2 13B, Qwen 1.5/2.5/3 14B, DeepSeek-V2-Lite 16B (27L×2048H MLA), Aya 101 13B (mT5 enc-dec) avg
-					{ size: 17.0, layers: 48, hidden: 5120 },  // Llama 4 Scout/Maverick 17B active (48L×5120H, GQA-8 MoE)
-					{ size: 21.0, layers: 24, hidden: 2880, attn: 'gqa_8_64d' }, // gpt-oss-20b 21B MoE (3.6B active, 32 experts, MXFP4 native, GQA-8 64-dim heads)
-					{ size: 24.0, layers: 40, hidden: 5120 },  // Mistral Small 3.x 24B (+ Magistral Small, Devstral Small/Small-2, Voxtral Small-24B; Codestral 22B 32L×6144H MNPL nearby)
-					{ size: 26.0, layers: 32, hidden: 2048, attn: 'gqa_4' },    // Trinity Mini 26B-A3B MoE (128 experts x8 + shared, 4 KV heads x128d)
-					{ size: 27.0, layers: 46, hidden: 4608 },  // Gemma 2 27B exact (46L×4608H); Gemma 3 27B is 62L×5376H, Gemma 4 31B is 60L×5376H
-					{ size: 30.0, layers: 49, hidden: 2048, attn: 'gqa_4' },   // North Mini Code 30B-A3B (49L) & Qwen3-30B-A3B (48L×2048H, 4 KV)
-					{ size: 32.0, layers: 64, hidden: 5120 },  // Qwen 2.5-32B & Qwen3-32B official (64L×5120H, 8 KV) — was 62L×6144 mixing Kimi-active
-					{ size: 33.0, layers: 40, hidden: 2048 },  // Laguna XS.2 / XS 2.1 33B-A3B MoE (256 experts x8 + shared, GQA-8, 3:1 SWA-512/global)
-					{ size: 35.0, layers: 40, hidden: 8192 },  // Command R 35B & Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)
+						{ size: 7.0, layers: 32, hidden: 4096 },   // Mistral 7B, Llama 1/2 7B & Llama 3 8B, MiMo-7B (36L nearby), Hunyuan-7B; Granite 4.0 H-Tiny overlaps at 7B but uses 4 attention + 36 Mamba2
+						{ size: 8.0, layers: 34, hidden: 4096 },   // Ministral-3 8B (2512, 262K ctx, multimodal-ready; predecessor Ministral 8B-2410 research licence)
+						{ size: 8.1, layers: 40, hidden: 4096 },   // Granite 3.0–3.3 / 4.1 8B dense (8.1B actual, 40L×4096H, 8 KV×128)
+						{ size: 8.5, layers: 38, hidden: 4096 },   // Qwen 3 8B (36L×4096H), Gemma 2 9B, MiniCPM-o 4.5 9B, GLM-4 9B, Command R7B, Aya 23/Expanse/Vision 8B avg
+						{ size: 10.0, layers: 36, hidden: 4096 },  // Step3-VL-10B: Qwen3-8B language backbone (36L×4096H, GQA-8) + 1.8B perception encoder
+						{ size: 14.0, layers: 40, hidden: 5120 },  // Mistral NeMo 12B & Ministral-3 14B (40L×5120H), Llama 1/2 13B, Qwen 1.5/2.5/3 14B, DeepSeek-V2-Lite 16B (27L×2048H MLA), Aya 101 13B (mT5 enc-dec) avg
+						{ size: 17.0, layers: 48, hidden: 5120 },  // Llama 4 Scout/Maverick 17B active (48L×5120H, GQA-8 MoE)
+						{ size: 20.0, layers: 52, hidden: 6144, attn: 'mqa_128d' }, // Granite Code 20B (52L×6144H, one KV head ×128; absolute positions)
+						{ size: 21.0, layers: 24, hidden: 2880, attn: 'gqa_8_64d' }, // gpt-oss-20b 21B MoE (3.6B active, 32 experts, MXFP4 native, GQA-8 64-dim heads)
+						{ size: 24.0, layers: 40, hidden: 5120 },  // Mistral Small 3.x 24B (+ Magistral Small, Devstral Small/Small-2, Voxtral Small-24B; Codestral 22B 32L×6144H MNPL nearby)
+						{ size: 26.0, layers: 32, hidden: 2048, attn: 'gqa_4' },    // Trinity Mini 26B-A3B MoE (128 experts x8 + shared, 4 KV heads x128d)
+						{ size: 27.0, layers: 46, hidden: 4608 },  // Gemma 2 27B exact (46L×4608H); Gemma 3 27B is 62L×5376H, Gemma 4 31B is 60L×5376H
+						{ size: 29.6, layers: 52, hidden: 6656, attn: 'muse_swa' }, // Muse Glimmer 30B incl. 1.8B vision encoder (52L×6656H, 13 full + 39 SWA-2048, 2 KV×128)
+						{ size: 30.0, layers: 49, hidden: 2048, attn: 'gqa_4' },   // North Mini Code / Qwen3-30B-A3B; Granite 4.1 30B overlaps this size (64L×4096H, GQA-8)
+						{ size: 32.0, layers: 64, hidden: 5120 },  // Qwen 2.5/3 32B; Granite 4.0 H-Small overlaps at 32B but uses 4 attention + 36 Mamba2
+						{ size: 33.0, layers: 40, hidden: 2048 },  // Laguna XS.2 / XS 2.1 33B-A3B MoE (256 experts x8 + shared, GQA-8, 3:1 SWA-512/global)
+						{ size: 34.0, layers: 88, hidden: 6144, attn: 'mqa_128d' }, // Granite Code 34B (88L×6144H, one KV head ×128; depth-upscaled 20B)
+						{ size: 35.0, layers: 40, hidden: 8192 },  // Command R 35B & Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)
 					{ size: 39.0, layers: 58, hidden: 5760 },  // G9v1/v2/v3 39A5B synthesis (not DeepSeek-V3 — that is 671B/61L×7168H)
 					{ size: 47.0, layers: 32, hidden: 4096 },  // Mixtral 8x7B 47B-A13B MoE (8 experts x2, GQA-8, first open MoE)
 					{ size: 70.0, layers: 80, hidden: 8192 },  // Llama 1 65B / Llama 2/3 70B, Qwen 1.5/2.5 72B, DeepSeek 67B dense
@@ -998,6 +1013,8 @@
 					{ size: 123.0, layers: 88, hidden: 12288 },// Devstral 2 123B & Mistral Medium 3.5 128B dense (GQA-8, 256K ctx, FP8, multimodal on Medium)
 					{ size: 130.0, layers: 70, hidden: 12288 },// GLM-130B official (70L×12288H, MHA) — was 75L×10240
 					{ size: 141.0, layers: 56, hidden: 6400 }, // Mixtral 8x22B 141B-A39B MoE (GQA-8)
+					{ size: 196.8, layers: 45, hidden: 4096, attn: 'step_swa' }, // Step-3.5-Flash 196.81B-A11B (45L, 12 full + 33 SWA-512, GQA-8, 3 dense + 42 MoE, +MTP head)
+					{ size: 198.0, layers: 45, hidden: 4096, attn: 'step_swa' }, // Step-3.7-Flash 198B-A11B VLM: same 196B language backbone + 1.8B perception encoder
 					{ size: 218.0, layers: 32, hidden: 4096 }, // Command A+ 218B-A25B MoE (128 experts x8 + 4 shared, GQA-8, 3:1 sliding/global)
 				{ size: 225.0, layers: 70, hidden: 4096 }, // Laguna M.1 225B-A23B MoE (3 dense + 67 sparse of 256 experts x16 + shared, GQA-8, all-global attn)
 				{ size: 230.0, layers: 62, hidden: 3072 }, // MiniMax M2 / M2.1 / M2.5 / M2.7 230B-A10B MoE (256 experts x8, GQA-8 48Q/8KV, interleaved thinking)
@@ -1006,6 +1023,9 @@
 				{ size: 276.0, layers: 42, hidden: 4096 }, // Inkling-Small 276B-A12B official (42L×4096H, GQA-8, hybrid SWA/global)
 				{ size: 284.0, layers: 43, hidden: 4096, attn: 'csa_hca_flash' }, // DeepSeek-V4-Flash 284B-A13B (43L×4096H, 2 SWA + 21 CSA + 20 HCA, shared K=V 512d)
 				{ size: 295.0, layers: 80, hidden: 4096 }, // Hy3 / Hy3-preview 295B-A21B MoE (80L×4096H, GQA-8 64Q/8KV, 192 experts ×8 + shared, +3.8B MTP, 256K ctx)
+				{ size: 309.0, layers: 48, hidden: 4096, attn: 'mimo_swa' }, // MiMo-V2-Flash 309B-A15B (48L: 9 GA 4KV + 39 SWA-128 8KV; QK/V dims 192/128, 256K ctx)
+				{ size: 310.0, layers: 48, hidden: 4096, attn: 'mimo_swa' }, // MiMo-V2.5 310B-A15B omnimodal (same backbone, 1M ctx; +729M ViT +261M audio encoder +329M MTP)
+				{ size: 321.0, layers: 61, hidden: 7168, attn: 'mfa' }, // Step-3 321B-A38B VLM (316B LLM + vision; MFA: one shared K and V head ×256, 64K ctx)
 				{ size: 389.0, layers: 64, hidden: 6400, attn: 'gqa_8_cla2' }, // Hunyuan-Large (A52B) 389B-A52B MoE (64L×6400H, GQA-8 80Q/8KV, CLA share-2, 16 experts ×1 + shared, 256K ctx)
 				{ size: 399.0, layers: 60, hidden: 3072 },  // Trinity Large 398B-A13B MoE (6 dense + 54 sparse of 256 experts x4 + shared, GQA-8, 512K ctx, 17T tokens)
 				{ size: 405.0, layers: 126, hidden: 16384 },// Llama 3.1 405B dense (126L×16384H, GQA-8)
@@ -1015,6 +1035,7 @@
 					{ size: 675.0, layers: 61, hidden: 7168, attn: 'mla' }, // Mistral Large 3 675B-A41B MoE (3 dense + 58 sparse of 128 experts x4 + shared, MLA 512+64, multimodal, 256K ctx)
 					{ size: 975.0, layers: 66, hidden: 6144 }, // Inkling 975B-A41B official (66L×6144H, hybrid GQA-8 SWA/global — not MLA)
 					{ size: 1000.0, layers: 61, hidden: 7168, attn: 'mla' },// Kimi K2 / K2.5 1.0–1.04T MoE (61L×7168H MLA) — was 67L mixing Inkling/Ling
+					{ size: 1020.0, layers: 70, hidden: 6144, attn: 'mimo_swa_pro' }, // MiMo-V2.5-Pro 1.02T-A42B (70L: 10 GA + 60 SWA-128, GQA-8, QK/V 192/128, 1M ctx; FP8 + expert-only MXFP4)
 					{ size: 1600.0, layers: 61, hidden: 7168, attn: 'csa_hca_pro' }, // DeepSeek-V4-Pro 1.6T-A49B (61L×7168H, 30 CSA + 31 HCA, shared K=V 512d, 1M ctx)
 					{ size: 2800.0, layers: 93, hidden: 7168, attn: 'mla' } // Kimi K3 2.8T MoE (93L×7168H, 104B active, KDA + gated-MLA hybrid)
 				]
@@ -1039,10 +1060,10 @@
 			'fp32': 4.0, 'fp16': 2.0, 'bf16': 2.0, 'fp8': 1.0, 'int8': 1.0,
 			'gguf_q8': 1.06, 'gguf_q6': 0.83, 'gguf_q5': 0.69, 'gguf_q4': 0.60,
 			// MXFP4: 4-bit float weights + 8-bit block scales (1 per 32-element group) ≈ 4.25 bits/param.
-			// Native format of gpt-oss-20b/120b (120b ships ~60.8 GB) and Kimi K3; attention/embeddings stay BF16.
+			// Native format of gpt-oss-20b/120b and Kimi K3; MiMo-V2.5-Pro also ships expert-only MXFP4 with higher-precision non-expert layers.
 			'mxfp4': 0.53,
 			// NVFP4: 4-bit float weights + FP8 block scales (1 per 16-element group) + per-tensor scale ≈ 4.5 bits/param.
-			// Blackwell-native FP4; shipped family-wide by Poolside Laguna (S 2.1 118B ≈ 71 GB incl. overhead).
+			// Blackwell-native FP4; shipped by Poolside Laguna and Step-3.7-Flash (S 2.1 118B ≈ 71 GB incl. overhead).
 			'nvfp4': 0.56,
 			'int4': 0.5, 'fp4': 0.5, 'gguf_q3': 0.46, 'gguf_q2': 0.41, 'fp2': 0.25
 		};
@@ -1109,7 +1130,8 @@
 			getAutoAttentionType(arch) {
 				if (!arch || !arch.layers || !arch.hidden) return 'gqa_8';
 				// Per-anchor override from the synthesis table (nearest anchor): exact KV-width buckets such as
-				// gpt-oss 64-dim GQA-8, Trinity Mini GQA-4 / Nano GQA-2, Command R+ MHA, Mistral's two MLA flavors, and DeepSeek V4 CSA/HCA, and Hunyuan-Large CLA-2.
+				// Granite 64-dim GQA/MQA/SWASH, gpt-oss 64-dim GQA-8, Trinity GQA-2/4, Command R+ MHA,
+				// Mistral's two MLA flavors, DeepSeek V4 CSA/HCA, Hunyuan-Large CLA-2, MiMo/Step/Muse hybrid SWA, and Step-3 MFA.
 				if (arch.attn) return arch.attn;
 				// 7168-hidden models at ≥61 layers use MLA unless a per-anchor override says otherwise: DeepSeek V3/V3.2/R1 (61L),
 				// Mistral Large 3 (61L), Kimi K2/K2.5 (61L), Kimi K3 (93L, KDA + gated-MLA). DeepSeek V4-Pro is also 61L×7168H
@@ -1130,13 +1152,20 @@
 				const type = this.attention === 'auto' ? this.getAutoAttentionType(arch) : this.attention;
 				if (type === 'mla') return 'MLA (DeepSeek/Kimi)';
 				if (type === 'mla_mistral') return 'MLA (Mistral Small 4)';
+				if (type === 'mfa') return 'MFA (Step-3)';
+				if (type === 'mimo_swa' || type === 'mimo_swa_pro') return 'Hybrid SWA/GQA (MiMo)';
+				if (type === 'step_swa') return 'Hybrid SWA/GQA (Step)';
+				if (type === 'muse_swa') return 'Hybrid SWA/GQA-2 (Muse)';
+				if (type === 'granite_swa_2b' || type === 'granite_swa_3b') return 'Hybrid SWA/GQA (Granite)';
 				if (type === 'csa_hca_flash') return 'CSA/HCA (V4-Flash)';
 				if (type === 'csa_hca_pro') return 'CSA/HCA (V4-Pro)';
 				if (type === 'gqa_8_cla2') return 'GQA (8-head, CLA-2)';
 				if (type === 'gqa_2') return 'GQA (2-head)';
 				if (type === 'gqa_4') return 'GQA (4-head)';
+				if (type === 'gqa_4_64d') return 'GQA (4-head × 64d)';
 				if (type === 'gqa_8_64d') return 'GQA (8-head × 64d)';
 				if (type === 'gqa_16') return 'GQA (16-head)';
+				if (type === 'mqa_128d') return 'MQA (1-head × 128d)';
 				if (type === 'mha') return 'MHA';
 				return 'GQA (8-head)';
 			}
@@ -1166,6 +1195,38 @@
 						+ nSwa * (swa * headDim);
 					return (elems * bytesPerElement) / (1024 ** 3);
 				}
+				if (attnType === 'mfa') {
+					// Step-3 MFA shares one 256-d K head and one 256-d V head across its 64 query heads.
+					return (arch.layers * context * (256 + 256) * bytesPerElement) / (1024 ** 3);
+				}
+				if (['mimo_swa', 'mimo_swa_pro', 'step_swa', 'muse_swa', 'granite_swa_2b', 'granite_swa_3b'].includes(attnType)) {
+					// Hybrid full/sliding-window caches retain the full prefix only in global layers; SWA layers retain min(context, window).
+					// Width is K + V elements and may be asymmetric (MiMo uses 192-d K and 128-d V).
+					const L = arch.layers;
+					let fullLayers, window, fullWidth, swaWidth;
+					if (attnType === 'mimo_swa') {
+						fullLayers = Math.round(L * 9 / 48); window = 128;
+						fullWidth = 4 * (192 + 128); swaWidth = 8 * (192 + 128);
+					} else if (attnType === 'mimo_swa_pro') {
+						fullLayers = Math.round(L * 10 / 70); window = 128;
+						fullWidth = swaWidth = 8 * (192 + 128);
+					} else if (attnType === 'step_swa') {
+						fullLayers = Math.round(L * 12 / 45); window = 512;
+						fullWidth = swaWidth = 8 * (128 + 128);
+					} else if (attnType === 'muse_swa') {
+						fullLayers = Math.round(L * 13 / 52); window = 2048;
+						fullWidth = swaWidth = 2 * (128 + 128);
+					} else if (attnType === 'granite_swa_2b') {
+						fullLayers = Math.round(L * 7 / 24); window = 128;
+						fullWidth = swaWidth = 4 * (128 + 128);
+					} else {
+						fullLayers = Math.round(L * 8 / 28); window = 128;
+						fullWidth = swaWidth = 4 * (64 + 64);
+					}
+					const swaLayers = Math.max(0, L - fullLayers);
+					const elems = fullLayers * context * fullWidth + swaLayers * Math.min(context, window) * swaWidth;
+					return (elems * bytesPerElement) / (1024 ** 3);
+				}
 				if (attnType === 'mla' || attnType === 'mla_mistral') {
 					// DeepSeek V2/V3/V3.2/R1, Kimi K2/K2.5/K3, Mistral Large 3 MLA: (kv_lora_rank + qk_rope_head_dim) = 512 + 64 = 576.
 					// Mistral Small 4 (mla_mistral): 256 + 64 = 320.
@@ -1174,8 +1235,10 @@
 				} else {
 					if (attnType === 'mha') kvWidth = arch.hidden;
 					else if (attnType === 'gqa_16') kvWidth = 2048;  // 16 heads * 128 dim
-					else if (attnType === 'gqa_8_64d') kvWidth = 512; // gpt-oss 20b/120b: 8 KV heads * 64 dim
-					else if (attnType === 'gqa_4') kvWidth = 512;   // 4 heads * 128 dim (small 0.5B-1.5B LLMs, North Mini Code, Trinity Mini)
+					else if (attnType === 'gqa_8_64d') kvWidth = 512; // gpt-oss and compact Granite 3.x: 8 KV heads * 64 dim
+					else if (attnType === 'gqa_4_64d') kvWidth = 256; // Granite 4.0 350M: 4 KV heads * 64 dim
+					else if (attnType === 'mqa_128d') kvWidth = 128; // Granite Code 20B/34B: one KV head * 128 dim
+					else if (attnType === 'gqa_4') kvWidth = 512;   // 4 heads * 128 dim (small LLMs, North Mini Code, Trinity Mini)
 					else if (attnType === 'gqa_2') kvWidth = 256;   // 2 heads * 128 dim (Trinity Nano)
 					else if (attnType === 'gqa_8_cla2') {
 						// Hunyuan-Large CLA: every 2 layers share one KV cache (cla_share_factor=2).
