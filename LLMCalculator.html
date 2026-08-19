@@ -727,20 +727,18 @@
 					</div>
 
 					<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
-						<label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem; font-weight: 600;">
-							<input type="checkbox" id="agenticToggle" aria-expanded="false" aria-controls="agenticFields"><span id="agenticToggleLabel">Plan long-horizon agentic workload</span>
-						</label>
-						<div id="agenticFields" class="hidden" style="margin-top: 1rem;">
-							<p id="agenticHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
-							<div class="form-group">
-								<div class="label-row"><label id="agentStrategyLabel">Context Strategy</label></div>
-								<select id="agentStrategy" class="full-width" aria-labelledby="agentStrategyLabel">
-									<option value="rolling">Rolling window</option><option value="summary">Summary + retrieval</option><option value="full">Full history</option><option value="sliding">Sliding-window attention</option>
-								</select>
-							</div>
-							<div class="form-group"><div class="label-row"><label id="agentOutputLabel">Reserved Completion</label><span class="value" id="agentOutputValue">4,096 tokens</span></div><input type="range" id="agentOutputSlider" min="8" max="18" step="1" value="12" aria-labelledby="agentOutputLabel"></div>
-							<div class="form-group"><div class="label-row"><label id="agentConcurrencyLabel">Concurrent Sequences</label><span class="value" id="agentConcurrencyValue">1</span></div><input type="range" id="agentConcurrencySlider" min="1" max="16" step="1" value="1" aria-labelledby="agentConcurrencyLabel"></div>
-							<div class="form-group"><div class="label-row"><label id="agentHeadroomLabel">KV Safety Headroom</label><span class="value" id="agentHeadroomValue">15%</span></div><input type="range" id="agentHeadroomSlider" min="0" max="50" step="1" value="15" aria-labelledby="agentHeadroomLabel"></div>
+						<div class="form-group"><div class="label-row"><label id="workloadProfileLabel">Workload Profile</label></div>
+							<select id="workloadProfile" class="full-width" aria-labelledby="workloadProfileLabel"><option value="chatbot">Chatbot</option><option value="embedded">Embedded / local app</option><option value="agent">Long-horizon agent</option><option value="hosted">Hosted API planner</option></select>
+						</div>
+						<p id="workloadHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
+						<div class="form-group"><div class="label-row"><label id="agentOutputLabel">Reserved Completion</label><span class="value" id="agentOutputValue">4,096 tokens</span></div><input type="range" id="agentOutputSlider" min="8" max="18" step="1" value="12" aria-labelledby="agentOutputLabel"></div>
+						<div class="form-group"><div class="label-row"><label id="agentConcurrencyLabel">Peak Resident Sequences</label><span class="value" id="agentConcurrencyValue">1</span></div><input type="range" id="agentConcurrencySlider" min="1" max="16" step="1" value="1" aria-labelledby="agentConcurrencyLabel"></div>
+						<div class="form-group"><div class="label-row"><label id="agentHeadroomLabel">KV Allocation Headroom</label><span class="value" id="agentHeadroomValue">15%</span></div><input type="range" id="agentHeadroomSlider" min="0" max="50" step="1" value="15" aria-labelledby="agentHeadroomLabel"></div>
+						<div class="form-group"><div class="label-row"><label id="runtimeReserveLabel">Runtime / Activation Reserve</label><span class="value" id="runtimeReserveValue">0.0 GB</span></div><input type="range" id="runtimeReserveSlider" min="0" max="16" step="0.1" value="0" aria-labelledby="runtimeReserveLabel"></div>
+						<div class="form-group"><div class="label-row"><label id="contextCapLabel">Configured Context Cap</label><span class="value" id="contextCapValue">1,048,576 tokens</span></div><input type="range" id="contextCapSlider" min="9" max="20" step="1" value="20" aria-labelledby="contextCapLabel"></div>
+						<div class="form-group"><div class="label-row"><label id="outputCapLabel">Maximum Output Cap</label><span class="value" id="outputCapValue">262,144 tokens</span></div><input type="range" id="outputCapSlider" min="8" max="18" step="1" value="18" aria-labelledby="outputCapLabel"></div>
+						<div id="agenticFields" class="hidden" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
+							<div class="form-group"><div class="label-row"><label id="agentStrategyLabel">Context Strategy</label></div><select id="agentStrategy" class="full-width" aria-labelledby="agentStrategyLabel"><option value="rolling">Rolling recent history</option><option value="summary">Structured summary + retrieval</option><option value="full">Full retained history</option></select></div>
 							<div class="form-group"><div class="label-row"><label id="agentHorizonLabel">Total Task Horizon</label><span class="value" id="agentHorizonValue">1,048,576 tokens</span></div><input type="range" id="agentHorizonSlider" min="12" max="26" step="1" value="20" aria-labelledby="agentHorizonLabel"></div>
 						</div>
 					</div>
@@ -869,19 +867,30 @@
 				attentionDetailLabel: 'Attention',
 				contextLabel: 'Active KV Context',
 				maxContextLabel: 'Active Prompt Context',
-				agenticToggleLabel: 'Plan long-horizon agentic workload',
+				workloadProfileLabel: 'Workload Profile',
+				workloadProfileChatbot: 'Chatbot',
+				workloadProfileEmbedded: 'Embedded / local app',
+				workloadProfileAgent: 'Long-horizon agent',
+				workloadProfileHosted: 'Hosted API planner',
+				workloadHelpChatbot: 'Budget retained chat history, system/tool content, and the response currently being generated.',
+				workloadHelpEmbedded: 'For an in-app local model. Reserve runtime/activation memory in addition to system overhead.',
+				workloadHelpAgent: 'Only resident tokens consume KV memory. Total task horizon is for planning, not one giant cache.',
+				workloadHelpHosted: 'Hosted APIs do not use your local VRAM. Use this to validate combined input and output token budgets.',
 				agentStrategyLabel: 'Context Strategy',
 				agentOutputLabel: 'Reserved Completion',
 				agentConcurrencyLabel: 'Concurrent Sequences',
-				agentHeadroomLabel: 'KV Safety Headroom',
+				agentHeadroomLabel: 'KV Allocation Headroom',
+				runtimeReserveLabel: 'Runtime / Activation Reserve',
+				contextCapLabel: 'Configured Context Cap',
+				outputCapLabel: 'Maximum Output Cap',
 				agentHorizonLabel: 'Total Task Horizon',
 				agentHorizonMetric: 'Agentic task horizon',
 				agentHelp: 'Only resident tokens consume KV memory. Total task horizon is shown for planning and does not allocate a single giant cache.',
 				agentKvDetail: 'active + reserved × concurrent sequences, including headroom',
 				agentWindows: 'working windows',
-				agentStrategyRolling: 'Rolling window',
+				agentStrategyRolling: 'Rolling recent history',
 				agentStrategySummary: 'Summary + retrieval',
-				agentStrategyFull: 'Full history',
+				agentStrategyFull: 'Full retained history',
 				agentStrategySliding: 'Sliding-window attention',
 				maxParamsLabel: 'Maximum Parameters',
 				memoryAllocationLabel: 'Memory Allocation',
@@ -913,6 +922,10 @@
 				
 				warningKvCache: '⚠️ KV cache >50% of VRAM. Reduce context.',
 				warningInsufficient: '❌ Insufficient VRAM for model.',
+				warningContextCap: '⚠️ Retained input plus reserved output exceeds the configured context cap.',
+				warningOutputCap: '⚠️ Reserved completion exceeds the configured maximum output cap.',
+				warningFullHistory: '⚠️ Full retained history exceeds the context cap. Use rolling history or summary + retrieval.',
+				warningHosted: 'ℹ️ Hosted API profile: local VRAM estimates are illustrative; validate the provider context and output caps instead.',
 				insufficient: 'INSUFFICIENT',
 				
 				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param × 1.05 (overhead); MXFP4 ≈ 0.53 B/param (gpt-oss/Kimi K3; expert-only on MiMo Pro), NVFP4 ≈ 0.56 B/param (Laguna/Step 3.7/Blackwell)<br>• Attention (Auto-Estimate): per-anchor buckets — GQA/MQA (including 64-dim Granite/gpt-oss), hybrid SWA+global (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): layers × kv_heads × (K head_dim + V head_dim) × context × bytes<br>• KV (hybrid SWA): full layers retain context; SWA layers retain min(context, window), using each family&apos;s exact K/V widths<br>• KV (MFA): layers × context × (256 K + 256 V) × bytes (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes<br>• KV (CSA/HCA): shared K=V 512-d; CSA = SWA-128 + ctx/4 compressed + 128-d indexer; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): GQA-8 width with ceil(layers/2) shared-KV layers (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1.5 GB desktop / 0.5 GB headless (configurable), Apple Silicon 25% Metal reservation, Snapdragon/X Elite shared-GPU cap 50%',
@@ -939,19 +952,30 @@
 				attentionDetailLabel: 'Atensi',
 				contextLabel: 'Konteks KV Aktif',
 				maxContextLabel: 'Konteks Prompt Aktif',
-				agenticToggleLabel: 'Rencanakan beban kerja agentik jangka panjang',
+				workloadProfileLabel: 'Profil Beban Kerja',
+				workloadProfileChatbot: 'Chatbot',
+				workloadProfileEmbedded: 'Aplikasi lokal / tertanam',
+				workloadProfileAgent: 'Agen horizon panjang',
+				workloadProfileHosted: 'Perencana API hosted',
+				workloadHelpChatbot: 'Anggarkan riwayat chat, konten sistem/tool, dan respons yang sedang dihasilkan.',
+				workloadHelpEmbedded: 'Untuk model lokal dalam aplikasi. Cadangkan memori runtime/aktivasi di samping overhead sistem.',
+				workloadHelpAgent: 'Hanya token aktif memakai memori KV. Horizon tugas digunakan untuk perencanaan, bukan satu cache besar.',
+				workloadHelpHosted: 'API hosted tidak memakai VRAM lokal Anda. Gunakan untuk memvalidasi anggaran token input dan output gabungan.',
 				agentStrategyLabel: 'Strategi Konteks',
 				agentOutputLabel: 'Output yang Dicadangkan',
 				agentConcurrencyLabel: 'Urutan Konkuren',
-				agentHeadroomLabel: 'Ruang Aman KV',
+				agentHeadroomLabel: 'Ruang Alokasi KV',
+				runtimeReserveLabel: 'Cadangan Runtime / Aktivasi',
+				contextCapLabel: 'Batas Konteks Terkonfigurasi',
+				outputCapLabel: 'Batas Output Maksimum',
 				agentHorizonLabel: 'Horizon Tugas Total',
 				agentHorizonMetric: 'Horizon tugas agentik',
 				agentHelp: 'Hanya token yang masih aktif memakai memori KV. Horizon tugas total ditampilkan untuk perencanaan dan tidak mengalokasikan satu cache raksasa.',
 				agentKvDetail: 'aktif + cadangan × urutan konkuren, termasuk ruang aman',
 				agentWindows: 'jendela kerja',
-				agentStrategyRolling: 'Jendela bergulir',
+				agentStrategyRolling: 'Riwayat terbaru bergulir',
 				agentStrategySummary: 'Ringkasan + pengambilan',
-				agentStrategyFull: 'Riwayat penuh',
+				agentStrategyFull: 'Riwayat penuh yang dipertahankan',
 				agentStrategySliding: 'Atensi jendela geser',
 				maxParamsLabel: 'Parameter Maksimum',
 				memoryAllocationLabel: 'Alokasi Memori',
@@ -983,6 +1007,10 @@
 				
 				warningKvCache: '⚠️ KV cache >50% dari VRAM. Kurangi konteks.',
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
+				warningContextCap: '⚠️ Input yang dipertahankan ditambah output cadangan melebihi batas konteks.',
+				warningOutputCap: '⚠️ Output cadangan melebihi batas output maksimum.',
+				warningFullHistory: '⚠️ Riwayat penuh melebihi batas konteks. Gunakan riwayat bergulir atau ringkasan + pengambilan.',
+				warningHosted: 'ℹ️ Profil API hosted: estimasi VRAM lokal hanya ilustrasi; validasi batas konteks dan output penyedia.',
 				insufficient: 'TIDAK CUKUP',
 				
 				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param × 1,05 (overhead); MXFP4 ≈ 0,53 byte/param (gpt-oss/Kimi K3; hanya expert pada MiMo Pro), NVFP4 ≈ 0,56 byte/param (Laguna/Step 3.7/Blackwell)<br>• Atensi (Estimasi Otomatis): bucket per-anchor — GQA/MQA (termasuk kepala 64-dim Granite/gpt-oss), SWA+global hibrida (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): lapisan × kv_head × (head_dim K + head_dim V) × konteks × byte<br>• KV (SWA hibrida): lapisan penuh menyimpan konteks; lapisan SWA menyimpan min(konteks, window), dengan lebar K/V tepat per keluarga<br>• KV (MFA): lapisan × konteks × (256 K + 256 V) × byte (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte<br>• KV (CSA/HCA): K=V bersama 512-d; CSA = SWA-128 + ctx/4 terkompresi + indexer 128-d; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): lebar GQA-8 dengan ceil(lapisan/2) lapisan KV bersama (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1,5 GB desktop / 0,5 GB headless (dapat dikonfigurasi), Apple Silicon 25% reservasi Metal, Snapdragon/X Elite cap GPU bersama 50%',
@@ -1125,8 +1153,12 @@
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
 				this.modelFamily = 'auto';
+				this.workloadProfile = 'chatbot';
 				this.agentic = false;
 				this.agentOutputTokens = 4096;
+				this.runtimeReserveGB = 0;
+				this.contextCap = 1048576;
+				this.outputCap = 262144;
 				this.agentConcurrency = 1;
 				this.agentHeadroom = 0.15;
 				this.agentHorizon = 1048576;
@@ -1159,11 +1191,14 @@
 				elements.kvCache.onchange = e=>(this.clearActivePreset(),this.kvCacheQuant = e.target.value,this.calculate()),
 				elements.attention.onchange = e=>(this.clearActivePreset(),this.attention = e.target.value,this.calculate()),
 				elements.contextSlider.oninput = e=>(this.clearActivePreset(),this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
-				elements.agenticToggle.onchange = e=>{ this.clearActivePreset(); this.agentic = e.target.checked; elements.agenticToggle.setAttribute('aria-expanded', this.agentic); elements.agenticFields.classList.toggle('hidden', !this.agentic); this.calculate(); },
+				elements.workloadProfile.onchange = e=>{ this.clearActivePreset(); this.workloadProfile = e.target.value; this.agentic = this.workloadProfile === 'agent'; this.updateWorkloadProfile(); this.calculate(); },
 				elements.agentStrategy.onchange = e=>(this.clearActivePreset(),this.agentStrategy = e.target.value,this.calculate()),
 				elements.agentOutputSlider.oninput = e=>(this.clearActivePreset(),this.agentOutputTokens = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
 				elements.agentConcurrencySlider.oninput = e=>(this.clearActivePreset(),this.agentConcurrency = Number(e.target.value),this.updateAgenticDisplay(),this.calculate()),
 				elements.agentHeadroomSlider.oninput = e=>(this.clearActivePreset(),this.agentHeadroom = Number(e.target.value) / 100,this.updateAgenticDisplay(),this.calculate()),
+				elements.runtimeReserveSlider.oninput = e=>(this.clearActivePreset(),this.runtimeReserveGB = Number(e.target.value),this.updateAgenticDisplay(),this.calculate()),
+				elements.contextCapSlider.oninput = e=>(this.clearActivePreset(),this.contextCap = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
+				elements.outputCapSlider.oninput = e=>(this.clearActivePreset(),this.outputCap = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
 				elements.agentHorizonSlider.oninput = e=>(this.clearActivePreset(),this.agentHorizon = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
 				elements.gpuType.onchange = e=>{
 					this.clearActivePreset();
@@ -1370,9 +1405,9 @@
 					this.contextWindow = p.context,
 					this.gpuType = p.gpu,
 					this.attention = p.attention || 'auto',
+					this.workloadProfile = 'embedded',
 					this.agentic = false,
-					elements.agenticToggle.checked = false,
-					elements.agenticToggle.setAttribute('aria-expanded', 'false'),
+					elements.workloadProfile.value = this.workloadProfile,
 					elements.agenticFields.classList.add('hidden'),
 					p.overhead !== undefined && (this.manualOverhead = p.overhead),
 					elements.vramSlider.value = p.vram,
@@ -1383,6 +1418,7 @@
 					elements.overheadSlider.value = this.manualOverhead,
 					this.updateVramDisplay(),
 					this.updateContextDisplay(),
+					this.updateWorkloadProfile(),
 					this.calculate()
 				);
 			}
@@ -1409,6 +1445,16 @@
 				set(elements.agentConcurrencyValue, elements.agentConcurrencySlider, this.format(this.agentConcurrency));
 				set(elements.agentHeadroomValue, elements.agentHeadroomSlider, `${Math.round(this.agentHeadroom * 100)}%`);
 				set(elements.agentHorizonValue, elements.agentHorizonSlider, `${this.format(this.agentHorizon)} tokens`);
+				set(elements.runtimeReserveValue, elements.runtimeReserveSlider, `${this.runtimeReserveGB.toFixed(1)} GB`);
+				set(elements.contextCapValue, elements.contextCapSlider, `${this.format(this.contextCap)} tokens`);
+				set(elements.outputCapValue, elements.outputCapSlider, `${this.format(this.outputCap)} tokens`);
+			}
+
+			updateWorkloadProfile() {
+				const profile = this.workloadProfile;
+				elements.workloadProfile.value = profile;
+				elements.agenticFields.classList.toggle('hidden', profile !== 'agent');
+				elements.workloadHelp.textContent = this.string(`workloadHelp${profile[0].toUpperCase()}${profile.slice(1)}`);
 			}
 
 			calculate() {
@@ -1436,9 +1482,9 @@
 				elements.overheadSlider.value = overheadGB,
 				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`);
 
-				const availableForUse = Math.max(0,availableVram);
-				const effectiveContext = this.contextWindow + (this.agentic ? this.agentOutputTokens : 0);
-				const kvMultiplier = this.agentic ? this.agentConcurrency * (1 + this.agentHeadroom) : 1;
+				const availableForUse = Math.max(0,availableVram - this.runtimeReserveGB);
+				const effectiveContext = this.contextWindow + this.agentOutputTokens;
+				const kvMultiplier = this.agentConcurrency * (1 + this.agentHeadroom);
 				let maxParams = 0,estimatedArchitecture = {layers: 0,hidden: 0};
 				
 				const WEIGHT_OVERHEAD = 1.05; // 5% for metadata, scales, and alignment
@@ -1463,6 +1509,7 @@
 				this.displayResults({
 					totalVram: this.vramSize,
 					overheadGB: overheadGB,
+					runtimeReserveGB: this.runtimeReserveGB,
 					overheadMsg: overheadMsg,
 					availableVram: availableForUse,
 					kvCacheGB: kvCacheGB,
@@ -1477,9 +1524,7 @@
 			
 			displayResults(results) {
 				const t = text[this.language],mbPerToken = (results.perSequenceKvCacheGB * 1024 / results.effectiveContext).toFixed(2);
-				const agenticDetail = this.agentic
-					? `${this.format(this.contextWindow)} + ${this.format(this.agentOutputTokens)} tokens × ${this.format(this.agentConcurrency)} × ${(1 + this.agentHeadroom).toFixed(2)} ${t.agentKvDetail}`
-					: `${this.format(this.contextWindow)} tokens`;
+				const agenticDetail = `${this.format(this.contextWindow)} + ${this.format(this.agentOutputTokens)} tokens × ${this.format(this.agentConcurrency)} × ${(1 + this.agentHeadroom).toFixed(2)} ${t.agentKvDetail}`;
 
 				const total = results.totalVram || 1, ohPct = (results.overheadGB / total) * 100, kvPct = (results.kvCacheGB / total) * 100, modPct = (Math.max(0, results.modelMemoryGB) / total) * 100;
 
@@ -1521,6 +1566,7 @@
 							${results.overheadMsg ? `<span class="metric-sub">${results.overheadMsg}</span>` : ''}
 						</div>
 					</div>
+					${results.runtimeReserveGB > 0 ? `<div class="metric-row"><span class="metric-label">${t.runtimeReserveLabel}</span><div class="metric-value-group"><div class="metric-val" style="color: var(--danger)">-${results.runtimeReserveGB.toFixed(1)} GB</div></div></div>` : ''}
 					<div class="metric-row">
 						<span class="metric-label">${t.kvCacheMemory}</span>
 						<div class="metric-value-group">
@@ -1528,7 +1574,7 @@
 							<span class="metric-sub">${mbPerToken} ${t.mbPerToken} · ${agenticDetail}</span>
 						</div>
 					</div>
-					${this.agentic ? `<div class="metric-row"><span class="metric-label">${t.agentHorizonMetric}</span><div class="metric-value-group"><div class="metric-val">${this.format(this.agentHorizon)} tokens</div><span class="metric-sub">${this.format(Math.max(1, Math.ceil(this.agentHorizon / this.contextWindow)))} ${t.agentWindows} · ${elements.agentStrategy.options[elements.agentStrategy.selectedIndex].text}</span></div></div>` : ''}
+					${this.agentic ? `<div class="metric-row"><span class="metric-label">${t.agentHorizonMetric}</span><div class="metric-value-group"><div class="metric-val">${this.format(this.agentHorizon)} tokens</div><span class="metric-sub">${this.format(Math.max(1, Math.ceil(this.agentHorizon / results.effectiveContext)))} ${t.agentWindows} · ${elements.agentStrategy.options[elements.agentStrategy.selectedIndex].text}</span></div></div>` : ''}
 					<div class="metric-row" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
 						<span class="metric-label" style="font-weight: 700; color: var(--text)">${t.modelWeights}</span>
 						<div class="metric-value-group">
@@ -1540,6 +1586,10 @@
 					? (elements.warningBox.innerHTML = warnings.map(w=>`<p>${w}</p>`).join(''),elements.warningBox.classList.remove('hidden'))
 					: elements.warningBox.classList.add('hidden')))([
 						results.kvCacheGB > results.availableVram * 0.5 ? t.warningKvCache : null,
+						results.effectiveContext > this.contextCap ? t.warningContextCap : null,
+						this.agentOutputTokens > this.outputCap ? t.warningOutputCap : null,
+						this.workloadProfile === 'agent' && this.agentStrategy === 'full' && this.agentHorizon + this.agentOutputTokens > this.contextCap ? t.warningFullHistory : null,
+						this.workloadProfile === 'hosted' ? t.warningHosted : null,
 						results.modelMemoryGB <= 0 ? t.warningInsufficient : null
 					].filter(Boolean)));
 			}
@@ -1558,6 +1608,7 @@
 				elements.theme.setAttribute('aria-label', this.string('themeLabel')),
 				Object.keys(text.en).forEach(k=>elements[k] && (k === 'copyBtn' ? elements[k].innerHTML = CLIPBOARD_ICON + this.string(k) : elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
+				[...elements.workloadProfile.options].forEach(o=>o.textContent = this.string('workloadProfile' + o.value[0].toUpperCase() + o.value.slice(1))),
 				[...elements.agentStrategy.options].forEach(o=>o.textContent = this.string('agentStrategy' + o.value[0].toUpperCase() + o.value.slice(1))),
 				elements.formulasSection.innerHTML = this.string('formulas'),
 				elements.architectureSection.innerHTML = this.string('architecture'),
@@ -1565,7 +1616,7 @@
 				this.updateVramDisplay(),
 				this.updateContextDisplay(),
 				this.updateAgenticDisplay(),
-				(elements.agenticHelp.textContent = this.string('agentHelp')),
+				this.updateWorkloadProfile(),
 				this.calculate());
 			}
 		}
