@@ -711,10 +711,10 @@
 				</div>
 				
 				<div class="card">
-					<h2 id="contextLabel">Context Window</h2>
+					<h2 id="contextLabel">Active KV Context</h2>
 					<div class="form-group">
 						<div class="label-row">
-							<label id="maxContextLabel">Max Context</label>
+							<label id="maxContextLabel">Active Prompt Context</label>
 							<span class="value" id="contextValue">8,192 tokens</span>
 						</div>
 						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13" aria-labelledby="maxContextLabel">
@@ -723,6 +723,25 @@
 							<span style="left: 36.4%">8K</span>
 							<span style="left: 72.7%">128K</span>
 							<span style="left: 100%">1M</span>
+						</div>
+					</div>
+
+					<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
+						<label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem; font-weight: 600;">
+							<input type="checkbox" id="agenticToggle" aria-expanded="false" aria-controls="agenticFields"><span id="agenticToggleLabel">Plan long-horizon agentic workload</span>
+						</label>
+						<div id="agenticFields" class="hidden" style="margin-top: 1rem;">
+							<p id="agenticHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
+							<div class="form-group">
+								<div class="label-row"><label id="agentStrategyLabel">Context Strategy</label></div>
+								<select id="agentStrategy" class="full-width" aria-labelledby="agentStrategyLabel">
+									<option value="rolling">Rolling window</option><option value="summary">Summary + retrieval</option><option value="full">Full history</option><option value="sliding">Sliding-window attention</option>
+								</select>
+							</div>
+							<div class="form-group"><div class="label-row"><label id="agentOutputLabel">Reserved Completion</label><span class="value" id="agentOutputValue">4,096 tokens</span></div><input type="range" id="agentOutputSlider" min="8" max="18" step="1" value="12" aria-labelledby="agentOutputLabel"></div>
+							<div class="form-group"><div class="label-row"><label id="agentConcurrencyLabel">Concurrent Sequences</label><span class="value" id="agentConcurrencyValue">1</span></div><input type="range" id="agentConcurrencySlider" min="1" max="16" step="1" value="1" aria-labelledby="agentConcurrencyLabel"></div>
+							<div class="form-group"><div class="label-row"><label id="agentHeadroomLabel">KV Safety Headroom</label><span class="value" id="agentHeadroomValue">15%</span></div><input type="range" id="agentHeadroomSlider" min="0" max="50" step="1" value="15" aria-labelledby="agentHeadroomLabel"></div>
+							<div class="form-group"><div class="label-row"><label id="agentHorizonLabel">Total Task Horizon</label><span class="value" id="agentHorizonValue">1,048,576 tokens</span></div><input type="range" id="agentHorizonSlider" min="12" max="26" step="1" value="20" aria-labelledby="agentHorizonLabel"></div>
 						</div>
 					</div>
 				</div>
@@ -848,8 +867,22 @@
 				kvCacheLabel: 'KV Cache',
 				attentionLabel: 'Attention Architecture',
 				attentionDetailLabel: 'Attention',
-				contextLabel: 'Context Window',
-				maxContextLabel: 'Max Context',
+				contextLabel: 'Active KV Context',
+				maxContextLabel: 'Active Prompt Context',
+				agenticToggleLabel: 'Plan long-horizon agentic workload',
+				agentStrategyLabel: 'Context Strategy',
+				agentOutputLabel: 'Reserved Completion',
+				agentConcurrencyLabel: 'Concurrent Sequences',
+				agentHeadroomLabel: 'KV Safety Headroom',
+				agentHorizonLabel: 'Total Task Horizon',
+				agentHorizonMetric: 'Agentic task horizon',
+				agentHelp: 'Only resident tokens consume KV memory. Total task horizon is shown for planning and does not allocate a single giant cache.',
+				agentKvDetail: 'active + reserved × concurrent sequences, including headroom',
+				agentWindows: 'working windows',
+				agentStrategyRolling: 'Rolling window',
+				agentStrategySummary: 'Summary + retrieval',
+				agentStrategyFull: 'Full history',
+				agentStrategySliding: 'Sliding-window attention',
 				maxParamsLabel: 'Maximum Parameters',
 				memoryAllocationLabel: 'Memory Allocation',
 				presetsLabel: 'Quick Presets',
@@ -904,8 +937,22 @@
 				kvCacheLabel: 'KV Cache',
 				attentionLabel: 'Arsitektur Atensi',
 				attentionDetailLabel: 'Atensi',
-				contextLabel: 'Jendela Konteks',
-				maxContextLabel: 'Konteks Maks',
+				contextLabel: 'Konteks KV Aktif',
+				maxContextLabel: 'Konteks Prompt Aktif',
+				agenticToggleLabel: 'Rencanakan beban kerja agentik jangka panjang',
+				agentStrategyLabel: 'Strategi Konteks',
+				agentOutputLabel: 'Output yang Dicadangkan',
+				agentConcurrencyLabel: 'Urutan Konkuren',
+				agentHeadroomLabel: 'Ruang Aman KV',
+				agentHorizonLabel: 'Horizon Tugas Total',
+				agentHorizonMetric: 'Horizon tugas agentik',
+				agentHelp: 'Hanya token yang masih aktif memakai memori KV. Horizon tugas total ditampilkan untuk perencanaan dan tidak mengalokasikan satu cache raksasa.',
+				agentKvDetail: 'aktif + cadangan × urutan konkuren, termasuk ruang aman',
+				agentWindows: 'jendela kerja',
+				agentStrategyRolling: 'Jendela bergulir',
+				agentStrategySummary: 'Ringkasan + pengambilan',
+				agentStrategyFull: 'Riwayat penuh',
+				agentStrategySliding: 'Atensi jendela geser',
 				maxParamsLabel: 'Parameter Maksimum',
 				memoryAllocationLabel: 'Alokasi Memori',
 				presetsLabel: 'Preset Cepat',
@@ -1078,6 +1125,12 @@
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
 				this.modelFamily = 'auto';
+				this.agentic = false;
+				this.agentOutputTokens = 4096;
+				this.agentConcurrency = 1;
+				this.agentHeadroom = 0.15;
+				this.agentHorizon = 1048576;
+				this.agentStrategy = 'rolling';
 				
 				this.setup();
 				this.theme('auto');
@@ -1106,6 +1159,12 @@
 				elements.kvCache.onchange = e=>(this.clearActivePreset(),this.kvCacheQuant = e.target.value,this.calculate()),
 				elements.attention.onchange = e=>(this.clearActivePreset(),this.attention = e.target.value,this.calculate()),
 				elements.contextSlider.oninput = e=>(this.clearActivePreset(),this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
+				elements.agenticToggle.onchange = e=>{ this.clearActivePreset(); this.agentic = e.target.checked; elements.agenticToggle.setAttribute('aria-expanded', this.agentic); elements.agenticFields.classList.toggle('hidden', !this.agentic); this.calculate(); },
+				elements.agentStrategy.onchange = e=>(this.clearActivePreset(),this.agentStrategy = e.target.value,this.calculate()),
+				elements.agentOutputSlider.oninput = e=>(this.clearActivePreset(),this.agentOutputTokens = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
+				elements.agentConcurrencySlider.oninput = e=>(this.clearActivePreset(),this.agentConcurrency = Number(e.target.value),this.updateAgenticDisplay(),this.calculate()),
+				elements.agentHeadroomSlider.oninput = e=>(this.clearActivePreset(),this.agentHeadroom = Number(e.target.value) / 100,this.updateAgenticDisplay(),this.calculate()),
+				elements.agentHorizonSlider.oninput = e=>(this.clearActivePreset(),this.agentHorizon = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
 				elements.gpuType.onchange = e=>{
 					this.clearActivePreset();
 					this.gpuType = e.target.value;
@@ -1257,6 +1316,7 @@
 						`${t.gpuTypeLabel}: ${elements.gpuType.options[elements.gpuType.selectedIndex].text}`,
 						`${t.modelQuantLabel}: ${elements.quantization.options[elements.quantization.selectedIndex].text}`,
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
+						this.agentic ? `${t.agentHorizonLabel}: ${elements.agentHorizonValue.textContent}; ${t.agentConcurrencyLabel}: ${this.agentConcurrency}; ${t.agentOutputLabel}: ${elements.agentOutputValue.textContent}; ${t.agentHeadroomLabel}: ${elements.agentHeadroomValue.textContent}` : null,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
 						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
@@ -1310,6 +1370,10 @@
 					this.contextWindow = p.context,
 					this.gpuType = p.gpu,
 					this.attention = p.attention || 'auto',
+					this.agentic = false,
+					elements.agenticToggle.checked = false,
+					elements.agenticToggle.setAttribute('aria-expanded', 'false'),
+					elements.agenticFields.classList.add('hidden'),
 					p.overhead !== undefined && (this.manualOverhead = p.overhead),
 					elements.vramSlider.value = p.vram,
 					elements.quantization.value = p.quant,
@@ -1335,6 +1399,18 @@
 				elements.contextSlider.setAttribute('aria-valuetext',elements.contextValue.textContent));
 			}
 			
+
+			updateAgenticDisplay() {
+				const set = (valueElement, sliderElement, value) => {
+					valueElement.textContent = value;
+					sliderElement.setAttribute('aria-valuetext', value);
+				};
+				set(elements.agentOutputValue, elements.agentOutputSlider, `${this.format(this.agentOutputTokens)} tokens`);
+				set(elements.agentConcurrencyValue, elements.agentConcurrencySlider, this.format(this.agentConcurrency));
+				set(elements.agentHeadroomValue, elements.agentHeadroomSlider, `${Math.round(this.agentHeadroom * 100)}%`);
+				set(elements.agentHorizonValue, elements.agentHorizonSlider, `${this.format(this.agentHorizon)} tokens`);
+			}
+
 			calculate() {
 				const bytesPerParam = quantizationBytes[this.quantization],
 					kvBytesPerElement = this.kvCacheQuant === 'same' ? quantizationBytes[this.quantization] : quantizationBytes[this.kvCacheQuant],
@@ -1361,6 +1437,8 @@
 				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`);
 
 				const availableForUse = Math.max(0,availableVram);
+				const effectiveContext = this.contextWindow + (this.agentic ? this.agentOutputTokens : 0);
+				const kvMultiplier = this.agentic ? this.agentConcurrency * (1 + this.agentHeadroom) : 1;
 				let maxParams = 0,estimatedArchitecture = {layers: 0,hidden: 0};
 				
 				const WEIGHT_OVERHEAD = 1.05; // 5% for metadata, scales, and alignment
@@ -1372,14 +1450,15 @@
 							hidden: Number(elements.customHidden.value) || 4096
 						};
 					}
-					const kvCache = this.calculateKvCache(estimatedArchitecture, this.contextWindow, kvBytesPerElement);
+					const kvCache = this.calculateKvCache(estimatedArchitecture, effectiveContext, kvBytesPerElement) * kvMultiplier;
 					const memoryForWeights = availableForUse - kvCache;
 					if (memoryForWeights <= 0) { (maxParams = 0); break; }
 					(maxParams = memoryForWeights / (bytesPerParam * WEIGHT_OVERHEAD),
 					 estimatedArchitecture = elements.advancedToggle.checked ? estimatedArchitecture : estimateArchitecture(maxParams, this.modelFamily));
 				}
 				
-				const kvCacheGB = this.calculateKvCache(estimatedArchitecture, this.contextWindow, kvBytesPerElement);
+				const perSequenceKvCacheGB = this.calculateKvCache(estimatedArchitecture, effectiveContext, kvBytesPerElement);
+				const kvCacheGB = perSequenceKvCacheGB * kvMultiplier;
 				
 				this.displayResults({
 					totalVram: this.vramSize,
@@ -1387,6 +1466,9 @@
 					overheadMsg: overheadMsg,
 					availableVram: availableForUse,
 					kvCacheGB: kvCacheGB,
+					perSequenceKvCacheGB: perSequenceKvCacheGB,
+					effectiveContext: effectiveContext,
+					kvMultiplier: kvMultiplier,
 					modelMemoryGB: Math.max(0,availableForUse - kvCacheGB),
 					maxParams: maxParams,
 					estimatedArchitecture: estimatedArchitecture
@@ -1394,7 +1476,10 @@
 			}
 			
 			displayResults(results) {
-				const t = text[this.language],mbPerToken = (results.kvCacheGB * 1024 / this.contextWindow).toFixed(2);
+				const t = text[this.language],mbPerToken = (results.perSequenceKvCacheGB * 1024 / results.effectiveContext).toFixed(2);
+				const agenticDetail = this.agentic
+					? `${this.format(this.contextWindow)} + ${this.format(this.agentOutputTokens)} tokens × ${this.format(this.agentConcurrency)} × ${(1 + this.agentHeadroom).toFixed(2)} ${t.agentKvDetail}`
+					: `${this.format(this.contextWindow)} tokens`;
 
 				const total = results.totalVram || 1, ohPct = (results.overheadGB / total) * 100, kvPct = (results.kvCacheGB / total) * 100, modPct = (Math.max(0, results.modelMemoryGB) / total) * 100;
 
@@ -1440,9 +1525,10 @@
 						<span class="metric-label">${t.kvCacheMemory}</span>
 						<div class="metric-value-group">
 							<div class="metric-val" style="color: var(--warning)">-${results.kvCacheGB.toFixed(2)} GB (${kvPct.toFixed(0)}%)</div>
-							<span class="metric-sub">${mbPerToken} ${t.mbPerToken}</span>
+							<span class="metric-sub">${mbPerToken} ${t.mbPerToken} · ${agenticDetail}</span>
 						</div>
 					</div>
+					${this.agentic ? `<div class="metric-row"><span class="metric-label">${t.agentHorizonMetric}</span><div class="metric-value-group"><div class="metric-val">${this.format(this.agentHorizon)} tokens</div><span class="metric-sub">${this.format(Math.max(1, Math.ceil(this.agentHorizon / this.contextWindow)))} ${t.agentWindows} · ${elements.agentStrategy.options[elements.agentStrategy.selectedIndex].text}</span></div></div>` : ''}
 					<div class="metric-row" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
 						<span class="metric-label" style="font-weight: 700; color: var(--text)">${t.modelWeights}</span>
 						<div class="metric-value-group">
@@ -1472,11 +1558,14 @@
 				elements.theme.setAttribute('aria-label', this.string('themeLabel')),
 				Object.keys(text.en).forEach(k=>elements[k] && (k === 'copyBtn' ? elements[k].innerHTML = CLIPBOARD_ICON + this.string(k) : elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
+				[...elements.agentStrategy.options].forEach(o=>o.textContent = this.string('agentStrategy' + o.value[0].toUpperCase() + o.value.slice(1))),
 				elements.formulasSection.innerHTML = this.string('formulas'),
 				elements.architectureSection.innerHTML = this.string('architecture'),
 				elements.sourcesText.innerHTML = this.string('sources'),
 				this.updateVramDisplay(),
 				this.updateContextDisplay(),
+				this.updateAgenticDisplay(),
+				(elements.agenticHelp.textContent = this.string('agentHelp')),
 				this.calculate());
 			}
 		}
