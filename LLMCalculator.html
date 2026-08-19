@@ -732,10 +732,10 @@
 						<p id="cacheAllocationHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
 						<div class="form-group"><div class="label-row"><label id="activeInputLabel">Peak Retained Input</label><span class="value" id="activeInputValue">4,096 tokens</span></div><input type="range" id="activeInputSlider" min="8" max="20" step="1" value="12" aria-labelledby="activeInputLabel"></div>
 					<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
-						<div class="form-group"><div class="label-row"><label id="workloadProfileLabel">Workload Profile</label></div>
-							<select id="workloadProfile" class="full-width" aria-labelledby="workloadProfileLabel"><option value="chatbot">Chatbot</option><option value="embedded">Embedded / local app</option><option value="agent">Long-horizon agent</option><option value="hosted">Hosted API planner</option></select>
+						<div class="form-group"><div class="label-row"><label id="contextUseModeLabel">Context Use Mode</label></div>
+							<select id="contextUseMode" class="full-width" aria-labelledby="contextUseModeLabel"><option value="normal">Normal</option><option value="agentic">Agentic</option></select>
 						</div>
-						<p id="workloadHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
+						<p id="contextUseModeHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
 						<div class="form-group"><div class="label-row"><label id="agentOutputLabel">Reserved Completion</label><span class="value" id="agentOutputValue">4,096 tokens</span></div><input type="range" id="agentOutputSlider" min="8" max="18" step="1" value="12" aria-labelledby="agentOutputLabel"></div>
 						<div class="form-group"><div class="label-row"><label id="agentConcurrencyLabel">Peak Resident Sequences</label><span class="value" id="agentConcurrencyValue">1</span></div><input type="range" id="agentConcurrencySlider" min="1" max="16" step="1" value="1" aria-labelledby="agentConcurrencyLabel"></div>
 						<div class="form-group"><div class="label-row"><label id="agentHeadroomLabel">KV Allocation Headroom</label><span class="value" id="agentHeadroomValue">15%</span></div><input type="range" id="agentHeadroomSlider" min="0" max="50" step="1" value="15" aria-labelledby="agentHeadroomLabel"></div>
@@ -885,15 +885,11 @@
 				activeInputLabel: 'Peak Retained Input',
 				gpuKvShareLabel: 'GPU-Resident KV Share',
 				contextCapLabel: 'Per-Request Sequence Limit',
-				workloadProfileLabel: 'Workload Profile',
-				workloadProfileChatbot: 'Chatbot',
-				workloadProfileEmbedded: 'Embedded / local app',
-				workloadProfileAgent: 'Long-horizon agent',
-				workloadProfileHosted: 'Hosted API planner',
-				workloadHelpChatbot: 'Budget retained chat history, system/tool content, and the response currently being generated.',
-				workloadHelpEmbedded: 'For an in-app local model. Reserve runtime/activation memory in addition to system overhead.',
-				workloadHelpAgent: 'Only resident tokens consume KV memory. Total task horizon is for planning, not one giant cache.',
-				workloadHelpHosted: 'Hosted APIs do not use your local VRAM. Use this to validate combined input and output token budgets.',
+				contextUseModeLabel: 'Context Use Mode',
+				contextUseModeNormal: 'Normal',
+				contextUseModeAgentic: 'Agentic',
+				contextUseModeHelpNormal: 'For a bounded local chat, embedded feature, document prompt, or ordinary local server request.',
+				contextUseModeHelpAgentic: 'Adds long-horizon planning. Tool results, retrieved evidence, state, and recent history belong in Peak Retained Input.',
 				agentStrategyLabel: 'Context Strategy',
 				agentOutputLabel: 'Reserved Completion',
 				agentConcurrencyLabel: 'Concurrent Sequences',
@@ -943,7 +939,6 @@
 				warningContextCap: '⚠️ Retained input plus reserved output exceeds the configured context cap.',
 				warningOutputCap: '⚠️ Reserved completion exceeds the configured maximum output cap.',
 				warningFullHistory: '⚠️ Full retained history exceeds the context cap. Use rolling history or summary + retrieval.',
-				warningHosted: 'ℹ️ Hosted API profile: local VRAM estimates are illustrative; validate the provider context and output caps instead.',
 				warningCachePool: '⚠️ Peak concurrent request occupancy exceeds the allocated KV cache capacity.',
 				insufficient: 'INSUFFICIENT',
 				
@@ -983,15 +978,11 @@
 				activeInputLabel: 'Input Tersimpan Puncak',
 				gpuKvShareLabel: 'Bagian KV di GPU',
 				contextCapLabel: 'Batas Urutan per Permintaan',
-				workloadProfileLabel: 'Profil Beban Kerja',
-				workloadProfileChatbot: 'Chatbot',
-				workloadProfileEmbedded: 'Aplikasi lokal / tertanam',
-				workloadProfileAgent: 'Agen horizon panjang',
-				workloadProfileHosted: 'Perencana API hosted',
-				workloadHelpChatbot: 'Anggarkan riwayat chat, konten sistem/tool, dan respons yang sedang dihasilkan.',
-				workloadHelpEmbedded: 'Untuk model lokal dalam aplikasi. Cadangkan memori runtime/aktivasi di samping overhead sistem.',
-				workloadHelpAgent: 'Hanya token aktif memakai memori KV. Horizon tugas digunakan untuk perencanaan, bukan satu cache besar.',
-				workloadHelpHosted: 'API hosted tidak memakai VRAM lokal Anda. Gunakan untuk memvalidasi anggaran token input dan output gabungan.',
+				contextUseModeLabel: 'Mode Penggunaan Konteks',
+				contextUseModeNormal: 'Normal',
+				contextUseModeAgentic: 'Agentik',
+				contextUseModeHelpNormal: 'Untuk chat lokal terbatas, fitur tertanam, prompt dokumen, atau permintaan server lokal biasa.',
+				contextUseModeHelpAgentic: 'Menambahkan perencanaan horizon panjang. Hasil tool, bukti yang diambil, state, dan riwayat terbaru masuk ke Input Tersimpan Puncak.',
 				agentStrategyLabel: 'Strategi Konteks',
 				agentOutputLabel: 'Output yang Dicadangkan',
 				agentConcurrencyLabel: 'Urutan Konkuren',
@@ -1041,7 +1032,6 @@
 				warningContextCap: '⚠️ Input yang dipertahankan ditambah output cadangan melebihi batas konteks.',
 				warningOutputCap: '⚠️ Output cadangan melebihi batas output maksimum.',
 				warningFullHistory: '⚠️ Riwayat penuh melebihi batas konteks. Gunakan riwayat bergulir atau ringkasan + pengambilan.',
-				warningHosted: 'ℹ️ Profil API hosted: estimasi VRAM lokal hanya ilustrasi; validasi batas konteks dan output penyedia.',
 				warningCachePool: '⚠️ Penggunaan puncak permintaan konkuren melebihi kapasitas cache KV yang dialokasikan.',
 				insufficient: 'TIDAK CUKUP',
 				
@@ -1188,7 +1178,7 @@
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
 				this.modelFamily = 'auto';
-				this.workloadProfile = 'chatbot';
+				this.contextUseMode = 'normal';
 				this.agentic = false;
 				this.agentOutputTokens = 4096;
 				this.runtimeReserveGB = 0;
@@ -1229,7 +1219,7 @@
 				elements.activeInputSlider.oninput = e=>(this.clearActivePreset(),this.activeInputTokens = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
 				elements.cacheAllocationMode.onchange = e=>(this.clearActivePreset(),this.cacheAllocationMode = e.target.value,this.updateCacheAllocationMode(),this.calculate()),
 				elements.gpuKvShareSlider.oninput = e=>(this.clearActivePreset(),this.gpuKvShare = Number(e.target.value) / 100,this.updateAgenticDisplay(),this.calculate()),
-				elements.workloadProfile.onchange = e=>{ this.clearActivePreset(); this.workloadProfile = e.target.value; this.agentic = this.workloadProfile === 'agent'; this.updateWorkloadProfile(); this.calculate(); },
+				elements.contextUseMode.onchange = e=>{ this.clearActivePreset(); this.contextUseMode = e.target.value; this.agentic = this.contextUseMode === 'agentic'; this.updateContextUseMode(); this.calculate(); },
 				elements.agentStrategy.onchange = e=>(this.clearActivePreset(),this.agentStrategy = e.target.value,this.calculate()),
 				elements.agentOutputSlider.oninput = e=>(this.clearActivePreset(),this.agentOutputTokens = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
 				elements.agentConcurrencySlider.oninput = e=>(this.clearActivePreset(),this.agentConcurrency = Number(e.target.value),this.updateAgenticDisplay(),this.calculate()),
@@ -1446,9 +1436,9 @@
 					this.agentOutputTokens = p.context / 2,
 					this.gpuType = p.gpu,
 					this.attention = p.attention || 'auto',
-					this.workloadProfile = 'embedded',
+					this.contextUseMode = 'normal',
 					this.agentic = false,
-					elements.workloadProfile.value = this.workloadProfile,
+					elements.contextUseMode.value = this.contextUseMode,
 					elements.agenticFields.classList.add('hidden'),
 					p.overhead !== undefined && (this.manualOverhead = p.overhead),
 					elements.vramSlider.value = p.vram,
@@ -1462,7 +1452,7 @@
 					this.updateVramDisplay(),
 					this.updateContextDisplay(),
 					this.updateAgenticDisplay(),
-					this.updateWorkloadProfile(),
+					this.updateContextUseMode(),
 					this.calculate()
 				);
 			}
@@ -1503,11 +1493,11 @@
 				elements.cacheAllocationHelp.textContent = this.string(`cacheHelp${mode[0].toUpperCase()}${mode.slice(1)}`);
 			}
 
-			updateWorkloadProfile() {
-				const profile = this.workloadProfile;
-				elements.workloadProfile.value = profile;
-				elements.agenticFields.classList.toggle('hidden', profile !== 'agent');
-				elements.workloadHelp.textContent = this.string(`workloadHelp${profile[0].toUpperCase()}${profile.slice(1)}`);
+			updateContextUseMode() {
+				const mode = this.contextUseMode;
+				elements.contextUseMode.value = mode;
+				elements.agenticFields.classList.toggle('hidden', mode !== 'agentic');
+				elements.contextUseModeHelp.textContent = this.string(`contextUseModeHelp${mode[0].toUpperCase()}${mode.slice(1)}`);
 			}
 
 			calculate() {
@@ -1649,8 +1639,7 @@
 						results.effectiveContext > this.contextCap ? t.warningContextCap : null,
 						this.cacheAllocationMode !== 'dynamic' && results.peakOccupancyTokens > this.contextWindow ? t.warningCachePool : null,
 						this.agentOutputTokens > this.outputCap ? t.warningOutputCap : null,
-						this.workloadProfile === 'agent' && this.agentStrategy === 'full' && this.agentHorizon + this.agentOutputTokens > this.contextCap ? t.warningFullHistory : null,
-						this.workloadProfile === 'hosted' ? t.warningHosted : null,
+						this.contextUseMode === 'agentic' && this.agentStrategy === 'full' && this.agentHorizon + this.agentOutputTokens > this.contextCap ? t.warningFullHistory : null,
 						results.modelMemoryGB <= 0 ? t.warningInsufficient : null
 					].filter(Boolean)));
 			}
@@ -1669,7 +1658,7 @@
 				elements.theme.setAttribute('aria-label', this.string('themeLabel')),
 				Object.keys(text.en).forEach(k=>elements[k] && (k === 'copyBtn' ? elements[k].innerHTML = CLIPBOARD_ICON + this.string(k) : elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
-				[...elements.workloadProfile.options].forEach(o=>o.textContent = this.string('workloadProfile' + o.value[0].toUpperCase() + o.value.slice(1))),
+				[...elements.contextUseMode.options].forEach(o=>o.textContent = this.string('contextUseMode' + o.value[0].toUpperCase() + o.value.slice(1))),
 				[...elements.cacheAllocationMode.options].forEach(o=>o.textContent = this.string('cacheAllocationMode' + o.value[0].toUpperCase() + o.value.slice(1))),
 				[...elements.agentStrategy.options].forEach(o=>o.textContent = this.string('agentStrategy' + o.value[0].toUpperCase() + o.value.slice(1))),
 				elements.formulasSection.innerHTML = this.string('formulas'),
@@ -1679,7 +1668,7 @@
 				this.updateContextDisplay(),
 				this.updateAgenticDisplay(),
 				this.updateCacheAllocationMode(),
-				this.updateWorkloadProfile(),
+				this.updateContextUseMode(),
 				this.calculate());
 			}
 		}
