@@ -16,9 +16,9 @@ Kalkulator memperkirakan penggunaan memori berdasarkan:
 3.  **Jendela Konteks**: Jumlah maksimum token yang diproses model. Konteks yang lebih besar membutuhkan lebih banyak memori KV cache.
 4.  **KV Cache**: Memori yang diperlukan untuk menyimpan status Key-Value untuk jendela konteks. Ini juga mendukung kuantisasi terpisah untuk KV cache.
 5.  **Overhead Sistem**:
-    -   **GPU Diskrit (NVIDIA/AMD)**: Deduksi yang dapat dikonfigurasi (default 1.5 GB) untuk OS dan tampilan.
-    -   **Apple Silicon**: Secara otomatis mencadangkan ~25% Memori Terpadu untuk penggunaan sistem.
-    -   **Snapdragon (Windows on Arm)**: Secara otomatis mencadangkan ~50% Memori Bersama untuk partisi sistem.
+    -   **GPU Diskrit (NVIDIA/AMD)**: Deduksi yang dapat dikonfigurasi (default 1.5 GB) untuk OS dan tampilan. Dapat disesuaikan melalui penggeser (0–16 GB).
+    -   **Apple Silicon (M-series)**: Driver Metal macOS mencadangkan ~25% Memori Terpadu secara default (dapat diubah secara sistem melalui `sysctl iogpu.wired_limit_mb`).
+    -   **Snapdragon (Windows on Arm)**: Overhead OS + driver yang dapat dikonfigurasi (default 3.0 GB). Windows membatasi memori GPU bersama hingga 50% dari total RAM — penggeser overhead memungkinkan Anda menyesuaikan dengan penggunaan OS + latar belakang sistem Anda. Ini adalah batas dinamis, bukan cadangan tetap.
 
 Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yang muat dalam sisa VRAM setelah memperhitungkan overhead dan KV cache.
 
