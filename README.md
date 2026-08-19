@@ -16,9 +16,9 @@ The calculator estimates memory usage based on:
 3.  **Context Window**: The maximum number of tokens the model processes. Larger context requires more KV cache memory.
 4.  **KV Cache**: Memory required to store Key-Value states for the context window. It also supports separate quantization for KV cache.
 5.  **System Overhead**:
-    -   **Discrete GPUs (NVIDIA/AMD)**: A configurable deduction (default 1.5 GB) for OS and display.
-    -   **Apple Silicon**: Automatically reserves ~25% of Unified Memory for system use.
-    -   **Snapdragon (Windows on Arm)**: Automatically reserves ~50% of Shared Memory for system partitioning.
+    -   **Discrete GPUs (NVIDIA/AMD)**: A configurable deduction (default 1.5 GB) for OS and display. Adjustable via slider (0–16 GB).
+    -   **Apple Silicon (M-series)**: macOS Metal driver reserves ~25% of Unified Memory by default (adjustable system-wide via `sysctl iogpu.wired_limit_mb`).
+    -   **Snapdragon (Windows on Arm)**: Configurable OS + driver overhead (default 3.0 GB). Windows caps shared GPU memory at 50% of total RAM — the overhead slider lets you tune for your system's actual OS + background usage. This is a dynamic cap, not a fixed reservation.
 
 It iteratively calculates the maximum parameter count (in Billions) that fits within the remaining VRAM after accounting for overhead and KV cache.
 

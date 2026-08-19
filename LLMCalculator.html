@@ -855,6 +855,7 @@
 				categoryLarge: 'Large (150B+)',
 				estimatedArchitecture: 'Estimated Architecture',
 				reserved: 'Reserved',
+				snapdragonOverhead: 'GPU memory capped at 50% of total RAM',
 				mbPerToken: 'MB/token',
 				
 				warningKvCache: '⚠️ KV cache >50% of VRAM. Reduce context.',
@@ -909,6 +910,7 @@
 				categoryLarge: 'Besar (150B+)',
 				estimatedArchitecture: 'Arsitektur Terestimasi',
 				reserved: 'Dicadangkan',
+				snapdragonOverhead: 'Memori GPU dibatasi maks. 50% dari total RAM',
 				mbPerToken: 'MB/token',
 				
 				warningKvCache: '⚠️ KV cache >50% dari VRAM. Kurangi konteks.',
@@ -1007,7 +1009,13 @@
 				elements.kvCache.onchange = e=>(this.clearActivePreset(),this.kvCacheQuant = e.target.value,this.calculate()),
 				elements.attention.onchange = e=>(this.clearActivePreset(),this.attention = e.target.value,this.calculate()),
 				elements.contextSlider.oninput = e=>(this.clearActivePreset(),this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
-				elements.gpuType.onchange = e=>(this.clearActivePreset(),this.gpuType = e.target.value,this.updateVramDisplay(),this.calculate()),
+				elements.gpuType.onchange = e=>{
+					this.clearActivePreset();
+					this.gpuType = e.target.value;
+					if (this.gpuType === 'snapdragon' && this.manualOverhead < 2.0) this.manualOverhead = 3.0;
+					this.updateVramDisplay();
+					this.calculate();
+				},
 				elements.overheadSlider.oninput = e=>(this.clearActivePreset(),this.manualOverhead = Number(e.target.value),this.calculate()),
 				elements.advancedToggle.onchange = e=>{
 					this.clearActivePreset();
@@ -1086,7 +1094,7 @@
 					h200: { vram: 141, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
 					m4max: { vram: 128, quant: 'int4', context: 32768, gpu: 'soc', attention: 'auto' },
 					macbookneo: { vram: 8, quant: 'int4', context: 8192, gpu: 'soc', attention: 'auto' },
-					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', attention: 'auto' }
+					snapdragon: { vram: 32, quant: 'int4', context: 8192, gpu: 'snapdragon', overhead: 3.0, attention: 'auto' }
 				}, p = presets[preset];
 				if (!p) return;
 				this.clearActivePreset();
@@ -1135,9 +1143,9 @@
 					? [this.manualOverhead,this.vramSize - this.manualOverhead,""]
 					: this.gpuType === 'soc'
 						? [this.vramSize * 0.25,this.vramSize * 0.75,`${t.reserved} (25%)`]
-						: [this.vramSize * 0.50,this.vramSize * 0.50,`${t.reserved} (50%)`];
+						: [this.manualOverhead,this.vramSize - this.manualOverhead,t.snapdragonOverhead];
 
-				(elements.overheadSlider.disabled = this.gpuType !== 'discrete',
+				(elements.overheadSlider.disabled = this.gpuType === 'soc',
 				elements.overheadSlider.value = overheadGB,
 				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`);
 
