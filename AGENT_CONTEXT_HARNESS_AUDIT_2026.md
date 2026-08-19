@@ -2,18 +2,15 @@
 
 ## Purpose
 
-This audit checks whether LLMCalculator's simplified **Normal / Agentic** context UX remains valid across current open-source agent harnesses, especially harnesses intended for long-running or local-model workflows.
+This audit checks how LLMCalculator should describe one configured context across current open-source agent harnesses, especially harnesses intended for long-running or local-model workflows.
 
 The calculator is deliberately narrower than a harness or inference server. It estimates a plausible interpolated local open-weight model plus **one configured, active KV-cache context**. It does not predict how an agent framework compiles prompts, reserves output space, compacts history, retrieves memory, or schedules subagents.
 
 ## Conclusion
 
-The two modes should remain mathematically identical:
+Normal chats and agentic inference steps use the same architecture-aware KV math. Because the former two-mode control changed only wording, the clearer UX is one dual-label **Context Window / Active Working Context** slider. It represents configured KV capacity for an ordinary local chat, document prompt, embedded feature, or **one active inference step** in a long-running agent workflow.
 
-- **Normal** interprets the slider as configured context/KV capacity for an ordinary local chat, document prompt, or embedded feature.
-- **Agentic** interprets the same capacity as the bounded working context for **one active inference step** in a long-running agent workflow.
-
-The expanded harness review strengthens—not weakens—the distinction between active context and durable agent state. Across the projects below, long-horizon continuity comes from one or more of:
+The expanded harness review strengthens the distinction between active context and durable agent state. Across the projects below, long-horizon continuity comes from one or more of:
 
 - durable transcripts or event logs;
 - summaries and compaction checkpoints;
@@ -44,7 +41,7 @@ None of these mechanisms turns total task history into one permanently GPU-resid
 | **Cline / Roo Code / Goose** | Auto-compact or condense long sessions and retain a recent working set. | Checkpoints, task history, memory-bank files, or stored transcripts preserve continuity. | Each implementation has different thresholds and reserves, supporting a runtime-agnostic calculator. |
 | **LangGraph / Deep Agents** | Trim, delete, summarize, offload large tool results, and isolate subagent work. | Checkpointed graph state, stores, and files persist outside any one model call. | Graph state and parallel branches require separate planning. |
 | **Letta** | Builds each prompt from bounded in-context memory plus selected messages. | Archival memory, recall memory, files, and external databases remain out of context until retrieved. | This is the clearest example of context capacity being different from total agent memory. |
-| **smolagents** | AgentMemory records steps and can produce succinct messages or be reset; richer long-horizon policy may require application code. | External persistence and retrieval are application choices. | Not every harness compacts automatically, so Agentic mode must remain descriptive rather than promise a memory system. |
+| **smolagents** | AgentMemory records steps and can produce succinct messages or be reset; richer long-horizon policy may require application code. | External persistence and retrieval are application choices. | Not every harness compacts automatically, so the dual label must not promise a memory system. |
 
 ## Common architecture found across the audit
 
@@ -76,21 +73,19 @@ Compaction and retrieval can fail, lose detail, or behave differently with local
 
 ### Finding
 
-The previous Agentic helper said "one long-running local agent." Although the calculation was correct, that wording could be read as sizing the entire harness, including durable history and child agents. The expanded audit shows that an agent may own many sessions, subagents, checkpoints, and external memories while only one bounded prompt is used for a particular inference call.
+The Normal and Agentic choices had identical calculation inputs and outputs; the toggle only changed the slider label and helper. Keeping two choices therefore implied a technical distinction that did not exist. The harness audit also shows that one configured context can serve either use without changing KV bytes.
 
 ### Fix
 
-The helper now says:
+The mode control was removed. One slider now carries the dual label **Context Window / Active Working Context** and the helper states that it covers one active chat, document prompt, embedded feature, or agent step. It still directs long-running project history to external artifacts, structured notes, retrieval, and compaction instead of GPU KV cache.
 
-> Bounded KV capacity for one active inference step of a long-running local agent. It uses the same calculation as Normal. Keep project history in external artifacts, structured notes, retrieval, and compaction rather than allocating it as GPU KV cache.
-
-The Bahasa Indonesia translation was updated equivalently. No controls or multipliers were added.
+The Bahasa Indonesia label and helper were updated equivalently. No multiplier or harness-specific control was added.
 
 ## Calculator invariants retained
 
-- One logarithmic context slider.
+- One logarithmic, dual-label context slider.
 - The slider value is passed directly to the existing architecture-aware KV formulas.
-- Normal and Agentic modes cannot alter calculation state.
+- No presentation-only mode state remains.
 - No output reserve, concurrency, task horizon, headroom, cache-allocation mode, CPU-offload estimate, or harness-specific threshold.
 - Architecture interpolation remains the model-selection mechanism.
 - The result remains an estimate of a plausible local open-weight model, not an exact checkpoint validator or inference-server planner.
