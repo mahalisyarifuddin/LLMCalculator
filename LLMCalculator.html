@@ -711,10 +711,10 @@
 				</div>
 				
 				<div class="card">
-					<h2 id="contextLabel">Active KV Context</h2>
+					<h2 id="contextLabel">Runtime KV Cache</h2>
 					<div class="form-group">
 						<div class="label-row">
-							<label id="maxContextLabel">Active Prompt Context</label>
+							<label id="maxContextLabel">Allocated KV Cache Tokens</label>
 							<span class="value" id="contextValue">8,192 tokens</span>
 						</div>
 						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13" aria-labelledby="maxContextLabel">
@@ -726,6 +726,11 @@
 						</div>
 					</div>
 
+						<div class="form-group"><div class="label-row"><label id="cacheAllocationModeLabel">KV Allocation Mode</label></div>
+							<select id="cacheAllocationMode" class="full-width" aria-labelledby="cacheAllocationModeLabel"><option value="static">Static local allocation</option><option value="unified">Unified shared cache pool</option><option value="dynamic">Dynamic / occupied-cache estimate</option><option value="offloaded">CPU-offloaded KV estimate</option></select>
+						</div>
+						<p id="cacheAllocationHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
+						<div class="form-group"><div class="label-row"><label id="activeInputLabel">Peak Retained Input</label><span class="value" id="activeInputValue">4,096 tokens</span></div><input type="range" id="activeInputSlider" min="8" max="20" step="1" value="12" aria-labelledby="activeInputLabel"></div>
 					<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
 						<div class="form-group"><div class="label-row"><label id="workloadProfileLabel">Workload Profile</label></div>
 							<select id="workloadProfile" class="full-width" aria-labelledby="workloadProfileLabel"><option value="chatbot">Chatbot</option><option value="embedded">Embedded / local app</option><option value="agent">Long-horizon agent</option><option value="hosted">Hosted API planner</option></select>
@@ -735,8 +740,9 @@
 						<div class="form-group"><div class="label-row"><label id="agentConcurrencyLabel">Peak Resident Sequences</label><span class="value" id="agentConcurrencyValue">1</span></div><input type="range" id="agentConcurrencySlider" min="1" max="16" step="1" value="1" aria-labelledby="agentConcurrencyLabel"></div>
 						<div class="form-group"><div class="label-row"><label id="agentHeadroomLabel">KV Allocation Headroom</label><span class="value" id="agentHeadroomValue">15%</span></div><input type="range" id="agentHeadroomSlider" min="0" max="50" step="1" value="15" aria-labelledby="agentHeadroomLabel"></div>
 						<div class="form-group"><div class="label-row"><label id="runtimeReserveLabel">Runtime / Activation Reserve</label><span class="value" id="runtimeReserveValue">0.0 GB</span></div><input type="range" id="runtimeReserveSlider" min="0" max="16" step="0.1" value="0" aria-labelledby="runtimeReserveLabel"></div>
-						<div class="form-group"><div class="label-row"><label id="contextCapLabel">Configured Context Cap</label><span class="value" id="contextCapValue">1,048,576 tokens</span></div><input type="range" id="contextCapSlider" min="9" max="20" step="1" value="20" aria-labelledby="contextCapLabel"></div>
+						<div class="form-group"><div class="label-row"><label id="contextCapLabel">Per-Request Sequence Limit</label><span class="value" id="contextCapValue">1,048,576 tokens</span></div><input type="range" id="contextCapSlider" min="9" max="20" step="1" value="20" aria-labelledby="contextCapLabel"></div>
 						<div class="form-group"><div class="label-row"><label id="outputCapLabel">Maximum Output Cap</label><span class="value" id="outputCapValue">262,144 tokens</span></div><input type="range" id="outputCapSlider" min="8" max="18" step="1" value="18" aria-labelledby="outputCapLabel"></div>
+						<div id="offloadFields" class="hidden"><div class="form-group"><div class="label-row"><label id="gpuKvShareLabel">GPU-Resident KV Share</label><span class="value" id="gpuKvShareValue">25%</span></div><input type="range" id="gpuKvShareSlider" min="0" max="100" step="5" value="25" aria-labelledby="gpuKvShareLabel"></div></div>
 						<div id="agenticFields" class="hidden" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
 							<div class="form-group"><div class="label-row"><label id="agentStrategyLabel">Context Strategy</label></div><select id="agentStrategy" class="full-width" aria-labelledby="agentStrategyLabel"><option value="rolling">Rolling recent history</option><option value="summary">Structured summary + retrieval</option><option value="full">Full retained history</option></select></div>
 							<div class="form-group"><div class="label-row"><label id="agentHorizonLabel">Total Task Horizon</label><span class="value" id="agentHorizonValue">1,048,576 tokens</span></div><input type="range" id="agentHorizonSlider" min="12" max="26" step="1" value="20" aria-labelledby="agentHorizonLabel"></div>
@@ -865,8 +871,20 @@
 				kvCacheLabel: 'KV Cache',
 				attentionLabel: 'Attention Architecture',
 				attentionDetailLabel: 'Attention',
-				contextLabel: 'Active KV Context',
-				maxContextLabel: 'Active Prompt Context',
+				contextLabel: 'Runtime KV Cache',
+				maxContextLabel: 'Allocated KV Cache Tokens',
+				cacheAllocationModeLabel: 'KV Allocation Mode',
+				cacheAllocationModeStatic: 'Static local allocation',
+				cacheAllocationModeUnified: 'Unified shared cache pool',
+				cacheAllocationModeDynamic: 'Dynamic / occupied-cache estimate',
+				cacheAllocationModeOffloaded: 'CPU-offloaded KV estimate',
+				cacheHelpStatic: 'Use the configured local cache capacity, even when the active prompt is shorter.',
+				cacheHelpUnified: 'Use the total shared cache-pool capacity across local server slots.',
+				cacheHelpDynamic: 'Estimate only peak occupied cache: retained input plus output across live sequences.',
+				cacheHelpOffloaded: 'Estimate the configured cache capacity, split between GPU VRAM and host RAM.',
+				activeInputLabel: 'Peak Retained Input',
+				gpuKvShareLabel: 'GPU-Resident KV Share',
+				contextCapLabel: 'Per-Request Sequence Limit',
 				workloadProfileLabel: 'Workload Profile',
 				workloadProfileChatbot: 'Chatbot',
 				workloadProfileEmbedded: 'Embedded / local app',
@@ -926,6 +944,7 @@
 				warningOutputCap: '⚠️ Reserved completion exceeds the configured maximum output cap.',
 				warningFullHistory: '⚠️ Full retained history exceeds the context cap. Use rolling history or summary + retrieval.',
 				warningHosted: 'ℹ️ Hosted API profile: local VRAM estimates are illustrative; validate the provider context and output caps instead.',
+				warningCachePool: '⚠️ Peak concurrent request occupancy exceeds the allocated KV cache capacity.',
 				insufficient: 'INSUFFICIENT',
 				
 				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param × 1.05 (overhead); MXFP4 ≈ 0.53 B/param (gpt-oss/Kimi K3; expert-only on MiMo Pro), NVFP4 ≈ 0.56 B/param (Laguna/Step 3.7/Blackwell)<br>• Attention (Auto-Estimate): per-anchor buckets — GQA/MQA (including 64-dim Granite/gpt-oss), hybrid SWA+global (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): layers × kv_heads × (K head_dim + V head_dim) × context × bytes<br>• KV (hybrid SWA): full layers retain context; SWA layers retain min(context, window), using each family&apos;s exact K/V widths<br>• KV (MFA): layers × context × (256 K + 256 V) × bytes (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes<br>• KV (CSA/HCA): shared K=V 512-d; CSA = SWA-128 + ctx/4 compressed + 128-d indexer; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): GQA-8 width with ceil(layers/2) shared-KV layers (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1.5 GB desktop / 0.5 GB headless (configurable), Apple Silicon 25% Metal reservation, Snapdragon/X Elite shared-GPU cap 50%',
@@ -950,8 +969,20 @@
 				kvCacheLabel: 'KV Cache',
 				attentionLabel: 'Arsitektur Atensi',
 				attentionDetailLabel: 'Atensi',
-				contextLabel: 'Konteks KV Aktif',
-				maxContextLabel: 'Konteks Prompt Aktif',
+				contextLabel: 'Cache KV Runtime',
+				maxContextLabel: 'Token Cache KV yang Dialokasikan',
+				cacheAllocationModeLabel: 'Mode Alokasi KV',
+				cacheAllocationModeStatic: 'Alokasi lokal statis',
+				cacheAllocationModeUnified: 'Pool cache terpadu bersama',
+				cacheAllocationModeDynamic: 'Estimasi cache dinamis / terpakai',
+				cacheAllocationModeOffloaded: 'Estimasi KV di-offload ke CPU',
+				cacheHelpStatic: 'Gunakan kapasitas cache lokal terkonfigurasi, walau prompt aktif lebih pendek.',
+				cacheHelpUnified: 'Gunakan kapasitas total pool cache bersama antar slot server lokal.',
+				cacheHelpDynamic: 'Estimasi hanya cache puncak terpakai: input tersimpan plus output antar urutan aktif.',
+				cacheHelpOffloaded: 'Estimasi kapasitas cache terkonfigurasi, dibagi antara VRAM GPU dan RAM host.',
+				activeInputLabel: 'Input Tersimpan Puncak',
+				gpuKvShareLabel: 'Bagian KV di GPU',
+				contextCapLabel: 'Batas Urutan per Permintaan',
 				workloadProfileLabel: 'Profil Beban Kerja',
 				workloadProfileChatbot: 'Chatbot',
 				workloadProfileEmbedded: 'Aplikasi lokal / tertanam',
@@ -1011,6 +1042,7 @@
 				warningOutputCap: '⚠️ Output cadangan melebihi batas output maksimum.',
 				warningFullHistory: '⚠️ Riwayat penuh melebihi batas konteks. Gunakan riwayat bergulir atau ringkasan + pengambilan.',
 				warningHosted: 'ℹ️ Profil API hosted: estimasi VRAM lokal hanya ilustrasi; validasi batas konteks dan output penyedia.',
+				warningCachePool: '⚠️ Penggunaan puncak permintaan konkuren melebihi kapasitas cache KV yang dialokasikan.',
 				insufficient: 'TIDAK CUKUP',
 				
 				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param × 1,05 (overhead); MXFP4 ≈ 0,53 byte/param (gpt-oss/Kimi K3; hanya expert pada MiMo Pro), NVFP4 ≈ 0,56 byte/param (Laguna/Step 3.7/Blackwell)<br>• Atensi (Estimasi Otomatis): bucket per-anchor — GQA/MQA (termasuk kepala 64-dim Granite/gpt-oss), SWA+global hibrida (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): lapisan × kv_head × (head_dim K + head_dim V) × konteks × byte<br>• KV (SWA hibrida): lapisan penuh menyimpan konteks; lapisan SWA menyimpan min(konteks, window), dengan lebar K/V tepat per keluarga<br>• KV (MFA): lapisan × konteks × (256 K + 256 V) × byte (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte<br>• KV (CSA/HCA): K=V bersama 512-d; CSA = SWA-128 + ctx/4 terkompresi + indexer 128-d; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): lebar GQA-8 dengan ceil(lapisan/2) lapisan KV bersama (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1,5 GB desktop / 0,5 GB headless (dapat dikonfigurasi), Apple Silicon 25% reservasi Metal, Snapdragon/X Elite cap GPU bersama 50%',
@@ -1147,7 +1179,10 @@
 			constructor() {
 				this.vramSize = 24;
 				this.quantization = 'fp16';
-				this.contextWindow = 8192;
+				this.contextWindow = 8192; // allocated runtime KV-cache capacity
+				this.activeInputTokens = 4096;
+				this.cacheAllocationMode = 'static';
+				this.gpuKvShare = 0.25;
 				this.kvCacheQuant = 'same';
 				this.attention = 'auto';
 				this.gpuType = 'discrete';
@@ -1191,6 +1226,9 @@
 				elements.kvCache.onchange = e=>(this.clearActivePreset(),this.kvCacheQuant = e.target.value,this.calculate()),
 				elements.attention.onchange = e=>(this.clearActivePreset(),this.attention = e.target.value,this.calculate()),
 				elements.contextSlider.oninput = e=>(this.clearActivePreset(),this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
+				elements.activeInputSlider.oninput = e=>(this.clearActivePreset(),this.activeInputTokens = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
+				elements.cacheAllocationMode.onchange = e=>(this.clearActivePreset(),this.cacheAllocationMode = e.target.value,this.updateCacheAllocationMode(),this.calculate()),
+				elements.gpuKvShareSlider.oninput = e=>(this.clearActivePreset(),this.gpuKvShare = Number(e.target.value) / 100,this.updateAgenticDisplay(),this.calculate()),
 				elements.workloadProfile.onchange = e=>{ this.clearActivePreset(); this.workloadProfile = e.target.value; this.agentic = this.workloadProfile === 'agent'; this.updateWorkloadProfile(); this.calculate(); },
 				elements.agentStrategy.onchange = e=>(this.clearActivePreset(),this.agentStrategy = e.target.value,this.calculate()),
 				elements.agentOutputSlider.oninput = e=>(this.clearActivePreset(),this.agentOutputTokens = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
@@ -1351,6 +1389,7 @@
 						`${t.gpuTypeLabel}: ${elements.gpuType.options[elements.gpuType.selectedIndex].text}`,
 						`${t.modelQuantLabel}: ${elements.quantization.options[elements.quantization.selectedIndex].text}`,
 						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
+						`${t.activeInputLabel}: ${elements.activeInputValue.textContent}; ${t.agentOutputLabel}: ${elements.agentOutputValue.textContent}`,
 						this.agentic ? `${t.agentHorizonLabel}: ${elements.agentHorizonValue.textContent}; ${t.agentConcurrencyLabel}: ${this.agentConcurrency}; ${t.agentOutputLabel}: ${elements.agentOutputValue.textContent}; ${t.agentHeadroomLabel}: ${elements.agentHeadroomValue.textContent}` : null,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
@@ -1403,6 +1442,8 @@
 					this.vramSize = p.vram,
 					this.quantization = p.quant,
 					this.contextWindow = p.context,
+					this.activeInputTokens = p.context / 2,
+					this.agentOutputTokens = p.context / 2,
 					this.gpuType = p.gpu,
 					this.attention = p.attention || 'auto',
 					this.workloadProfile = 'embedded',
@@ -1413,11 +1454,14 @@
 					elements.vramSlider.value = p.vram,
 					elements.quantization.value = p.quant,
 					elements.contextSlider.value = Math.log2(p.context),
+					elements.activeInputSlider.value = Math.log2(this.activeInputTokens),
+					elements.agentOutputSlider.value = Math.log2(this.agentOutputTokens),
 					elements.gpuType.value = p.gpu,
 					elements.attention.value = this.attention,
 					elements.overheadSlider.value = this.manualOverhead,
 					this.updateVramDisplay(),
 					this.updateContextDisplay(),
+					this.updateAgenticDisplay(),
 					this.updateWorkloadProfile(),
 					this.calculate()
 				);
@@ -1448,6 +1492,15 @@
 				set(elements.runtimeReserveValue, elements.runtimeReserveSlider, `${this.runtimeReserveGB.toFixed(1)} GB`);
 				set(elements.contextCapValue, elements.contextCapSlider, `${this.format(this.contextCap)} tokens`);
 				set(elements.outputCapValue, elements.outputCapSlider, `${this.format(this.outputCap)} tokens`);
+				set(elements.activeInputValue, elements.activeInputSlider, `${this.format(this.activeInputTokens)} tokens`);
+				set(elements.gpuKvShareValue, elements.gpuKvShareSlider, `${Math.round(this.gpuKvShare * 100)}%`);
+			}
+
+			updateCacheAllocationMode() {
+				const mode = this.cacheAllocationMode;
+				elements.cacheAllocationMode.value = mode;
+				elements.offloadFields.classList.toggle('hidden', mode !== 'offloaded');
+				elements.cacheAllocationHelp.textContent = this.string(`cacheHelp${mode[0].toUpperCase()}${mode.slice(1)}`);
 			}
 
 			updateWorkloadProfile() {
@@ -1483,8 +1536,10 @@
 				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`);
 
 				const availableForUse = Math.max(0,availableVram - this.runtimeReserveGB);
-				const effectiveContext = this.contextWindow + this.agentOutputTokens;
-				const kvMultiplier = this.agentConcurrency * (1 + this.agentHeadroom);
+				const effectiveContext = this.activeInputTokens + this.agentOutputTokens;
+				const peakOccupancyTokens = effectiveContext * this.agentConcurrency;
+				const allocationTokens = this.cacheAllocationMode === 'dynamic' ? peakOccupancyTokens : this.contextWindow;
+				const kvMultiplier = 1 + this.agentHeadroom;
 				let maxParams = 0,estimatedArchitecture = {layers: 0,hidden: 0};
 				
 				const WEIGHT_OVERHEAD = 1.05; // 5% for metadata, scales, and alignment
@@ -1496,15 +1551,16 @@
 							hidden: Number(elements.customHidden.value) || 4096
 						};
 					}
-					const kvCache = this.calculateKvCache(estimatedArchitecture, effectiveContext, kvBytesPerElement) * kvMultiplier;
+					const kvCache = this.calculateKvCache(estimatedArchitecture, allocationTokens, kvBytesPerElement) * kvMultiplier;
 					const memoryForWeights = availableForUse - kvCache;
 					if (memoryForWeights <= 0) { (maxParams = 0); break; }
 					(maxParams = memoryForWeights / (bytesPerParam * WEIGHT_OVERHEAD),
 					 estimatedArchitecture = elements.advancedToggle.checked ? estimatedArchitecture : estimateArchitecture(maxParams, this.modelFamily));
 				}
 				
-				const perSequenceKvCacheGB = this.calculateKvCache(estimatedArchitecture, effectiveContext, kvBytesPerElement);
-				const kvCacheGB = perSequenceKvCacheGB * kvMultiplier;
+				const rawKvCacheGB = this.calculateKvCache(estimatedArchitecture, allocationTokens, kvBytesPerElement);
+				const kvCacheGB = rawKvCacheGB * kvMultiplier * (this.cacheAllocationMode === 'offloaded' ? this.gpuKvShare : 1);
+				const hostKvCacheGB = this.cacheAllocationMode === 'offloaded' ? rawKvCacheGB * kvMultiplier * (1 - this.gpuKvShare) : 0;
 				
 				this.displayResults({
 					totalVram: this.vramSize,
@@ -1513,7 +1569,10 @@
 					overheadMsg: overheadMsg,
 					availableVram: availableForUse,
 					kvCacheGB: kvCacheGB,
-					perSequenceKvCacheGB: perSequenceKvCacheGB,
+					perSequenceKvCacheGB: rawKvCacheGB,
+					hostKvCacheGB: hostKvCacheGB,
+					allocationTokens: allocationTokens,
+					peakOccupancyTokens: peakOccupancyTokens,
 					effectiveContext: effectiveContext,
 					kvMultiplier: kvMultiplier,
 					modelMemoryGB: Math.max(0,availableForUse - kvCacheGB),
@@ -1523,8 +1582,8 @@
 			}
 			
 			displayResults(results) {
-				const t = text[this.language],mbPerToken = (results.perSequenceKvCacheGB * 1024 / results.effectiveContext).toFixed(2);
-				const agenticDetail = `${this.format(this.contextWindow)} + ${this.format(this.agentOutputTokens)} tokens × ${this.format(this.agentConcurrency)} × ${(1 + this.agentHeadroom).toFixed(2)} ${t.agentKvDetail}`;
+				const t = text[this.language],mbPerToken = (results.perSequenceKvCacheGB * 1024 / results.allocationTokens).toFixed(2);
+				const agenticDetail = `${this.format(this.activeInputTokens)} + ${this.format(this.agentOutputTokens)} tokens × ${this.format(this.agentConcurrency)} = ${this.format(results.peakOccupancyTokens)} peak tokens; ${this.format(results.allocationTokens)} allocated × ${(1 + this.agentHeadroom).toFixed(2)} ${t.agentKvDetail}`;
 
 				const total = results.totalVram || 1, ohPct = (results.overheadGB / total) * 100, kvPct = (results.kvCacheGB / total) * 100, modPct = (Math.max(0, results.modelMemoryGB) / total) * 100;
 
@@ -1574,6 +1633,7 @@
 							<span class="metric-sub">${mbPerToken} ${t.mbPerToken} · ${agenticDetail}</span>
 						</div>
 					</div>
+					${results.hostKvCacheGB > 0 ? `<div class="metric-row"><span class="metric-label">Host RAM KV Cache</span><div class="metric-value-group"><div class="metric-val" style="color: var(--warning)">-${results.hostKvCacheGB.toFixed(2)} GB</div><span class="metric-sub">CPU-offloaded portion; throughput may be lower</span></div></div>` : ''}
 					${this.agentic ? `<div class="metric-row"><span class="metric-label">${t.agentHorizonMetric}</span><div class="metric-value-group"><div class="metric-val">${this.format(this.agentHorizon)} tokens</div><span class="metric-sub">${this.format(Math.max(1, Math.ceil(this.agentHorizon / results.effectiveContext)))} ${t.agentWindows} · ${elements.agentStrategy.options[elements.agentStrategy.selectedIndex].text}</span></div></div>` : ''}
 					<div class="metric-row" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
 						<span class="metric-label" style="font-weight: 700; color: var(--text)">${t.modelWeights}</span>
@@ -1587,6 +1647,7 @@
 					: elements.warningBox.classList.add('hidden')))([
 						results.kvCacheGB > results.availableVram * 0.5 ? t.warningKvCache : null,
 						results.effectiveContext > this.contextCap ? t.warningContextCap : null,
+						this.cacheAllocationMode !== 'dynamic' && results.peakOccupancyTokens > this.contextWindow ? t.warningCachePool : null,
 						this.agentOutputTokens > this.outputCap ? t.warningOutputCap : null,
 						this.workloadProfile === 'agent' && this.agentStrategy === 'full' && this.agentHorizon + this.agentOutputTokens > this.contextCap ? t.warningFullHistory : null,
 						this.workloadProfile === 'hosted' ? t.warningHosted : null,
@@ -1609,6 +1670,7 @@
 				Object.keys(text.en).forEach(k=>elements[k] && (k === 'copyBtn' ? elements[k].innerHTML = CLIPBOARD_ICON + this.string(k) : elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
 				[...elements.workloadProfile.options].forEach(o=>o.textContent = this.string('workloadProfile' + o.value[0].toUpperCase() + o.value.slice(1))),
+				[...elements.cacheAllocationMode.options].forEach(o=>o.textContent = this.string('cacheAllocationMode' + o.value[0].toUpperCase() + o.value.slice(1))),
 				[...elements.agentStrategy.options].forEach(o=>o.textContent = this.string('agentStrategy' + o.value[0].toUpperCase() + o.value.slice(1))),
 				elements.formulasSection.innerHTML = this.string('formulas'),
 				elements.architectureSection.innerHTML = this.string('architecture'),
@@ -1616,6 +1678,7 @@
 				this.updateVramDisplay(),
 				this.updateContextDisplay(),
 				this.updateAgenticDisplay(),
+				this.updateCacheAllocationMode(),
 				this.updateWorkloadProfile(),
 				this.calculate());
 			}

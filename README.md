@@ -65,3 +65,6 @@ MIT License. See LICENSE for details.
 
 ## Contributions
 Contributions, issues, and suggestions are welcome. Please open an issue to discuss ideas or submit a PR.
+
+### Local context and KV-cache planning
+For open-weight local runtimes, **Runtime KV Cache Capacity** is distinct from the active request. Use it for the configured local cache (`llama.cpp --ctx-size`, Ollama `num_ctx`, a static cache limit, or a shared server pool). The calculator separately budgets peak retained input, output reserve, and concurrent sequences. Choose the KV allocation mode to estimate static local allocation, a unified shared pool, dynamic occupied cache, or CPU-offloaded KV cache. Architecture and KV cost remain interpolated estimates, not a fit guarantee for an exact checkpoint.
