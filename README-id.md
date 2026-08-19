@@ -12,7 +12,7 @@ Antarmuka mendukung **Bahasa Inggris** dan **Bahasa Indonesia**.
 Kalkulator memperkirakan penggunaan memori berdasarkan:
 
 1.  **Ukuran VRAM**: Total memori GPU yang tersedia (misalnya, 24GB, 80GB).
-2.  **Kuantisasi**: Presisi bobot model (FP32, FP16/BF16, FP8/INT8, INT4/FP4, FP2). Presisi yang lebih rendah mengurangi penggunaan memori tetapi dapat memengaruhi kualitas.
+2.  **Kuantisasi**: Presisi bobot model (FP32, FP16/BF16, FP8/INT8, MXFP4, NVFP4, INT4/FP4, FP2). MXFP4 (~0,53 byte/param) adalah format native GPT-OSS dan Kimi K3; NVFP4 (~0,56 byte/param) adalah format FP4 Blackwell-native yang dikirim Poolside Laguna. Presisi yang lebih rendah mengurangi penggunaan memori tetapi dapat memengaruhi kualitas.
 3.  **Jendela Konteks**: Jumlah maksimum token yang diproses model. Konteks yang lebih besar membutuhkan lebih banyak memori KV cache.
 4.  **KV Cache**: Memori yang diperlukan untuk menyimpan status Key-Value untuk jendela konteks. Ini juga mendukung kuantisasi terpisah untuk KV cache.
 5.  **Overhead Sistem**:
@@ -43,8 +43,8 @@ Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yan
 -   **Overhead yang Dapat Disesuaikan**: Atur deduksi memori sistem secara presisi untuk server Linux headless vs desktop Windows.
 -   **Rincian Memori Mendetail**: Memvisualisasikan penggunaan untuk Overhead Sistem, KV Cache, dan Bobot Model.
 -   **Preset Perangkat Keras (21 preset, 4 GB–192 GB)**: Konfigurasi satu klik mencakup seluruh stack — Budget (GTX 1650, Arc A380/B570/B580, RTX 3060/4060), Mainstream (Arc A770, RTX 5070 Ti/4090/5090, Arc Pro B60), Workstation/Server (L40S, A100, RTX PRO 6000 96GB, H200, B200), dan Apple/Mobile (M4 Max, M3 Ultra, Snapdragon). Diverifikasi terhadap Steam HW Survey 2025–2026, Tom's Hardware, Intel ARK.
--   **Opsi Lanjutan**: Dukungan untuk berbagai format kuantisasi (hingga FP2) dan presisi KV cache terpisah.
--   **Estimasi Model & Atensi Otomatis Multi-Generasi**: Secara dinamis mengestimasi arsitektur model (Lapisan dan Ukuran Tersembunyi) serta mekanisme atensi (GQA-4 untuk <2B dan North Mini 30B-A3B, GQA-8 untuk 2B–405B dengan kepala 64-dim pada GPT-OSS, MLA untuk 671B+ MoE) melalui sintesis perhitungan dari semua generasi keluarga LLM modern: Llama (Gen 1–4), Gemma (Gen 1–4), Qwen (Gen 1–3), MiniCPM (Gen 1–5), G9 (v1–v3), Ling (1.0–2.0), Inkling (Gen 1), DeepSeek (V1–V3, R1), GLM (1–4), Kimi (V1–K3), GPT-OSS (20b/120b, native MXFP4), Cohere Command (R, R+, R7B, A, A+), Cohere Aya (101, 23, Expanse, Vision), dan Cohere North (Mini Code, Micro).
+-   **Opsi Lanjutan**: Dukungan untuk berbagai format kuantisasi (hingga FP2, termasuk MXFP4 dan NVFP4) dan presisi KV cache terpisah.
+-   **Estimasi Model & Atensi Otomatis Multi-Generasi**: Secara dinamis mengestimasi arsitektur model (Lapisan dan Ukuran Tersembunyi) serta mekanisme atensi (GQA-4 untuk <2B dan North Mini 30B-A3B, GQA-8 untuk 2B–405B dengan kepala 64-dim pada GPT-OSS, MLA untuk 671B+ MoE) melalui sintesis perhitungan dari semua generasi keluarga LLM modern: Llama (Gen 1–4), Gemma (Gen 1–4), Qwen (Gen 1–3), MiniCPM (Gen 1–5), G9 (v1–v3), Ling (1.0–2.0), Inkling (Gen 1), DeepSeek (V1–V3, R1), GLM (1–4), Kimi (V1–K3), GPT-OSS (20b/120b, native MXFP4), Cohere Command (R, R+, R7B, A, A+), Cohere Aya (101, 23, Expanse, Vision), Cohere North (Mini Code, Micro), dan Poolside Laguna (XS.2, XS 2.1, M.1, S 2.1).
 -   **Kategori Ukuran Model Standar (Artificial Analysis)**: Mengelompokkan model ke dalam 4 tingkatan standar: **Sangat Kecil (<4B)**, **Kecil (4B–40B)**, **Sedang (40B–150B)**, dan **Besar (150B+)** berdasarkan taksonomi Artificial Analysis.
 -   **Berkas HTML tunggal**: Tidak ada instalasi, tidak ada dependensi, bekerja sepenuhnya offline.
 -   **Desain responsif**: Bekerja di desktop, tablet, dan perangkat seluler.
