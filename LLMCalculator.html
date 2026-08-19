@@ -220,19 +220,38 @@
 		.label-row {
 			display: flex;
 			justify-content: space-between;
+			gap: 0.75rem;
 			margin-bottom: 0.5rem;
 		}
 
 		.label-row label {
 			font-weight: 500;
 			font-size: 0.9rem;
+			line-height: 1.25;
 			color: var(--text);
 		}
 
 		.label-row .value {
 			font-family: monospace;
 			font-weight: 600;
+			white-space: nowrap;
 			color: var(--primary);
+		}
+
+		.context-help {
+			margin-top: 0.75rem;
+			color: var(--text-muted);
+			font-size: 0.8rem;
+			line-height: 1.45;
+		}
+
+		.context-disclaimer {
+			padding: 0.75rem;
+			border-left: 3px solid var(--primary);
+			background: var(--muted);
+			color: var(--text-muted);
+			font-size: 0.78rem;
+			line-height: 1.45;
 		}
 
 		/* Inputs */
@@ -587,7 +606,7 @@
 				</select>
 			</div>
 		</header>
-		
+
 		<div class="main-grid">
 			<!-- Controls Column -->
 			<div class="controls-column">
@@ -606,7 +625,7 @@
 							<span style="left: 100%">256GB</span>
 						</div>
 					</div>
-					
+
 					<div class="form-group">
 						<div class="label-row">
 							<label id="gpuTypeLabel">GPU Type</label>
@@ -631,7 +650,7 @@
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="card">
 					<h2 id="modelLabel">Model Configuration</h2>
 					<div class="form-group">
@@ -709,48 +728,28 @@
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="card">
-					<h2 id="contextLabel">Runtime KV Cache</h2>
+					<h2 id="contextLabel">Context</h2>
 					<div class="form-group">
 						<div class="label-row">
-							<label id="maxContextLabel">Allocated KV Cache Tokens</label>
+							<label id="maxContextLabel">Context Window / Active Working Context</label>
 							<span class="value" id="contextValue">8,192 tokens</span>
 						</div>
-						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13" aria-labelledby="maxContextLabel">
+						<input type="range" id="contextSlider" min="9" max="20" step="1" value="13" aria-labelledby="maxContextLabel" aria-describedby="contextHelp">
 						<div class="slider-labels">
 							<span style="left: 0%">512</span>
 							<span style="left: 36.4%">8K</span>
 							<span style="left: 72.7%">128K</span>
 							<span style="left: 100%">1M</span>
 						</div>
+						<p id="contextHelp" class="context-help"></p>
 					</div>
 
-						<div class="form-group"><div class="label-row"><label id="cacheAllocationModeLabel">KV Allocation Mode</label></div>
-							<select id="cacheAllocationMode" class="full-width" aria-labelledby="cacheAllocationModeLabel"><option value="static">Static local allocation</option><option value="unified">Unified shared cache pool</option><option value="dynamic">Dynamic / occupied-cache estimate</option><option value="offloaded">CPU-offloaded KV estimate</option></select>
-						</div>
-						<p id="cacheAllocationHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
-						<div class="form-group"><div class="label-row"><label id="activeInputLabel">Peak Retained Input</label><span class="value" id="activeInputValue">4,096 tokens</span></div><input type="range" id="activeInputSlider" min="8" max="20" step="1" value="12" aria-labelledby="activeInputLabel"></div>
-					<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
-						<div class="form-group"><div class="label-row"><label id="contextUseModeLabel">Context Use Mode</label></div>
-							<select id="contextUseMode" class="full-width" aria-labelledby="contextUseModeLabel"><option value="normal">Normal</option><option value="agentic">Agentic</option></select>
-						</div>
-						<p id="contextUseModeHelp" class="metric-sub" style="margin: 0 0 1rem;"></p>
-						<div class="form-group"><div class="label-row"><label id="agentOutputLabel">Reserved Completion</label><span class="value" id="agentOutputValue">4,096 tokens</span></div><input type="range" id="agentOutputSlider" min="8" max="18" step="1" value="12" aria-labelledby="agentOutputLabel"></div>
-						<div class="form-group"><div class="label-row"><label id="agentConcurrencyLabel">Peak Resident Sequences</label><span class="value" id="agentConcurrencyValue">1</span></div><input type="range" id="agentConcurrencySlider" min="1" max="16" step="1" value="1" aria-labelledby="agentConcurrencyLabel"></div>
-						<div class="form-group"><div class="label-row"><label id="agentHeadroomLabel">KV Allocation Headroom</label><span class="value" id="agentHeadroomValue">15%</span></div><input type="range" id="agentHeadroomSlider" min="0" max="50" step="1" value="15" aria-labelledby="agentHeadroomLabel"></div>
-						<div class="form-group"><div class="label-row"><label id="runtimeReserveLabel">Runtime / Activation Reserve</label><span class="value" id="runtimeReserveValue">0.0 GB</span></div><input type="range" id="runtimeReserveSlider" min="0" max="16" step="0.1" value="0" aria-labelledby="runtimeReserveLabel"></div>
-						<div class="form-group"><div class="label-row"><label id="contextCapLabel">Per-Request Sequence Limit</label><span class="value" id="contextCapValue">1,048,576 tokens</span></div><input type="range" id="contextCapSlider" min="9" max="20" step="1" value="20" aria-labelledby="contextCapLabel"></div>
-						<div class="form-group"><div class="label-row"><label id="outputCapLabel">Maximum Output Cap</label><span class="value" id="outputCapValue">262,144 tokens</span></div><input type="range" id="outputCapSlider" min="8" max="18" step="1" value="18" aria-labelledby="outputCapLabel"></div>
-						<div id="offloadFields" class="hidden"><div class="form-group"><div class="label-row"><label id="gpuKvShareLabel">GPU-Resident KV Share</label><span class="value" id="gpuKvShareValue">25%</span></div><input type="range" id="gpuKvShareSlider" min="0" max="100" step="5" value="25" aria-labelledby="gpuKvShareLabel"></div></div>
-						<div id="agenticFields" class="hidden" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
-							<div class="form-group"><div class="label-row"><label id="agentStrategyLabel">Context Strategy</label></div><select id="agentStrategy" class="full-width" aria-labelledby="agentStrategyLabel"><option value="rolling">Rolling recent history</option><option value="summary">Structured summary + retrieval</option><option value="full">Full retained history</option></select></div>
-							<div class="form-group"><div class="label-row"><label id="agentHorizonLabel">Total Task Horizon</label><span class="value" id="agentHorizonValue">1,048,576 tokens</span></div><input type="range" id="agentHorizonSlider" min="12" max="26" step="1" value="20" aria-labelledby="agentHorizonLabel"></div>
-						</div>
-					</div>
+					<p id="contextDisclaimer" class="context-disclaimer"></p>
 				</div>
 			</div>
-			
+
 			<!-- Results Column -->
 			<div class="results-column">
 				<div class="result-card">
@@ -774,7 +773,7 @@
 					</div>
 					<button id="copyBtn"></button>
 				</div>
-				
+
 				<div id="warningBox" class="warning-box hidden" role="alert"></div>
 
 				<div class="card">
@@ -786,7 +785,7 @@
 					</div>
 					<div id="metricsList"></div>
 				</div>
-				
+
 				<div class="card">
 					<h2 id="presetsLabel">Quick Presets</h2>
 					<div class="presets-grid">
@@ -819,7 +818,7 @@
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="reference-section">
 			<h3 id="referenceTitle">References & Methodology</h3>
 			<div class="reference-grid">
@@ -829,7 +828,7 @@
 			<div style="margin-top: 1rem; opacity: 0.8;" id="sourcesText"></div>
 		</div>
 	</div>
-	
+
 	<script>
 		// =====================================================================
 		// OFFLINE-ONLY APP. NO URL-HASH STATE PERSISTENCE. EVER.
@@ -871,41 +870,11 @@
 				kvCacheLabel: 'KV Cache',
 				attentionLabel: 'Attention Architecture',
 				attentionDetailLabel: 'Attention',
-				contextLabel: 'Runtime KV Cache',
-				maxContextLabel: 'Allocated KV Cache Tokens',
-				cacheAllocationModeLabel: 'KV Allocation Mode',
-				cacheAllocationModeStatic: 'Static local allocation',
-				cacheAllocationModeUnified: 'Unified shared cache pool',
-				cacheAllocationModeDynamic: 'Dynamic / occupied-cache estimate',
-				cacheAllocationModeOffloaded: 'CPU-offloaded KV estimate',
-				cacheHelpStatic: 'Use the configured local cache capacity, even when the active prompt is shorter.',
-				cacheHelpUnified: 'Use the total shared cache-pool capacity across local server slots.',
-				cacheHelpDynamic: 'Estimate only peak occupied cache: retained input plus output across live sequences.',
-				cacheHelpOffloaded: 'Estimate the configured cache capacity, split between GPU VRAM and host RAM.',
-				activeInputLabel: 'Peak Retained Input',
-				gpuKvShareLabel: 'GPU-Resident KV Share',
-				contextCapLabel: 'Per-Request Sequence Limit',
-				contextUseModeLabel: 'Context Use Mode',
-				contextUseModeNormal: 'Normal',
-				contextUseModeAgentic: 'Agentic',
-				contextUseModeHelpNormal: 'For a bounded local chat, embedded feature, document prompt, or ordinary local server request.',
-				contextUseModeHelpAgentic: 'Adds long-horizon planning. Tool results, retrieved evidence, state, and recent history belong in Peak Retained Input.',
-				agentStrategyLabel: 'Context Strategy',
-				agentOutputLabel: 'Reserved Completion',
-				agentConcurrencyLabel: 'Concurrent Sequences',
-				agentHeadroomLabel: 'KV Allocation Headroom',
-				runtimeReserveLabel: 'Runtime / Activation Reserve',
-				contextCapLabel: 'Configured Context Cap',
-				outputCapLabel: 'Maximum Output Cap',
-				agentHorizonLabel: 'Total Task Horizon',
-				agentHorizonMetric: 'Agentic task horizon',
-				agentHelp: 'Only resident tokens consume KV memory. Total task horizon is shown for planning and does not allocate a single giant cache.',
-				agentKvDetail: 'active + reserved × concurrent sequences, including headroom',
-				agentWindows: 'working windows',
-				agentStrategyRolling: 'Rolling recent history',
-				agentStrategySummary: 'Summary + retrieval',
-				agentStrategyFull: 'Full retained history',
-				agentStrategySliding: 'Sliding-window attention',
+				contextLabel: 'Context',
+				maxContextLabel: 'Context Window / Active Working Context',
+				contextHelp: 'Configured local KV capacity for one active inference context: chat, document prompt, embedded feature, or one agent step. Keep long-running project history in external artifacts, structured notes, retrieval, and compaction rather than GPU KV cache.',
+				contextDisclaimer: 'This calculator estimates one local model and one active inference context. Multi-user serving, parallel agents, CPU KV offload, and runtime-specific cache behavior require separate capacity planning.',
+				contextTokens: 'context tokens',
 				maxParamsLabel: 'Maximum Parameters',
 				memoryAllocationLabel: 'Memory Allocation',
 				presetsLabel: 'Quick Presets',
@@ -914,15 +883,15 @@
 				themeLabel: 'Select Theme',
 				copyBtn: 'Copy Summary',
 				copied: 'Copied!',
-				
+
 				totalVram: 'Total VRAM',
 				systemOverhead: 'System Overhead',
 				kvCacheMemory: 'KV Cache',
 				modelWeights: 'Model Weights',
-				
+
 				layersLabel: 'Layers',
 				hiddenLabel: 'Hidden Size',
-				
+
 				categorySuffix: '•',
 				categoryTiny: 'Tiny (<4B)',
 				categorySmall: 'Small (4B–40B)',
@@ -932,19 +901,15 @@
 				reserved: 'Reserved',
 				snapdragonOverhead: 'GPU memory capped at 50% of total RAM',
 				intelArcOverhead: 'Requires Resizable BAR; ~1.5 GB driver overhead typical',
-				mbPerToken: 'MB/token',
-				
+				mbPerToken: 'MiB/token',
+
 				warningKvCache: '⚠️ KV cache >50% of VRAM. Reduce context.',
 				warningInsufficient: '❌ Insufficient VRAM for model.',
-				warningContextCap: '⚠️ Retained input plus reserved output exceeds the configured context cap.',
-				warningOutputCap: '⚠️ Reserved completion exceeds the configured maximum output cap.',
-				warningFullHistory: '⚠️ Full retained history exceeds the context cap. Use rolling history or summary + retrieval.',
-				warningCachePool: '⚠️ Peak concurrent request occupancy exceeds the allocated KV cache capacity.',
 				insufficient: 'INSUFFICIENT',
-				
-				formulas: '<strong>Formulas:</strong><br>• Model: params × bytes/param × 1.05 (overhead); MXFP4 ≈ 0.53 B/param (gpt-oss/Kimi K3; expert-only on MiMo Pro), NVFP4 ≈ 0.56 B/param (Laguna/Step 3.7/Blackwell)<br>• Attention (Auto-Estimate): per-anchor buckets — GQA/MQA (including 64-dim Granite/gpt-oss), hybrid SWA+global (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): layers × kv_heads × (K head_dim + V head_dim) × context × bytes<br>• KV (hybrid SWA): full layers retain context; SWA layers retain min(context, window), using each family&apos;s exact K/V widths<br>• KV (MFA): layers × context × (256 K + 256 V) × bytes (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes<br>• KV (CSA/HCA): shared K=V 512-d; CSA = SWA-128 + ctx/4 compressed + 128-d indexer; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): GQA-8 width with ceil(layers/2) shared-KV layers (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1.5 GB desktop / 0.5 GB headless (configurable), Apple Silicon 25% Metal reservation, Snapdragon/X Elite shared-GPU cap 50%',
+
+				formulas: '<strong>Formulas:</strong><br>• Scope: the dual-label slider is the KV token quantity for one active inference context<br>• Model: params(B) × 10^9 × bytes/param × 1.05 ÷ 2^30 (GiB); MXFP4 ≈ 0.53 B/param (gpt-oss/Kimi K3; expert-only on MiMo Pro), NVFP4 ≈ 0.56 B/param (Laguna/Step 3.7/Blackwell)<br>• Attention (Auto-Estimate): per-anchor buckets — GQA/MQA (including 64-dim Granite/gpt-oss), hybrid SWA+global (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): layers × kv_heads × (K head_dim + V head_dim) × context × bytes<br>• KV (hybrid SWA): full layers retain context; SWA layers retain min(context, window), using each family&apos;s exact K/V widths<br>• KV (MFA): layers × context × (256 K + 256 V) × bytes (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes<br>• KV (CSA/HCA): shared K=V 512-d; CSA = SWA-128 + ctx/4 compressed + 128-d indexer; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): GQA-8 width with ceil(layers/2) shared-KV layers (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1.5 GB desktop / 0.5 GB headless (configurable), Apple Silicon 25% Metal reservation, Snapdragon/X Elite shared-GPU cap 50%',
 				architecture: '<strong>Reference Data (Multi-Generational Auto-Estimate Synthesis):</strong><br>• IBM Granite ~0.35B–8.1B: Granite 3.0–3.3 dense/MoE (1.3B-A0.4B, 2.5B, 3.3B-A0.8B, 8.1B; 24–40L, 64/128-d heads), Granite 4.0 dense Nano/Micro plus hybrid Mamba2 H variants, Granite 4.1 dense 3B/8B, Granite SWASH 2.14B / 3.02B-A0.6B (SWA-128 + sinks)<br>• ~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)<br>• ~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)<br>• ~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)<br>• ~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B<br>• ~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B active), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 active), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)<br>• IBM Granite Code / 4.x at 20B–34B: Code 20B/34B (52L/88L×6144H, MQA-1); Granite 4.1 30B dense (64L×4096H, GQA-8) and Granite 4.0 H-Small 32B-A9B (4 attention + 36 Mamba2) overlap general anchors<br>• ~29.6B (52L, 6656H): Muse Glimmer 30B multimodal (13 full + 39 SWA-2048 layers, GQA-2; includes 1.8B perception encoder)<br>• ~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, 256K ctx)<br>• ~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, runs on 36 GB Mac)<br>• ~32B (64L, 5120H): Qwen 2.5/3 32B<br>• ~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)<br>• ~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)<br>• ~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)<br>• ~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (MXFP4 native, 64-dim GQA-8), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, 1M ctx)<br>• ~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, 1M ctx), M.1 (225B-A23B, all-global attn)<br>• ~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, 512K ctx), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, 1M ctx, multimodal), MiniMax Text-01 / M1 (456B-A46B, hybrid lightning attn)<br>• ~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)<br>• ~196.8B–198B (45L×4096H): Step-3.5-Flash / Step-3.7-Flash (196B language backbone, 11B active; 12 full + 33 SWA-512 GQA-8; 3.7 adds 1.8B vision encoder and ships NVFP4)<br>• ~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)<br>• ~309B–321B: MiMo-V2-Flash / V2.5 309–310B-A15B (48L×4096H, 9 global + 39 SWA-128, asymmetric 192/128-d K/V, 256K–1M ctx); Step-3 321B-A38B VLM (61L×7168H, MFA shared 256-d K/V)<br>• ~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)<br>• ~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), MiMo-V2.5-Pro (1.02T-A42B, 70L×6144H, 10 global + 60 SWA-128, expert-only MXFP4 available), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, 1M ctx), Kimi K3 (2.8T, 93L×7168H, KDA+MLA)<br><br><strong>Hardware Presets (4 GB–192 GB):</strong> Budget 4–12 GB (GTX 1650 4GB, Arc A380 6GB, RTX 4060 8GB, Arc B570 10GB, RTX 3060 12GB Steam #1, Arc B580 12GB $249) → Mainstream 16–32 GB (Arc A770 16GB cheapest 16GB, RTX 5070 Ti 16GB, RTX 4090 24GB, Arc Pro B60 24GB $599 workstation, RTX 5090 32GB) → Workstation/Server 48–192 GB (L40S 48GB, A100 80GB, RTX PRO 6000 96GB, H200 141GB, B200 192GB) → Apple/Mobile (MacBook Neo 8GB, M4 Max 128GB MBP, M3 Ultra 192GB Studio, Snapdragon X Elite 32GB shared)',
-				sources: '<strong>Sources:</strong> Llama Gen 1–4 Papers & Model Cards (Meta AI, 2023–2025), Gemma Gen 1–4 Reports (Google), Qwen Gen 1–3 Papers (Alibaba), MiniCPM Gen 1–5 Technical Reports (OpenBMB), G9 v1–v3 Specs (AI9Stars), Ling Gen 1–2 / 1000B Reports (InclusionAI), Inkling Gen 1 Specs (Thinking Machines), DeepSeek V1–V4 & R1 Reports (V4 paper arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Tencent Hunyuan / Hy Model Cards — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B (Tencent Hy Team, 2026), GLM 1–4 Specs (Zhipu AI), Kimi V1–K3 Technical Reports (Moonshot AI, 2023–2026), Xiaomi MiMo-7B / V2-Flash (arXiv:2505.07608 / 2601.02780) and V2.5 / V2.5-Pro official configs & model cards (Xiaomi, 2025–2026), StepFun Step-3 (arXiv:2507.19427), Step-3.5-Flash (arXiv:2602.10604), Step3-VL-10B and Step-3.7-Flash configs/cards, Muse Glimmer 30B config/card (Meta Superintelligence Lab, 2026), IBM Granite Code report (arXiv:2405.04324), Granite 3.0–4.1 and SWASH official configs/cards (IBM, 2024–2026), GPT-OSS 20b/120b Model Cards & GptOss Specs (OpenAI, 2025; MXFP4-native MoE), Cohere Command R / R+ / R7B / A / A+ and Aya 101 / 23 / Expanse / Vision plus North Mini Code / Micro Model Cards & Technical Reports (Cohere Labs, 2022–2026), Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 Model Cards & Technical Report (Poolside, 2026; NVFP4/FP8/INT4 variants), Arcee Trinity Nano / Mini / Large Model Cards (Arcee AI, 2025–2026, OpenMDW), Mistral Open-Weight Model Cards & params.json — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), MiniMax Text-01 / M1 / M2→M2.7 / M3 Model Cards + M3 Technical Report arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> NVIDIA RTX 50/40 specs (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Steam HW Survey 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4.8%, 8GB most common); Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra specs (128GB MBP, 64–192GB Studio, 25% Metal cap); Snapdragon X Elite shared-GPU cap 50%'
+				sources: '<strong>Context guidance:</strong> llama.cpp completion documentation (<code>--ctx-size</code> prompt-context size); Anthropic, “Effective context engineering for AI agents” (compaction, structured notes, and just-in-time retrieval); Chroma, “Context Rot” (performance degradation as input length grows).<br><strong>Open-source harness cross-check:</strong> OpenClaw, OpenCode, Pi, Qwen Code, and Gemini CLI keep durable sessions or memory separate from compacted model context; DeepSeek Harness records an append-only session log with pluggable compaction; Hermes Agent compresses active history after flushing persistent memory; Prime Agent exposes context, memory, and subagents through persistent harness state; OpenHands, SWE-agent, Aider, Cline, Roo Code, Goose, LangGraph, and Letta use condensers, filtering, summaries, checkpoints, retrieval, or external memory.<br><strong>Architecture & hardware sources:</strong> Llama Gen 1–4 Papers & Model Cards (Meta AI, 2023–2025), Gemma Gen 1–4 Reports (Google), Qwen Gen 1–3 Papers (Alibaba), MiniCPM Gen 1–5 Technical Reports (OpenBMB), G9 v1–v3 Specs (AI9Stars), Ling Gen 1–2 / 1000B Reports (InclusionAI), Inkling Gen 1 Specs (Thinking Machines), DeepSeek V1–V4 & R1 Reports (V4 paper arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Tencent Hunyuan / Hy Model Cards — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B (Tencent Hy Team, 2026), GLM 1–4 Specs (Zhipu AI), Kimi V1–K3 Technical Reports (Moonshot AI, 2023–2026), Xiaomi MiMo-7B / V2-Flash (arXiv:2505.07608 / 2601.02780) and V2.5 / V2.5-Pro official configs & model cards (Xiaomi, 2025–2026), StepFun Step-3 (arXiv:2507.19427), Step-3.5-Flash (arXiv:2602.10604), Step3-VL-10B and Step-3.7-Flash configs/cards, Muse Glimmer 30B config/card (Meta Superintelligence Lab, 2026), IBM Granite Code report (arXiv:2405.04324), Granite 3.0–4.1 and SWASH official configs/cards (IBM, 2024–2026), GPT-OSS 20b/120b Model Cards & GptOss Specs (OpenAI, 2025; MXFP4-native MoE), Cohere Command R / R+ / R7B / A / A+ and Aya 101 / 23 / Expanse / Vision plus North Mini Code / Micro Model Cards & Technical Reports (Cohere Labs, 2022–2026), Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 Model Cards & Technical Report (Poolside, 2026; NVFP4/FP8/INT4 variants), Arcee Trinity Nano / Mini / Large Model Cards (Arcee AI, 2025–2026, OpenMDW), Mistral Open-Weight Model Cards & params.json — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), MiniMax Text-01 / M1 / M2→M2.7 / M3 Model Cards + M3 Technical Report arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> NVIDIA RTX 50/40 specs (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Steam HW Survey 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4.8%, 8GB most common); Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra specs (128GB MBP, 64–192GB Studio, 25% Metal cap); Snapdragon X Elite shared-GPU cap 50%'
 			},
 			id: {
 				title: 'Kalkulator VRAM LLM',
@@ -964,41 +929,11 @@
 				kvCacheLabel: 'KV Cache',
 				attentionLabel: 'Arsitektur Atensi',
 				attentionDetailLabel: 'Atensi',
-				contextLabel: 'Cache KV Runtime',
-				maxContextLabel: 'Token Cache KV yang Dialokasikan',
-				cacheAllocationModeLabel: 'Mode Alokasi KV',
-				cacheAllocationModeStatic: 'Alokasi lokal statis',
-				cacheAllocationModeUnified: 'Pool cache terpadu bersama',
-				cacheAllocationModeDynamic: 'Estimasi cache dinamis / terpakai',
-				cacheAllocationModeOffloaded: 'Estimasi KV di-offload ke CPU',
-				cacheHelpStatic: 'Gunakan kapasitas cache lokal terkonfigurasi, walau prompt aktif lebih pendek.',
-				cacheHelpUnified: 'Gunakan kapasitas total pool cache bersama antar slot server lokal.',
-				cacheHelpDynamic: 'Estimasi hanya cache puncak terpakai: input tersimpan plus output antar urutan aktif.',
-				cacheHelpOffloaded: 'Estimasi kapasitas cache terkonfigurasi, dibagi antara VRAM GPU dan RAM host.',
-				activeInputLabel: 'Input Tersimpan Puncak',
-				gpuKvShareLabel: 'Bagian KV di GPU',
-				contextCapLabel: 'Batas Urutan per Permintaan',
-				contextUseModeLabel: 'Mode Penggunaan Konteks',
-				contextUseModeNormal: 'Normal',
-				contextUseModeAgentic: 'Agentik',
-				contextUseModeHelpNormal: 'Untuk chat lokal terbatas, fitur tertanam, prompt dokumen, atau permintaan server lokal biasa.',
-				contextUseModeHelpAgentic: 'Menambahkan perencanaan horizon panjang. Hasil tool, bukti yang diambil, state, dan riwayat terbaru masuk ke Input Tersimpan Puncak.',
-				agentStrategyLabel: 'Strategi Konteks',
-				agentOutputLabel: 'Output yang Dicadangkan',
-				agentConcurrencyLabel: 'Urutan Konkuren',
-				agentHeadroomLabel: 'Ruang Alokasi KV',
-				runtimeReserveLabel: 'Cadangan Runtime / Aktivasi',
-				contextCapLabel: 'Batas Konteks Terkonfigurasi',
-				outputCapLabel: 'Batas Output Maksimum',
-				agentHorizonLabel: 'Horizon Tugas Total',
-				agentHorizonMetric: 'Horizon tugas agentik',
-				agentHelp: 'Hanya token yang masih aktif memakai memori KV. Horizon tugas total ditampilkan untuk perencanaan dan tidak mengalokasikan satu cache raksasa.',
-				agentKvDetail: 'aktif + cadangan × urutan konkuren, termasuk ruang aman',
-				agentWindows: 'jendela kerja',
-				agentStrategyRolling: 'Riwayat terbaru bergulir',
-				agentStrategySummary: 'Ringkasan + pengambilan',
-				agentStrategyFull: 'Riwayat penuh yang dipertahankan',
-				agentStrategySliding: 'Atensi jendela geser',
+				contextLabel: 'Konteks',
+				maxContextLabel: 'Jendela Konteks / Konteks Kerja Aktif',
+				contextHelp: 'Kapasitas KV lokal terkonfigurasi untuk satu konteks inferensi aktif: chat, prompt dokumen, fitur tertanam, atau satu langkah agen. Simpan riwayat proyek jangka panjang dalam artefak eksternal, catatan terstruktur, pengambilan informasi, dan kompaksi alih-alih KV cache GPU.',
+				contextDisclaimer: 'Kalkulator ini mengestimasi satu model lokal dan satu konteks inferensi aktif. Layanan multi-pengguna, agen paralel, offload KV ke CPU, dan perilaku cache spesifik runtime memerlukan perencanaan kapasitas terpisah.',
+				contextTokens: 'token konteks',
 				maxParamsLabel: 'Parameter Maksimum',
 				memoryAllocationLabel: 'Alokasi Memori',
 				presetsLabel: 'Preset Cepat',
@@ -1007,15 +942,15 @@
 				themeLabel: 'Pilih Tema',
 				copyBtn: 'Salin Ringkasan',
 				copied: 'Tersalin!',
-				
+
 				totalVram: 'Total VRAM',
 				systemOverhead: 'Overhead Sistem',
 				kvCacheMemory: 'KV Cache',
 				modelWeights: 'Bobot Model',
-				
+
 				layersLabel: 'Lapisan',
 				hiddenLabel: 'Ukuran Tersembunyi',
-				
+
 				categorySuffix: '•',
 				categoryTiny: 'Sangat Kecil (<4B)',
 				categorySmall: 'Kecil (4B–40B)',
@@ -1025,24 +960,20 @@
 				reserved: 'Dicadangkan',
 				snapdragonOverhead: 'Memori GPU dibatasi maks. 50% dari total RAM',
 				intelArcOverhead: 'Butuh Resizable BAR; overhead driver ~1,5 GB lazim',
-				mbPerToken: 'MB/token',
-				
+				mbPerToken: 'MiB/token',
+
 				warningKvCache: '⚠️ KV cache >50% dari VRAM. Kurangi konteks.',
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
-				warningContextCap: '⚠️ Input yang dipertahankan ditambah output cadangan melebihi batas konteks.',
-				warningOutputCap: '⚠️ Output cadangan melebihi batas output maksimum.',
-				warningFullHistory: '⚠️ Riwayat penuh melebihi batas konteks. Gunakan riwayat bergulir atau ringkasan + pengambilan.',
-				warningCachePool: '⚠️ Penggunaan puncak permintaan konkuren melebihi kapasitas cache KV yang dialokasikan.',
 				insufficient: 'TIDAK CUKUP',
-				
-				formulas: '<strong>Formula:</strong><br>• Model: params × byte/param × 1,05 (overhead); MXFP4 ≈ 0,53 byte/param (gpt-oss/Kimi K3; hanya expert pada MiMo Pro), NVFP4 ≈ 0,56 byte/param (Laguna/Step 3.7/Blackwell)<br>• Atensi (Estimasi Otomatis): bucket per-anchor — GQA/MQA (termasuk kepala 64-dim Granite/gpt-oss), SWA+global hibrida (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): lapisan × kv_head × (head_dim K + head_dim V) × konteks × byte<br>• KV (SWA hibrida): lapisan penuh menyimpan konteks; lapisan SWA menyimpan min(konteks, window), dengan lebar K/V tepat per keluarga<br>• KV (MFA): lapisan × konteks × (256 K + 256 V) × byte (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte<br>• KV (CSA/HCA): K=V bersama 512-d; CSA = SWA-128 + ctx/4 terkompresi + indexer 128-d; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): lebar GQA-8 dengan ceil(lapisan/2) lapisan KV bersama (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1,5 GB desktop / 0,5 GB headless (dapat dikonfigurasi), Apple Silicon 25% reservasi Metal, Snapdragon/X Elite cap GPU bersama 50%',
+
+				formulas: '<strong>Formula:</strong><br>• Cakupan: penggeser berlabel ganda adalah jumlah token KV untuk satu konteks inferensi aktif<br>• Model: params(B) × 10^9 × byte/param × 1,05 ÷ 2^30 (GiB); MXFP4 ≈ 0,53 byte/param (gpt-oss/Kimi K3; hanya expert pada MiMo Pro), NVFP4 ≈ 0,56 byte/param (Laguna/Step 3.7/Blackwell)<br>• Atensi (Estimasi Otomatis): bucket per-anchor — GQA/MQA (termasuk kepala 64-dim Granite/gpt-oss), SWA+global hibrida (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): lapisan × kv_head × (head_dim K + head_dim V) × konteks × byte<br>• KV (SWA hibrida): lapisan penuh menyimpan konteks; lapisan SWA menyimpan min(konteks, window), dengan lebar K/V tepat per keluarga<br>• KV (MFA): lapisan × konteks × (256 K + 256 V) × byte (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte<br>• KV (CSA/HCA): K=V bersama 512-d; CSA = SWA-128 + ctx/4 terkompresi + indexer 128-d; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): lebar GQA-8 dengan ceil(lapisan/2) lapisan KV bersama (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1,5 GB desktop / 0,5 GB headless (dapat dikonfigurasi), Apple Silicon 25% reservasi Metal, Snapdragon/X Elite cap GPU bersama 50%',
 				architecture: '<strong>Data Referensi (Sintesis Estimasi Otomatis Multi-Generasi):</strong><br>• IBM Granite ~0,35B–8,1B: Granite 3.0–3.3 dense/MoE (1,3B-A0,4B, 2,5B, 3,3B-A0,8B, 8,1B; 24–40L, kepala 64/128-d), Granite 4.0 dense Nano/Micro serta varian H Mamba2 hibrida, Granite 4.1 dense 3B/8B, Granite SWASH 2,14B / 3,02B-A0,6B (SWA-128 + sink)<br>• ~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)<br>• ~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)<br>• ~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)<br>• ~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B<br>• ~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B aktif), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 aktif), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)<br>• IBM Granite Code / 4.x pada 20B–34B: Code 20B/34B (52L/88L×6144H, MQA-1); Granite 4.1 30B dense (64L×4096H, GQA-8) dan Granite 4.0 H-Small 32B-A9B (4 atensi + 36 Mamba2) bertumpang tindih dengan anchor umum<br>• ~29,6B (52L, 6656H): Muse Glimmer 30B multimodal (13 lapisan penuh + 39 SWA-2048, GQA-2; termasuk perception encoder 1,8B)<br>• ~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, konteks 256K)<br>• ~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, muat di Mac 36 GB)<br>• ~32B (64L, 5120H): Qwen 2.5/3 32B<br>• ~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)<br>• ~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)<br>• ~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)<br>• ~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (native MXFP4, GQA-8 64-dim), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, konteks 1M)<br>• ~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, konteks 1M), M.1 (225B-A23B, atensi global semua lapisan)<br>• ~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, konteks 512K), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, konteks 1M, multimodal), MiniMax Text-01 / M1 (456B-A46B, atensi lightning hibrida)<br>• ~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)<br>• ~196,8B–198B (45L×4096H): Step-3.5-Flash / Step-3.7-Flash (backbone bahasa 196B, 11B aktif; 12 penuh + 33 SWA-512 GQA-8; 3.7 menambah vision encoder 1,8B dan menyediakan NVFP4)<br>• ~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)<br>• ~309B–321B: MiMo-V2-Flash / V2.5 309–310B-A15B (48L×4096H, 9 global + 39 SWA-128, K/V asimetris 192/128-d, konteks 256K–1M); Step-3 321B-A38B VLM (61L×7168H, MFA berbagi K/V 256-d)<br>• ~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)<br>• ~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), MiMo-V2.5-Pro (1.02T-A42B, 70L×6144H, 10 global + 60 SWA-128, expert-only MXFP4 available), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, konteks 1M), Kimi K3 (2.8T, 93L×7168H, KDA+MLA)<br><br><strong>Preset Hardware (4 GB–192 GB):</strong> Budget 4–12 GB (GTX 1650 4GB, Arc A380 6GB, RTX 4060 8GB, Arc B570 10GB, RTX 3060 12GB #1 Steam, Arc B580 12GB $249) → Mainstream 16–32 GB (Arc A770 16GB termurah 16GB, RTX 5070 Ti 16GB, RTX 4090 24GB, Arc Pro B60 24GB $599 workstation, RTX 5090 32GB) → Workstation/Server 48–192 GB (L40S 48GB, A100 80GB, RTX PRO 6000 96GB, H200 141GB, B200 192GB) → Apple/Mobile (MacBook Neo 8GB, M4 Max 128GB MBP, M3 Ultra 192GB Studio, Snapdragon X Elite 32GB shared)',
-				sources: '<strong>Sumber:</strong> Makalah & Kartu Model Llama Gen 1–4 (Meta AI, 2023–2025), Laporan Gemma Gen 1–4 (Google), Makalah Qwen Gen 1–3 (Alibaba), Laporan Teknis MiniCPM Gen 1–5 (OpenBMB), Spek G9 v1–v3 (AI9Stars), Laporan Ling Gen 1–2 / 1000B (InclusionAI), Spek Inkling Gen 1 (Thinking Machines), Laporan DeepSeek V1–V4 & R1 (makalah V4 arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Kartu Model Tencent Hunyuan / Hy — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B (Tim Hy Tencent, 2026), Spek GLM 1–4 (Zhipu AI), Laporan Teknis Kimi V1–K3 (Moonshot AI, 2023–2026), Kartu Model & Spek GPT-OSS 20b/120b (OpenAI, 2025; MoE native MXFP4), Kartu Model & Laporan Teknis Cohere Command R / R+ / R7B / A / A+ dan Aya 101 / 23 / Expanse / Vision serta North Mini Code / Micro (Cohere Labs, 2022–2026), Kartu Model & Laporan Teknis Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 (Poolside, 2026; varian NVFP4/FP8/INT4), Kartu Model Arcee Trinity Nano / Mini / Large (Arcee AI, 2025–2026, OpenMDW), Kartu Model & params.json Bobot Terbuka Mistral — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), Kartu Model MiniMax Text-01 / M1 / M2→M2.7 / M3 + Laporan Teknis M3 arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> Spek NVIDIA RTX 50/40 (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Survei HW Steam 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4,8%, 8GB paling umum); Spek Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra (128GB MBP, 64–192GB Studio, cap Metal 25%); cap GPU bersama Snapdragon X Elite 50%'
+				sources: '<strong>Panduan konteks:</strong> dokumentasi completion llama.cpp (ukuran konteks prompt <code>--ctx-size</code>); Anthropic, “Effective context engineering for AI agents” (kompaksi, catatan terstruktur, dan retrieval tepat waktu); Chroma, “Context Rot” (degradasi performa saat panjang input bertambah).<br><strong>Pemeriksaan silang harness sumber terbuka:</strong> OpenClaw, OpenCode, Pi, Qwen Code, dan Gemini CLI memisahkan sesi atau memori persisten dari konteks model yang dikompaksi; DeepSeek Harness mencatat log sesi append-only dengan kompaksi yang dapat diganti; Hermes Agent mengompaksi riwayat aktif setelah menyimpan memori persisten; Prime Agent mengekspos konteks, memori, dan subagen melalui state harness persisten; OpenHands, SWE-agent, Aider, Cline, Roo Code, Goose, LangGraph, dan Letta memakai condenser, penyaringan, ringkasan, checkpoint, pengambilan informasi, atau memori eksternal.<br><strong>Sumber arsitektur & perangkat keras:</strong> Makalah & Kartu Model Llama Gen 1–4 (Meta AI, 2023–2025), Laporan Gemma Gen 1–4 (Google), Makalah Qwen Gen 1–3 (Alibaba), Laporan Teknis MiniCPM Gen 1–5 (OpenBMB), Spek G9 v1–v3 (AI9Stars), Laporan Ling Gen 1–2 / 1000B (InclusionAI), Spek Inkling Gen 1 (Thinking Machines), Laporan DeepSeek V1–V4 & R1 (makalah V4 arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Kartu Model Tencent Hunyuan / Hy — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B (Tim Hy Tencent, 2026), Spek GLM 1–4 (Zhipu AI), Laporan Teknis Kimi V1–K3 (Moonshot AI, 2023–2026), Kartu Model & Spek GPT-OSS 20b/120b (OpenAI, 2025; MoE native MXFP4), Kartu Model & Laporan Teknis Cohere Command R / R+ / R7B / A / A+ dan Aya 101 / 23 / Expanse / Vision serta North Mini Code / Micro (Cohere Labs, 2022–2026), Kartu Model & Laporan Teknis Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 (Poolside, 2026; varian NVFP4/FP8/INT4), Kartu Model Arcee Trinity Nano / Mini / Large (Arcee AI, 2025–2026, OpenMDW), Kartu Model & params.json Bobot Terbuka Mistral — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), Kartu Model MiniMax Text-01 / M1 / M2→M2.7 / M3 + Laporan Teknis M3 arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> Spek NVIDIA RTX 50/40 (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Survei HW Steam 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4,8%, 8GB paling umum); Spek Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra (128GB MBP, 64–192GB Studio, cap Metal 25%); cap GPU bersama Snapdragon X Elite 50%'
 			}
 		};
-		
+
 		const _c = {}, elements = new Proxy({}, { get: (_,id)=>_c[id]||(_c[id]=document.getElementById(id)) });
-		
+
 		const CLIPBOARD_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem;vertical-align:text-bottom"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
 			// Synthesized auto-estimate reference configurations from ALL generation versions of modern LLM families:
@@ -1152,7 +1083,7 @@
 				attn: (ratio < 0.5 ? lower : upper).attn
 			};
 		};
-		
+
 		const quantizationBytes = {
 			'fp32': 4.0, 'fp16': 2.0, 'bf16': 2.0, 'fp8': 1.0, 'int8': 1.0,
 			'gguf_q8': 1.06, 'gguf_q6': 0.83, 'gguf_q5': 0.69, 'gguf_q4': 0.60,
@@ -1164,37 +1095,27 @@
 			'nvfp4': 0.56,
 			'int4': 0.5, 'fp4': 0.5, 'gguf_q3': 0.46, 'gguf_q2': 0.41, 'fp2': 0.25
 		};
-		
+		const BYTES_PER_GIB = 1024 ** 3;
+		const GIB_PER_BILLION_BYTES = 1e9 / BYTES_PER_GIB;
+		const WEIGHT_OVERHEAD = 1.05; // metadata, quantization scales, and alignment
+
 		class LLMCalculator {
 			constructor() {
 				this.vramSize = 24;
 				this.quantization = 'fp16';
-				this.contextWindow = 8192; // allocated runtime KV-cache capacity
-				this.activeInputTokens = 4096;
-				this.cacheAllocationMode = 'static';
-				this.gpuKvShare = 0.25;
+				this.contextWindow = 8192; // configured KV-cache capacity for one active context
 				this.kvCacheQuant = 'same';
 				this.attention = 'auto';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
 				this.modelFamily = 'auto';
-				this.contextUseMode = 'normal';
-				this.agentic = false;
-				this.agentOutputTokens = 4096;
-				this.runtimeReserveGB = 0;
-				this.contextCap = 1048576;
-				this.outputCap = 262144;
-				this.agentConcurrency = 1;
-				this.agentHeadroom = 0.15;
-				this.agentHorizon = 1048576;
-				this.agentStrategy = 'rolling';
-				
+
 				this.setup();
 				this.theme('auto');
 				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
 				this.lang(this.language);
 			}
-			
+
 			clearActivePreset() {
 				document.querySelectorAll('.preset-btn[data-preset]').forEach(btn => {
 					btn.classList.remove('active');
@@ -1216,18 +1137,6 @@
 				elements.kvCache.onchange = e=>(this.clearActivePreset(),this.kvCacheQuant = e.target.value,this.calculate()),
 				elements.attention.onchange = e=>(this.clearActivePreset(),this.attention = e.target.value,this.calculate()),
 				elements.contextSlider.oninput = e=>(this.clearActivePreset(),this.contextWindow = Math.pow(2,Number(e.target.value)),this.updateContextDisplay(),this.calculate()),
-				elements.activeInputSlider.oninput = e=>(this.clearActivePreset(),this.activeInputTokens = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
-				elements.cacheAllocationMode.onchange = e=>(this.clearActivePreset(),this.cacheAllocationMode = e.target.value,this.updateCacheAllocationMode(),this.calculate()),
-				elements.gpuKvShareSlider.oninput = e=>(this.clearActivePreset(),this.gpuKvShare = Number(e.target.value) / 100,this.updateAgenticDisplay(),this.calculate()),
-				elements.contextUseMode.onchange = e=>{ this.clearActivePreset(); this.contextUseMode = e.target.value; this.agentic = this.contextUseMode === 'agentic'; this.updateContextUseMode(); this.calculate(); },
-				elements.agentStrategy.onchange = e=>(this.clearActivePreset(),this.agentStrategy = e.target.value,this.calculate()),
-				elements.agentOutputSlider.oninput = e=>(this.clearActivePreset(),this.agentOutputTokens = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
-				elements.agentConcurrencySlider.oninput = e=>(this.clearActivePreset(),this.agentConcurrency = Number(e.target.value),this.updateAgenticDisplay(),this.calculate()),
-				elements.agentHeadroomSlider.oninput = e=>(this.clearActivePreset(),this.agentHeadroom = Number(e.target.value) / 100,this.updateAgenticDisplay(),this.calculate()),
-				elements.runtimeReserveSlider.oninput = e=>(this.clearActivePreset(),this.runtimeReserveGB = Number(e.target.value),this.updateAgenticDisplay(),this.calculate()),
-				elements.contextCapSlider.oninput = e=>(this.clearActivePreset(),this.contextCap = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
-				elements.outputCapSlider.oninput = e=>(this.clearActivePreset(),this.outputCap = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
-				elements.agentHorizonSlider.oninput = e=>(this.clearActivePreset(),this.agentHorizon = Math.pow(2, Number(e.target.value)),this.updateAgenticDisplay(),this.calculate()),
 				elements.gpuType.onchange = e=>{
 					this.clearActivePreset();
 					this.gpuType = e.target.value;
@@ -1315,11 +1224,11 @@
 					const elems = nCsa * ((swa + context / 4) * headDim + (context / 4) * indexDim)
 						+ nHca * ((swa + context / 128) * headDim)
 						+ nSwa * (swa * headDim);
-					return (elems * bytesPerElement) / (1024 ** 3);
+					return (elems * bytesPerElement) / BYTES_PER_GIB;
 				}
 				if (attnType === 'mfa') {
 					// Step-3 MFA shares one 256-d K head and one 256-d V head across its 64 query heads.
-					return (arch.layers * context * (256 + 256) * bytesPerElement) / (1024 ** 3);
+					return (arch.layers * context * (256 + 256) * bytesPerElement) / BYTES_PER_GIB;
 				}
 				if (['mimo_swa', 'mimo_swa_pro', 'step_swa', 'muse_swa', 'granite_swa_2b', 'granite_swa_3b'].includes(attnType)) {
 					// Hybrid full/sliding-window caches retain the full prefix only in global layers; SWA layers retain min(context, window).
@@ -1347,13 +1256,13 @@
 					}
 					const swaLayers = Math.max(0, L - fullLayers);
 					const elems = fullLayers * context * fullWidth + swaLayers * Math.min(context, window) * swaWidth;
-					return (elems * bytesPerElement) / (1024 ** 3);
+					return (elems * bytesPerElement) / BYTES_PER_GIB;
 				}
 				if (attnType === 'mla' || attnType === 'mla_mistral') {
 					// DeepSeek V2/V3/V3.2/R1, Kimi K2/K2.5/K3, Mistral Large 3 MLA: (kv_lora_rank + qk_rope_head_dim) = 512 + 64 = 576.
 					// Mistral Small 4 (mla_mistral): 256 + 64 = 320.
 					kvWidth = attnType === 'mla_mistral' ? 320 : 576;
-					return (arch.layers * context * kvWidth * bytesPerElement) / (1024 ** 3);
+					return (arch.layers * context * kvWidth * bytesPerElement) / BYTES_PER_GIB;
 				} else {
 					if (attnType === 'mha') kvWidth = arch.hidden;
 					else if (attnType === 'gqa_16') kvWidth = 2048;  // 16 heads * 128 dim
@@ -1365,10 +1274,10 @@
 					else if (attnType === 'gqa_8_cla2') {
 						// Hunyuan-Large CLA: every 2 layers share one KV cache (cla_share_factor=2).
 						kvWidth = 1024;
-						return (2 * Math.ceil(arch.layers / 2) * kvWidth * context * bytesPerElement) / (1024 ** 3);
+						return (2 * Math.ceil(arch.layers / 2) * kvWidth * context * bytesPerElement) / BYTES_PER_GIB;
 					}
 					else kvWidth = 1024;                            // GQA-8: 8 heads * 128 dim (standard 2B-276B LLMs)
-					return (2 * arch.layers * kvWidth * context * bytesPerElement) / (1024 ** 3);
+					return (2 * arch.layers * kvWidth * context * bytesPerElement) / BYTES_PER_GIB;
 				}
 			}
 
@@ -1378,9 +1287,7 @@
 						`${elements.vramSizeLabel.textContent}: ${elements.vramValue.textContent}`,
 						`${t.gpuTypeLabel}: ${elements.gpuType.options[elements.gpuType.selectedIndex].text}`,
 						`${t.modelQuantLabel}: ${elements.quantization.options[elements.quantization.selectedIndex].text}`,
-						`${t.maxContextLabel}: ${elements.contextValue.textContent}`,
-						`${t.activeInputLabel}: ${elements.activeInputValue.textContent}; ${t.agentOutputLabel}: ${elements.agentOutputValue.textContent}`,
-						this.agentic ? `${t.agentHorizonLabel}: ${elements.agentHorizonValue.textContent}; ${t.agentConcurrencyLabel}: ${this.agentConcurrency}; ${t.agentOutputLabel}: ${elements.agentOutputValue.textContent}; ${t.agentHeadroomLabel}: ${elements.agentHeadroomValue.textContent}` : null,
+						`${elements.maxContextLabel.textContent}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
 						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
@@ -1392,7 +1299,7 @@
 					setTimeout(() => elements.copyBtn.innerHTML = _b, 2000);
 				} catch (e) { console.error(e); }
 			}
-			
+
 			applyPreset(preset) {
 				const presets = {
 					// Budget / Entry — 4–12 GB — for students, poor men, developing-world rigs (Steam survey: RTX 3060 12GB #1, GTX 1650 4.8%, RTX 4060 8GB)
@@ -1432,79 +1339,86 @@
 					this.vramSize = p.vram,
 					this.quantization = p.quant,
 					this.contextWindow = p.context,
-					this.activeInputTokens = p.context / 2,
-					this.agentOutputTokens = p.context / 2,
 					this.gpuType = p.gpu,
 					this.attention = p.attention || 'auto',
-					this.contextUseMode = 'normal',
-					this.agentic = false,
-					elements.contextUseMode.value = this.contextUseMode,
-					elements.agenticFields.classList.add('hidden'),
 					p.overhead !== undefined && (this.manualOverhead = p.overhead),
 					elements.vramSlider.value = p.vram,
 					elements.quantization.value = p.quant,
 					elements.contextSlider.value = Math.log2(p.context),
-					elements.activeInputSlider.value = Math.log2(this.activeInputTokens),
-					elements.agentOutputSlider.value = Math.log2(this.agentOutputTokens),
 					elements.gpuType.value = p.gpu,
 					elements.attention.value = this.attention,
 					elements.overheadSlider.value = this.manualOverhead,
 					this.updateVramDisplay(),
 					this.updateContextDisplay(),
-					this.updateAgenticDisplay(),
-					this.updateContextUseMode(),
 					this.calculate()
 				);
 			}
-			
+
 			updateVramDisplay() {
 				(elements.vramValue.textContent = `${this.vramSize} GB`,
 				elements.vramSlider.setAttribute('aria-valuetext',elements.vramValue.textContent),
 				elements.vramSizeLabel.textContent = this.gpuType === 'soc' ? this.string('unifiedMemoryLabel') :
 					this.gpuType === 'snapdragon' ? this.string('sharedMemoryLabel') : this.string('vramSizeLabel'));
 			}
-			
+
 			updateContextDisplay() {
 				(elements.contextValue.textContent = `${this.format(this.contextWindow)} tokens`,
 				elements.contextSlider.setAttribute('aria-valuetext',elements.contextValue.textContent));
 			}
-			
 
-			updateAgenticDisplay() {
-				const set = (valueElement, sliderElement, value) => {
-					valueElement.textContent = value;
-					sliderElement.setAttribute('aria-valuetext', value);
+			solveInterpolatedFit(availableGiB, weightGiBPerBillion, contextTokens, kvBytesPerElement) {
+				const weightOnlyMax = weightGiBPerBillion > 0 ? availableGiB / weightGiBPerBillion : 0;
+				const evaluate = params => {
+					const architecture = estimateArchitecture(params, this.modelFamily);
+					const kvCacheGiB = this.calculateKvCache(architecture, contextTokens, kvBytesPerElement);
+					return {
+						params,
+						architecture,
+						kvCacheGiB,
+						fits: params * weightGiBPerBillion + kvCacheGiB <= availableGiB
+					};
 				};
-				set(elements.agentOutputValue, elements.agentOutputSlider, `${this.format(this.agentOutputTokens)} tokens`);
-				set(elements.agentConcurrencyValue, elements.agentConcurrencySlider, this.format(this.agentConcurrency));
-				set(elements.agentHeadroomValue, elements.agentHeadroomSlider, `${Math.round(this.agentHeadroom * 100)}%`);
-				set(elements.agentHorizonValue, elements.agentHorizonSlider, `${this.format(this.agentHorizon)} tokens`);
-				set(elements.runtimeReserveValue, elements.runtimeReserveSlider, `${this.runtimeReserveGB.toFixed(1)} GB`);
-				set(elements.contextCapValue, elements.contextCapSlider, `${this.format(this.contextCap)} tokens`);
-				set(elements.outputCapValue, elements.outputCapSlider, `${this.format(this.outputCap)} tokens`);
-				set(elements.activeInputValue, elements.activeInputSlider, `${this.format(this.activeInputTokens)} tokens`);
-				set(elements.gpuKvShareValue, elements.gpuKvShareSlider, `${Math.round(this.gpuKvShare * 100)}%`);
+
+				// Attention overrides and interpolated layer counts can create discontinuities, so a
+				// descending scan finds the highest fitting region before local binary refinement.
+				const scanSteps = 8192;
+				const step = weightOnlyMax / scanSteps;
+				let lower = 0, upper = 0, found = false;
+				for (let i = scanSteps; i >= 0; i--) {
+					const candidate = step * i;
+					if (evaluate(candidate).fits) {
+						lower = candidate;
+						upper = Math.min(weightOnlyMax, candidate + step);
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					const result = evaluate(0);
+					return { maxParams: 0, estimatedArchitecture: result.architecture, kvCacheGB: result.kvCacheGiB, modelMemoryGB: 0 };
+				}
+
+				for (let i = 0; i < 28; i++) {
+					const midpoint = (lower + upper) / 2;
+					if (evaluate(midpoint).fits) lower = midpoint;
+					else upper = midpoint;
+				}
+				const result = evaluate(lower);
+				return {
+					maxParams: lower,
+					estimatedArchitecture: result.architecture,
+					kvCacheGB: result.kvCacheGiB,
+					modelMemoryGB: lower * weightGiBPerBillion
+				};
 			}
 
-			updateCacheAllocationMode() {
-				const mode = this.cacheAllocationMode;
-				elements.cacheAllocationMode.value = mode;
-				elements.offloadFields.classList.toggle('hidden', mode !== 'offloaded');
-				elements.cacheAllocationHelp.textContent = this.string(`cacheHelp${mode[0].toUpperCase()}${mode.slice(1)}`);
-			}
-
-			updateContextUseMode() {
-				const mode = this.contextUseMode;
-				elements.contextUseMode.value = mode;
-				elements.agenticFields.classList.toggle('hidden', mode !== 'agentic');
-				elements.contextUseModeHelp.textContent = this.string(`contextUseModeHelp${mode[0].toUpperCase()}${mode.slice(1)}`);
-			}
 
 			calculate() {
 				const bytesPerParam = quantizationBytes[this.quantization],
 					kvBytesPerElement = this.kvCacheQuant === 'same' ? quantizationBytes[this.quantization] : quantizationBytes[this.kvCacheQuant],
 					t = text[this.language];
-				
+
 				let overheadGB, availableVram, overheadMsg;
 				if (this.gpuType === 'soc') {
 					overheadGB = this.vramSize * 0.25;
@@ -1525,55 +1439,37 @@
 				elements.overheadSlider.value = overheadGB,
 				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`);
 
-				const availableForUse = Math.max(0,availableVram - this.runtimeReserveGB);
-				const effectiveContext = this.activeInputTokens + this.agentOutputTokens;
-				const peakOccupancyTokens = effectiveContext * this.agentConcurrency;
-				const allocationTokens = this.cacheAllocationMode === 'dynamic' ? peakOccupancyTokens : this.contextWindow;
-				const kvMultiplier = 1 + this.agentHeadroom;
-				let maxParams = 0,estimatedArchitecture = {layers: 0,hidden: 0};
-				
-				const WEIGHT_OVERHEAD = 1.05; // 5% for metadata, scales, and alignment
-
-				for (let i = 0; i < 5; i++) {
-					if (elements.advancedToggle.checked) {
-						estimatedArchitecture = {
-							layers: Number(elements.customLayers.value) || 32,
-							hidden: Number(elements.customHidden.value) || 4096
-						};
-					}
-					const kvCache = this.calculateKvCache(estimatedArchitecture, allocationTokens, kvBytesPerElement) * kvMultiplier;
-					const memoryForWeights = availableForUse - kvCache;
-					if (memoryForWeights <= 0) { (maxParams = 0); break; }
-					(maxParams = memoryForWeights / (bytesPerParam * WEIGHT_OVERHEAD),
-					 estimatedArchitecture = elements.advancedToggle.checked ? estimatedArchitecture : estimateArchitecture(maxParams, this.modelFamily));
+				const availableForUse = Math.max(0,availableVram);
+				const contextTokens = this.contextWindow;
+				const weightGiBPerBillion = bytesPerParam * WEIGHT_OVERHEAD * GIB_PER_BILLION_BYTES;
+				let fit;
+				if (elements.advancedToggle.checked) {
+					const estimatedArchitecture = {
+						layers: Number(elements.customLayers.value) || 32,
+						hidden: Number(elements.customHidden.value) || 4096
+					};
+					const kvCacheGB = this.calculateKvCache(estimatedArchitecture, contextTokens, kvBytesPerElement);
+					const maxParams = Math.max(0, (availableForUse - kvCacheGB) / weightGiBPerBillion);
+					fit = { maxParams, estimatedArchitecture, kvCacheGB, modelMemoryGB: maxParams * weightGiBPerBillion };
+				} else {
+					fit = this.solveInterpolatedFit(availableForUse, weightGiBPerBillion, contextTokens, kvBytesPerElement);
 				}
-				
-				const rawKvCacheGB = this.calculateKvCache(estimatedArchitecture, allocationTokens, kvBytesPerElement);
-				const kvCacheGB = rawKvCacheGB * kvMultiplier * (this.cacheAllocationMode === 'offloaded' ? this.gpuKvShare : 1);
-				const hostKvCacheGB = this.cacheAllocationMode === 'offloaded' ? rawKvCacheGB * kvMultiplier * (1 - this.gpuKvShare) : 0;
-				
+
 				this.displayResults({
 					totalVram: this.vramSize,
 					overheadGB: overheadGB,
-					runtimeReserveGB: this.runtimeReserveGB,
 					overheadMsg: overheadMsg,
 					availableVram: availableForUse,
-					kvCacheGB: kvCacheGB,
-					perSequenceKvCacheGB: rawKvCacheGB,
-					hostKvCacheGB: hostKvCacheGB,
-					allocationTokens: allocationTokens,
-					peakOccupancyTokens: peakOccupancyTokens,
-					effectiveContext: effectiveContext,
-					kvMultiplier: kvMultiplier,
-					modelMemoryGB: Math.max(0,availableForUse - kvCacheGB),
-					maxParams: maxParams,
-					estimatedArchitecture: estimatedArchitecture
+					kvCacheGB: fit.kvCacheGB,
+					contextTokens: contextTokens,
+					modelMemoryGB: fit.modelMemoryGB,
+					maxParams: fit.maxParams,
+					estimatedArchitecture: fit.estimatedArchitecture
 				});
 			}
-			
+
 			displayResults(results) {
-				const t = text[this.language],mbPerToken = (results.perSequenceKvCacheGB * 1024 / results.allocationTokens).toFixed(2);
-				const agenticDetail = `${this.format(this.activeInputTokens)} + ${this.format(this.agentOutputTokens)} tokens × ${this.format(this.agentConcurrency)} = ${this.format(results.peakOccupancyTokens)} peak tokens; ${this.format(results.allocationTokens)} allocated × ${(1 + this.agentHeadroom).toFixed(2)} ${t.agentKvDetail}`;
+				const t = text[this.language],mbPerToken = (results.kvCacheGB * 1024 / results.contextTokens).toFixed(2);
 
 				const total = results.totalVram || 1, ohPct = (results.overheadGB / total) * 100, kvPct = (results.kvCacheGB / total) * 100, modPct = (Math.max(0, results.modelMemoryGB) / total) * 100;
 
@@ -1615,16 +1511,13 @@
 							${results.overheadMsg ? `<span class="metric-sub">${results.overheadMsg}</span>` : ''}
 						</div>
 					</div>
-					${results.runtimeReserveGB > 0 ? `<div class="metric-row"><span class="metric-label">${t.runtimeReserveLabel}</span><div class="metric-value-group"><div class="metric-val" style="color: var(--danger)">-${results.runtimeReserveGB.toFixed(1)} GB</div></div></div>` : ''}
 					<div class="metric-row">
 						<span class="metric-label">${t.kvCacheMemory}</span>
 						<div class="metric-value-group">
 							<div class="metric-val" style="color: var(--warning)">-${results.kvCacheGB.toFixed(2)} GB (${kvPct.toFixed(0)}%)</div>
-							<span class="metric-sub">${mbPerToken} ${t.mbPerToken} · ${agenticDetail}</span>
+							<span class="metric-sub">${mbPerToken} ${t.mbPerToken} · ${this.format(results.contextTokens)} ${t.contextTokens}</span>
 						</div>
 					</div>
-					${results.hostKvCacheGB > 0 ? `<div class="metric-row"><span class="metric-label">Host RAM KV Cache</span><div class="metric-value-group"><div class="metric-val" style="color: var(--warning)">-${results.hostKvCacheGB.toFixed(2)} GB</div><span class="metric-sub">CPU-offloaded portion; throughput may be lower</span></div></div>` : ''}
-					${this.agentic ? `<div class="metric-row"><span class="metric-label">${t.agentHorizonMetric}</span><div class="metric-value-group"><div class="metric-val">${this.format(this.agentHorizon)} tokens</div><span class="metric-sub">${this.format(Math.max(1, Math.ceil(this.agentHorizon / results.effectiveContext)))} ${t.agentWindows} · ${elements.agentStrategy.options[elements.agentStrategy.selectedIndex].text}</span></div></div>` : ''}
 					<div class="metric-row" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
 						<span class="metric-label" style="font-weight: 700; color: var(--text)">${t.modelWeights}</span>
 						<div class="metric-value-group">
@@ -1636,19 +1529,15 @@
 					? (elements.warningBox.innerHTML = warnings.map(w=>`<p>${w}</p>`).join(''),elements.warningBox.classList.remove('hidden'))
 					: elements.warningBox.classList.add('hidden')))([
 						results.kvCacheGB > results.availableVram * 0.5 ? t.warningKvCache : null,
-						results.effectiveContext > this.contextCap ? t.warningContextCap : null,
-						this.cacheAllocationMode !== 'dynamic' && results.peakOccupancyTokens > this.contextWindow ? t.warningCachePool : null,
-						this.agentOutputTokens > this.outputCap ? t.warningOutputCap : null,
-						this.contextUseMode === 'agentic' && this.agentStrategy === 'full' && this.agentHorizon + this.agentOutputTokens > this.contextCap ? t.warningFullHistory : null,
 						results.modelMemoryGB <= 0 ? t.warningInsufficient : null
 					].filter(Boolean)));
 			}
-			
+
 			getModelCategory(params) {
 				const t = text[this.language];
 				return params < 4 ? t.categoryTiny : params < 40 ? t.categorySmall : params < 150 ? t.categoryMedium : t.categoryLarge;
 			}
-			
+
 			format(v,o={}) { return v.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US',o); }
 			string(k) { return text[this.language]?.[k] ?? k; }
 			theme(n) { (document.documentElement.className = n === 'auto' ? '' : n,elements.theme.value = n); }
@@ -1658,21 +1547,15 @@
 				elements.theme.setAttribute('aria-label', this.string('themeLabel')),
 				Object.keys(text.en).forEach(k=>elements[k] && (k === 'copyBtn' ? elements[k].innerHTML = CLIPBOARD_ICON + this.string(k) : elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
-				[...elements.contextUseMode.options].forEach(o=>o.textContent = this.string('contextUseMode' + o.value[0].toUpperCase() + o.value.slice(1))),
-				[...elements.cacheAllocationMode.options].forEach(o=>o.textContent = this.string('cacheAllocationMode' + o.value[0].toUpperCase() + o.value.slice(1))),
-				[...elements.agentStrategy.options].forEach(o=>o.textContent = this.string('agentStrategy' + o.value[0].toUpperCase() + o.value.slice(1))),
 				elements.formulasSection.innerHTML = this.string('formulas'),
 				elements.architectureSection.innerHTML = this.string('architecture'),
 				elements.sourcesText.innerHTML = this.string('sources'),
 				this.updateVramDisplay(),
 				this.updateContextDisplay(),
-				this.updateAgenticDisplay(),
-				this.updateCacheAllocationMode(),
-				this.updateContextUseMode(),
 				this.calculate());
 			}
 		}
-		
+
 		new LLMCalculator();
 	</script>
 </body>
