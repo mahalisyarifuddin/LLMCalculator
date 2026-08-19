@@ -612,8 +612,7 @@
 							<label id="gpuTypeLabel">GPU Type</label>
 						</div>
 						<select id="gpuType" class="full-width" aria-labelledby="gpuTypeLabel">
-							<option value="discrete">Discrete GPU (NVIDIA/AMD)</option>
-							<option value="intel_arc">Intel ARC (Discrete)</option>
+							<option value="discrete">Discrete GPU (NVIDIA / AMD / Intel ARC)</option>
 							<option value="soc">Apple Silicon (M-series)</option>
 							<option value="snapdragon">Snapdragon (Windows on Arm)</option>
 						</select>
@@ -1110,17 +1109,17 @@
 				const presets = {
 					// Budget / Entry — 4–12 GB — for students, poor men, developing-world rigs (Steam survey: RTX 3060 12GB #1, GTX 1650 4.8%, RTX 4060 8GB)
 					gtx1650: { vram: 4, quant: 'gguf_q4', context: 4096, gpu: 'discrete', overhead: 1.0, attention: 'auto' },
-					arc_a380: { vram: 6, quant: 'gguf_q4', context: 4096, gpu: 'intel_arc', overhead: 1.0, attention: 'auto' },
+					arc_a380: { vram: 6, quant: 'gguf_q4', context: 4096, gpu: 'discrete', overhead: 1.0, attention: 'auto' },
 					rtx4060: { vram: 8, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
 					rtx5050: { vram: 8, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					arc_b570: { vram: 10, quant: 'gguf_q4', context: 8192, gpu: 'intel_arc', overhead: 1.5, attention: 'auto' },
+					arc_b570: { vram: 10, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
 					rtx3060: { vram: 12, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					arc_b580: { vram: 12, quant: 'gguf_q4', context: 8192, gpu: 'intel_arc', overhead: 1.5, attention: 'auto' },
+					arc_b580: { vram: 12, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
 					// Mainstream / Enthusiast — 16–32 GB
-					arc_a770: { vram: 16, quant: 'gguf_q4', context: 16384, gpu: 'intel_arc', overhead: 1.5, attention: 'auto' },
+					arc_a770: { vram: 16, quant: 'gguf_q4', context: 16384, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
 					rtx5070ti: { vram: 16, quant: 'gguf_q4', context: 16384, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
 					rtx4090: { vram: 24, quant: 'gguf_q4', context: 32768, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					arc_pro_b60: { vram: 24, quant: 'gguf_q4', context: 32768, gpu: 'intel_arc', overhead: 0.8, attention: 'auto' },
+					arc_pro_b60: { vram: 24, quant: 'gguf_q4', context: 32768, gpu: 'discrete', overhead: 0.8, attention: 'auto' },
 					rtx5090: { vram: 32, quant: 'gguf_q4', context: 32768, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
 					// Workstation / Server — 48–192 GB — for businesses / self-hosted
 					l40s: { vram: 48, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
@@ -1186,11 +1185,8 @@
 					overheadGB = this.manualOverhead;
 					availableVram = this.vramSize - this.manualOverhead;
 					overheadMsg = t.snapdragonOverhead;
-				} else if (this.gpuType === 'intel_arc') {
-					overheadGB = this.manualOverhead;
-					availableVram = this.vramSize - this.manualOverhead;
-					overheadMsg = t.intelArcOverhead;
 				} else {
+					// Discrete covers NVIDIA / AMD / Intel ARC — same dedicated-GDDR model
 					overheadGB = this.manualOverhead;
 					availableVram = this.vramSize - this.manualOverhead;
 					overheadMsg = "";

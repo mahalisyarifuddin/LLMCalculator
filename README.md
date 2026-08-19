@@ -16,8 +16,7 @@ The calculator estimates memory usage based on:
 3.  **Context Window**: The maximum number of tokens the model processes. Larger context requires more KV cache memory.
 4.  **KV Cache**: Memory required to store Key-Value states for the context window. It also supports separate quantization for KV cache.
 5.  **System Overhead**:
-    -   **Discrete GPUs (NVIDIA/AMD)**: A configurable deduction (default 1.5 GB) for OS and display. Adjustable via slider (0–16 GB). Headless Linux servers: set to ~0.5 GB.
-    -   **Intel ARC (Discrete)**: Same as discrete NVIDIA/AMD — dedicated GDDR6 VRAM, configurable overhead (default 1.5 GB desktop, 0.8 GB for Pro B60 workstation). Requires **Resizable BAR** enabled in BIOS/UEFI; use IPEX-LLM (SYCL/Level Zero) or llama.cpp Vulkan/SYCL backend for LLM inference. Software support is improving but still rougher than CUDA (Ollama via IPEX-LLM fork, not vanilla).
+    -   **Discrete GPUs (NVIDIA / AMD / Intel ARC)**: A configurable deduction (default 1.5 GB) for OS and display. Adjustable via slider (0–16 GB). Headless Linux servers: set to ~0.5 GB. *Intel ARC notes:* dedicated GDDR6 VRAM (same model as NVIDIA/AMD), requires **Resizable BAR** enabled in BIOS/UEFI; use IPEX-LLM (SYCL/Level Zero) or llama.cpp Vulkan/SYCL backend for LLM inference. Software support is improving but still rougher than CUDA (Ollama via IPEX-LLM fork, not vanilla) — e.g., Arc Pro B60 24GB defaults to 0.8 GB workstation overhead.
     -   **Apple Silicon (M-series)**: macOS Metal driver reserves ~25% of Unified Memory by default (adjustable system-wide via `sysctl iogpu.wired_limit_mb`).
     -   **Snapdragon (Windows on Arm)**: Configurable OS + driver overhead (default 3.0 GB). Windows caps shared GPU memory at 50% of total RAM — the overhead slider lets you tune for your system's actual OS + background usage. This is a dynamic cap, not a fixed reservation.
 
@@ -27,7 +26,7 @@ It iteratively calculates the maximum parameter count (in Billions) that fits wi
 1.  Download `LLMCalculator.html`.
 2.  Open it in any modern browser (Chrome, Edge, Firefox, Safari).
 3.  Set your **GPU Memory** (VRAM Size) using the slider.
-4.  Select the **GPU Type** (Discrete NVIDIA/AMD, Intel ARC, Apple Silicon, or Snapdragon).
+4.  Select the **GPU Type** (Discrete — NVIDIA / AMD / Intel ARC, Apple Silicon, or Snapdragon).
 5.  Choose the **Model Precision** (Quantization) and **KV Cache** precision.
 6.  Adjust the **Context Window** (e.g., 8K, 32K tokens).
 7.  View the estimated **Max Parameters** and detailed memory breakdown.
@@ -40,7 +39,7 @@ It iteratively calculates the maximum parameter count (in Billions) that fits wi
 ## Key Features
 -   **Multi-language Support**: Toggle between English and Indonesian.
 -   **Real-time Calculation**: Instant updates as you adjust sliders and dropdowns.
--   **Architecture-Aware Logic**: Specific attention mechanisms (MHA, GQA, MLA) and GPU-specific memory reservation rules (Discrete, Intel ARC, Unified vs Shared).
+-   **Architecture-Aware Logic**: Specific attention mechanisms (MHA, GQA, MLA) and GPU-specific memory reservation rules (Discrete incl. Intel ARC, Unified vs Shared).
 -   **Adjustable Overhead**: Fine-tune system memory deduction for headless Linux servers vs Windows desktops.
 -   **Detailed Memory Breakdown**: Visualizes usage for System Overhead, KV Cache, and Model Weights.
 -   **Hardware Presets (21 presets, 4 GB–192 GB)**: One-click configuration covering the full stack — Budget (GTX 1650, Arc A380/B570/B580, RTX 3060/4060), Mainstream (Arc A770, RTX 5070 Ti/4090/5090, Arc Pro B60), Workstation/Server (L40S, A100, RTX PRO 6000 96GB, H200, B200), and Apple/Mobile (M4 Max, M3 Ultra, Snapdragon). Verified against Steam HW Survey 2025–2026, Tom's Hardware, Intel ARK.

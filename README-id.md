@@ -16,8 +16,7 @@ Kalkulator memperkirakan penggunaan memori berdasarkan:
 3.  **Jendela Konteks**: Jumlah maksimum token yang diproses model. Konteks yang lebih besar membutuhkan lebih banyak memori KV cache.
 4.  **KV Cache**: Memori yang diperlukan untuk menyimpan status Key-Value untuk jendela konteks. Ini juga mendukung kuantisasi terpisah untuk KV cache.
 5.  **Overhead Sistem**:
-    -   **GPU Diskrit (NVIDIA/AMD)**: Deduksi yang dapat dikonfigurasi (default 1.5 GB) untuk OS dan tampilan. Dapat disesuaikan melalui penggeser (0–16 GB). Server headless Linux: set ~0.5 GB.
-    -   **Intel ARC (Diskrit)**: Sama seperti diskrit NVIDIA/AMD — VRAM GDDR6 terdedikasi, overhead dapat dikonfigurasi (default 1.5 GB desktop, 0.8 GB untuk Pro B60 workstation). Butuh **Resizable BAR** aktif di BIOS/UEFI; gunakan IPEX-LLM (SYCL/Level Zero) atau backend Vulkan/SYCL llama.cpp untuk inferensi LLM. Dukungan software masih berkembang, lebih rumit daripada CUDA (Ollama via fork IPEX-LLM).
+    -   **GPU Diskrit (NVIDIA / AMD / Intel ARC)**: Deduksi yang dapat dikonfigurasi (default 1.5 GB) untuk OS dan tampilan. Dapat disesuaikan melalui penggeser (0–16 GB). Server headless Linux: set ~0.5 GB. *Catatan Intel ARC:* VRAM GDDR6 terdedikasi (model sama seperti NVIDIA/AMD), butuh **Resizable BAR** aktif di BIOS/UEFI; gunakan IPEX-LLM (SYCL/Level Zero) atau backend Vulkan/SYCL llama.cpp untuk inferensi LLM. Dukungan software masih berkembang, lebih rumit daripada CUDA (Ollama via fork IPEX-LLM) — contoh Arc Pro B60 24GB default 0.8 GB workstation.
     -   **Apple Silicon (M-series)**: Driver Metal macOS mencadangkan ~25% Memori Terpadu secara default (dapat diubah secara sistem melalui `sysctl iogpu.wired_limit_mb`).
     -   **Snapdragon (Windows on Arm)**: Overhead OS + driver yang dapat dikonfigurasi (default 3.0 GB). Windows membatasi memori GPU bersama hingga 50% dari total RAM — penggeser overhead memungkinkan Anda menyesuaikan dengan penggunaan OS + latar belakang sistem Anda. Ini adalah batas dinamis, bukan cadangan tetap.
 
@@ -27,7 +26,7 @@ Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yan
 1.  Unduh `LLMCalculator.html`.
 2.  Buka di peramban modern apa pun (Chrome, Edge, Firefox, Safari).
 3.  Atur **Memori GPU** (Ukuran VRAM) Anda menggunakan penggeser.
-4.  Pilih **Tipe GPU** (Diskrit NVIDIA/AMD, Intel ARC, Apple Silicon, atau Snapdragon).
+4.  Pilih **Tipe GPU** (Diskrit — NVIDIA / AMD / Intel ARC, Apple Silicon, atau Snapdragon).
 5.  Pilih **Presisi Model** (Kuantisasi) dan presisi **KV Cache**.
 6.  Sesuaikan **Jendela Konteks** (misalnya, 8K, 32K token).
 7.  Lihat estimasi **Parameter Maksimum** dan rincian memori.
@@ -40,7 +39,7 @@ Alat ini secara berulang menghitung jumlah parameter maksimum (dalam Miliar) yan
 ## Fitur Utama
 -   **Dukungan Multi-bahasa**: Beralih antara Bahasa Inggris dan Indonesia.
 -   **Kalkulasi Real-time**: Pembaruan instan saat Anda menyesuaikan penggeser dan menu drop-down.
--   **Logika Arsitektur Cerdas**: Mekanisme attention spesifik (MHA, GQA, MLA) dan aturan reservasi memori spesifik-GPU (Discrete, Intel ARC, Unified vs Shared).
+-   **Logika Arsitektur Cerdas**: Mekanisme attention spesifik (MHA, GQA, MLA) dan aturan reservasi memori spesifik-GPU (Diskrit termasuk Intel ARC, Unified vs Shared).
 -   **Overhead yang Dapat Disesuaikan**: Atur deduksi memori sistem secara presisi untuk server Linux headless vs desktop Windows.
 -   **Rincian Memori Mendetail**: Memvisualisasikan penggunaan untuk Overhead Sistem, KV Cache, dan Bobot Model.
 -   **Preset Perangkat Keras (21 preset, 4 GB–192 GB)**: Konfigurasi satu klik mencakup seluruh stack — Budget (GTX 1650, Arc A380/B570/B580, RTX 3060/4060), Mainstream (Arc A770, RTX 5070 Ti/4090/5090, Arc Pro B60), Workstation/Server (L40S, A100, RTX PRO 6000 96GB, H200, B200), dan Apple/Mobile (M4 Max, M3 Ultra, Snapdragon). Diverifikasi terhadap Steam HW Survey 2025–2026, Tom's Hardware, Intel ARK.

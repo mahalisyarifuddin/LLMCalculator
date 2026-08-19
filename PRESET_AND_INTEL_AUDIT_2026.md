@@ -1,5 +1,7 @@
 # Preset & Calculation Audit + Intel ARC Research — 2026-08-19
 
+**Update 2026-08-19 (user feedback):** Intel ARC merged into `Discrete GPU (NVIDIA / AMD / Intel ARC)` — single dropdown option. Presets remain distinct; calculation identical (dedicated VRAM, 1.5 GB desktop / 0.8 GB Pro). See §4.3.
+
 **Scope:** Audit `LLMCalculator.html` preset coverage and calculation correctness across the economic spectrum — from “poor men” (4 GB GTX 1650, student laptops) to businesses self-hosting datacenter GPUs — and research + implement Intel ARC support.
 
 **Method:** Web searches on 2026-08-19 covering quantization formulas, KV-cache math, Steam Hardware Survey, GPU VRAM databases, Intel ARC launch coverage, and Apple Silicon memory specs. Every factual claim below cites a search result.
@@ -272,14 +274,14 @@ Overhead prior audit: `OVERHEAD_AUDIT.md` in repo (SitePoint, llama.cpp discussi
 
 ## 6. Implementation Checklist
 
-- [x] `gpuType` → `intel_arc` option
-- [x] `intelArcOverhead` strings EN/ID
-- [x] `calculate()` handles 4 GPU types
-- [x] `getAutoAttentionType` MLA fix
-- [x] 13 new presets (5 Intel + 8 NVIDIA/Server/Apple) — total 21
+- [x] `gpuType` → merged `Discrete GPU (NVIDIA / AMD / Intel ARC)` (was separate `intel_arc`; merged per feedback, calc identical)
+- [x] `intelArcOverhead` strings EN/ID kept for docs + future hint
+- [x] `calculate()` handles 3 GPU types (discrete incl. Intel, soc, snapdragon)
+- [x] `getAutoAttentionType` MLA fix (narrowed to 61–67L×7168H)
+- [x] 13 new presets (5 Intel + 8 NVIDIA/Server/Apple) — total 21 (Intel presets now use `gpu: discrete`)
 - [x] Quant: budget → `gguf_q4` (real), server → `fp16`
 - [x] UI grouped, responsive, active-state handling preserved
-- [x] References & methodology updated
-- [x] README.md / README-id.md updated
+- [x] References & methodology updated (formulas/hardware tiers)
+- [x] README.md / README-id.md updated — Discrete bullet now includes Intel ARC + ReBAR note
 - [x] Offline-only header preserved (no URL hash/storage)
 
