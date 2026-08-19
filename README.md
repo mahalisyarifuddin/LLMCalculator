@@ -12,7 +12,7 @@ The interface supports both **English** and **Bahasa Indonesia**.
 The calculator estimates memory usage based on:
 
 1.  **VRAM Size**: The total GPU memory available (e.g., 24GB, 80GB).
-2.  **Quantization**: The precision of model weights (FP32, FP16/BF16, FP8/INT8, INT4/FP4, FP2). Lower precision reduces memory usage but may affect quality.
+2.  **Quantization**: The precision of model weights (FP32, FP16/BF16, FP8/INT8, MXFP4, NVFP4, INT4/FP4, FP2). MXFP4 (~0.53 bytes/param) is the native format of GPT-OSS and Kimi K3; NVFP4 (~0.56 bytes/param) is the Blackwell-native FP4 format shipped by Poolside Laguna. Lower precision reduces memory usage but may affect quality.
 3.  **Context Window**: The maximum number of tokens the model processes. Larger context requires more KV cache memory.
 4.  **KV Cache**: Memory required to store Key-Value states for the context window. It also supports separate quantization for KV cache.
 5.  **System Overhead**:
@@ -43,8 +43,8 @@ It iteratively calculates the maximum parameter count (in Billions) that fits wi
 -   **Adjustable Overhead**: Fine-tune system memory deduction for headless Linux servers vs Windows desktops.
 -   **Detailed Memory Breakdown**: Visualizes usage for System Overhead, KV Cache, and Model Weights.
 -   **Hardware Presets (21 presets, 4 GB–192 GB)**: One-click configuration covering the full stack — Budget (GTX 1650, Arc A380/B570/B580, RTX 3060/4060), Mainstream (Arc A770, RTX 5070 Ti/4090/5090, Arc Pro B60), Workstation/Server (L40S, A100, RTX PRO 6000 96GB, H200, B200), and Apple/Mobile (M4 Max, M3 Ultra, Snapdragon). Verified against Steam HW Survey 2025–2026, Tom's Hardware, Intel ARK.
--   **Advanced Options**: Support for various quantization formats (GGUF, GPTQ, FP8) and manual architecture overrides.
--   **Multi-Generational Auto-Estimate Model & Attention Architecture**: Dynamically estimates both model architecture (Layers and Hidden Size) and attention mechanism (GQA-4 for <2B, GQA-8 for 2B–405B, MLA for 671B+ MoEs) by synthesizing calculations across all generation versions of modern LLM families: Llama (Gen 1–4), Gemma (Gen 1–4), Qwen (Gen 1–3), MiniCPM (Gen 1–5), G9 (v1–v3), Ling (1.0–2.0), Inkling (Gen 1), DeepSeek (V1–V3, R1), GLM (1–4), and Kimi (V1–K3).
+-   **Advanced Options**: Support for various quantization formats (GGUF, GPTQ, FP8, MXFP4, NVFP4) and manual architecture overrides.
+-   **Multi-Generational Auto-Estimate Model & Attention Architecture**: Dynamically estimates both model architecture (Layers and Hidden Size) and attention mechanism (GQA-4 for <2B and North Mini 30B-A3B, GQA-8 for 2B–405B with 64-dim heads on GPT-OSS, MLA for 671B+ MoEs) by synthesizing calculations across all generation versions of modern LLM families: Llama (Gen 1–4), Gemma (Gen 1–4), Qwen (Gen 1–3), MiniCPM (Gen 1–5), G9 (v1–v3), Ling (1.0–2.0), Inkling (Gen 1), DeepSeek (V1–V3, R1), GLM (1–4), Kimi (V1–K3), GPT-OSS (20b/120b, MXFP4-native), Cohere Command (R, R+, R7B, A, A+), Cohere Aya (101, 23, Expanse, Vision), Cohere North (Mini Code, Micro), Poolside Laguna (XS.2, XS 2.1, M.1, S 2.1), Mistral open weights (Mistral 7B, Mixtral 8x7B/8x22B, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3), Arcee Trinity (Nano, Mini, Large), and MiniMax (Text-01, M1, M2–M2.7, M3).
 -   **Standardized Model Size Buckets (Artificial Analysis)**: Categorizes models into 4 standardized tiers: **Tiny (<4B)**, **Small (4B–40B)**, **Medium (40B–150B)**, and **Large (150B+)** based on Artificial Analysis taxonomy.
 -   **Single HTML file**: No installation, no dependencies, works completely offline.
 -   **Responsive design**: Works on desktop, tablet, and mobile devices.
