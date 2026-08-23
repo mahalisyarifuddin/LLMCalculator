@@ -1296,7 +1296,11 @@
 					await navigator.clipboard.writeText(summary);
 					const _b = elements.copyBtn.innerHTML;
 					elements.copyBtn.innerHTML = CLIPBOARD_ICON + t.copied;
-					setTimeout(() => elements.copyBtn.innerHTML = _b, 2000);
+					elements.copyBtn.setAttribute('aria-label', t.copied);
+					setTimeout(() => {
+						elements.copyBtn.innerHTML = _b;
+						elements.copyBtn.setAttribute('aria-label', t.copyBtn);
+					}, 2000);
 				} catch (e) { console.error(e); }
 			}
 
@@ -1437,7 +1441,8 @@
 
 				(elements.overheadSlider.disabled = this.gpuType === 'soc',
 				elements.overheadSlider.value = overheadGB,
-				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`);
+				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`,
+				elements.overheadSlider.setAttribute('aria-valuetext', `${overheadGB.toFixed(1)} GB`));
 
 				const availableForUse = Math.max(0,availableVram);
 				const contextTokens = this.contextWindow;
@@ -1454,6 +1459,9 @@
 				} else {
 					fit = this.solveInterpolatedFit(availableForUse, weightGiBPerBillion, contextTokens, kvBytesPerElement);
 				}
+
+				elements.customLayers.setAttribute('aria-valuetext', `${elements.customLayers.value} ${this.string('layersLabel')}`);
+				elements.customHidden.setAttribute('aria-valuetext', `${elements.customHidden.value} ${this.string('hiddenLabel')}`);
 
 				this.displayResults({
 					totalVram: this.vramSize,
@@ -1545,6 +1553,7 @@
 				(this.language = elements.language.value = document.documentElement.lang = l,
 				elements.language.setAttribute('aria-label', this.string('languageLabel')),
 				elements.theme.setAttribute('aria-label', this.string('themeLabel')),
+				elements.copyBtn.setAttribute('aria-label', this.string('copyBtn')),
 				Object.keys(text.en).forEach(k=>elements[k] && (k === 'copyBtn' ? elements[k].innerHTML = CLIPBOARD_ICON + this.string(k) : elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
 				elements.formulasSection.innerHTML = this.string('formulas'),
