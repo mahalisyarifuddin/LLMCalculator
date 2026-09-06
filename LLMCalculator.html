@@ -1292,8 +1292,24 @@
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
 						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
 					].filter(Boolean).join('\n');
+				let success = false;
 				try {
 					await navigator.clipboard.writeText(summary);
+					success = true;
+				} catch (e) {
+					// Fallback for restricted contexts (e.g. file://, un-focused iframe, missing clipboard permissions)
+					try {
+						const ta = document.createElement('textarea');
+						ta.value = summary;
+						ta.style.position = 'fixed';
+						ta.style.opacity = '0';
+						document.body.appendChild(ta);
+						ta.select();
+						success = document.execCommand('copy');
+						document.body.removeChild(ta);
+					} catch (err) { console.error(err); }
+				}
+				if (success) {
 					const _b = elements.copyBtn.innerHTML;
 					elements.copyBtn.innerHTML = CLIPBOARD_ICON + t.copied;
 					elements.copyBtn.setAttribute('aria-label', t.copied);
@@ -1301,7 +1317,7 @@
 						elements.copyBtn.innerHTML = _b;
 						elements.copyBtn.setAttribute('aria-label', t.copyBtn);
 					}, 2000);
-				} catch (e) { console.error(e); }
+				}
 			}
 
 			applyPreset(preset) {
