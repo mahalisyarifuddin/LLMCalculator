@@ -708,7 +708,7 @@
 
 					<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
 						<label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem; font-weight: 600;">
-							<input type="checkbox" id="advancedToggle" aria-expanded="false" aria-controls="advancedFields"> Advanced Architecture Overrides
+							<input type="checkbox" id="advancedToggle" aria-expanded="false" aria-controls="advancedFields"> <span id="advancedToggleLabel">Advanced Architecture Overrides</span>
 						</label>
 						<div id="advancedFields" class="hidden" style="margin-top: 1rem;">
 							<div class="form-group">
@@ -788,7 +788,7 @@
 
 				<div class="card">
 					<h2 id="presetsLabel">Quick Presets</h2>
-					<div class="presets-grid">
+					<div class="presets-grid" role="group" aria-labelledby="presetsLabel">
 						<!-- Budget / Entry (4–12 GB) — for students, poor men, developing-world rigs -->
 						<button class="preset-btn" data-preset="gtx1650" aria-pressed="false">GTX 1650 4GB</button>
 						<button class="preset-btn" data-preset="arc_a380" aria-pressed="false">Arc A380 6GB</button>
@@ -891,6 +891,9 @@
 
 				layersLabel: 'Layers',
 				hiddenLabel: 'Hidden Size',
+				advancedToggleLabel: 'Advanced Architecture Overrides',
+				customLayersLabel: 'Custom Layers',
+				customHiddenLabel: 'Custom Hidden Size',
 
 				categorySuffix: '•',
 				categoryTiny: 'Tiny (<4B)',
@@ -950,6 +953,9 @@
 
 				layersLabel: 'Lapisan',
 				hiddenLabel: 'Ukuran Tersembunyi',
+				advancedToggleLabel: 'Kustomisasi Arsitektur Lanjutan',
+				customLayersLabel: 'Lapisan Kustom',
+				customHiddenLabel: 'Ukuran Tersembunyi Kustom',
 
 				categorySuffix: '•',
 				categoryTiny: 'Sangat Kecil (<4B)',
