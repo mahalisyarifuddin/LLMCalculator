@@ -703,6 +703,12 @@
 						</div>
 						<select id="attention" class="full-width" aria-labelledby="attentionLabel">
 							<option value="auto" selected>Auto-Estimate (General)</option>
+							<option value="gqa_8">GQA (8-head)</option>
+							<option value="gqa_4">GQA (4-head)</option>
+							<option value="gqa_2">GQA (2-head)</option>
+							<option value="gqa_16">GQA (16-head)</option>
+							<option value="mha">MHA (Multi-Head Attention)</option>
+							<option value="mla">MLA (DeepSeek/Kimi Multi-Head Latent Attention)</option>
 						</select>
 					</div>
 
@@ -881,6 +887,7 @@
 				referenceTitle: 'References & Methodology',
 				languageLabel: 'Select Language',
 				themeLabel: 'Select Theme',
+				autoEstimate: 'Auto-Estimate (General)',
 				copyBtn: 'Copy Summary',
 				copied: 'Copied!',
 
@@ -943,6 +950,7 @@
 				referenceTitle: 'Referensi & Metodologi',
 				languageLabel: 'Pilih Bahasa',
 				themeLabel: 'Pilih Tema',
+				autoEstimate: 'Estimasi Otomatis (Umum)',
 				copyBtn: 'Salin Ringkasan',
 				copied: 'Tersalin!',
 
@@ -1590,6 +1598,8 @@
 				elements.copyBtn.setAttribute('aria-label', this.string('copyBtn')),
 				Object.keys(text.en).forEach(k=>elements[k] && (k === 'copyBtn' ? elements[k].innerHTML = CLIPBOARD_ICON + this.string(k) : elements[k].textContent = this.string(k))),
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
+				elements.modelFamily.options[0].textContent = this.string('autoEstimate'),
+				elements.attention.options[0].textContent = this.string('autoEstimate'),
 				elements.formulasSection.innerHTML = this.string('formulas'),
 				elements.architectureSection.innerHTML = this.string('architecture'),
 				elements.sourcesText.innerHTML = this.string('sources'),
