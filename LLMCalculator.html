@@ -439,6 +439,23 @@
 		}
 
 		/* Presets */
+		.preset-group {
+			margin-bottom: 1rem;
+		}
+
+		.preset-group:last-child {
+			margin-bottom: 0;
+		}
+
+		.preset-tier-title {
+			font-size: 0.8rem;
+			font-weight: 600;
+			color: var(--text-muted);
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			margin-bottom: 0.5rem;
+		}
+
 		.presets-grid {
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -794,32 +811,48 @@
 
 				<div class="card">
 					<h2 id="presetsLabel">Quick Presets</h2>
-					<div class="presets-grid" role="group" aria-labelledby="presetsLabel">
-						<!-- Budget / Entry (4–12 GB) — for students, poor men, developing-world rigs -->
-						<button class="preset-btn" data-preset="gtx1650" aria-pressed="false">GTX 1650 4GB</button>
-						<button class="preset-btn" data-preset="arc_a380" aria-pressed="false">Arc A380 6GB</button>
-						<button class="preset-btn" data-preset="rtx4060" aria-pressed="false">RTX 4060 8GB</button>
-						<button class="preset-btn" data-preset="rtx5050" aria-pressed="false">RTX 5050 Laptop 8GB</button>
-						<button class="preset-btn" data-preset="arc_b570" aria-pressed="false">Arc B570 10GB</button>
-						<button class="preset-btn" data-preset="rtx3060" aria-pressed="false">RTX 3060 12GB</button>
-						<button class="preset-btn" data-preset="arc_b580" aria-pressed="false">Arc B580 12GB</button>
-						<!-- Mainstream / Enthusiast (16–32 GB) -->
-						<button class="preset-btn" data-preset="arc_a770" aria-pressed="false">Arc A770 16GB</button>
-						<button class="preset-btn" data-preset="rtx5070ti" aria-pressed="false">RTX 5070 Ti 16GB</button>
-						<button class="preset-btn" data-preset="rtx4090" aria-pressed="false">RTX 4090 24GB</button>
-						<button class="preset-btn" data-preset="arc_pro_b60" aria-pressed="false">Arc Pro B60 24GB</button>
-						<button class="preset-btn" data-preset="rtx5090" aria-pressed="false">RTX 5090 32GB</button>
-						<!-- Workstation / Server (48–192 GB) — for businesses / self-hosted -->
-						<button class="preset-btn" data-preset="l40s" aria-pressed="false">L40S 48GB</button>
-						<button class="preset-btn" data-preset="a100" aria-pressed="false">A100 80GB</button>
-						<button class="preset-btn" data-preset="rtx_pro_6000" aria-pressed="false">RTX PRO 6000 96GB</button>
-						<button class="preset-btn" data-preset="h200" aria-pressed="false">H200 141GB</button>
-						<button class="preset-btn" data-preset="b200" aria-pressed="false">B200 192GB</button>
-						<!-- Apple Silicon / Mobile -->
-						<button class="preset-btn" data-preset="macbookneo" aria-pressed="false">MacBook Neo 8GB</button>
-						<button class="preset-btn" data-preset="m4max" aria-pressed="false">M4 Max 128GB</button>
-						<button class="preset-btn" data-preset="m3ultra" aria-pressed="false">M3 Ultra 192GB</button>
-						<button class="preset-btn" data-preset="snapdragon" aria-pressed="false">Snapdragon X 32GB</button>
+					<div id="presetsContainer">
+						<div class="preset-group">
+							<h3 class="preset-tier-title" id="presetBudget">Budget / Entry (4–12 GB)</h3>
+							<div class="presets-grid" role="group" aria-labelledby="presetBudget">
+								<button class="preset-btn" data-preset="gtx1650" aria-pressed="false">GTX 1650 4GB</button>
+								<button class="preset-btn" data-preset="arc_a380" aria-pressed="false">Arc A380 6GB</button>
+								<button class="preset-btn" data-preset="rtx4060" aria-pressed="false">RTX 4060 8GB</button>
+								<button class="preset-btn" data-preset="rtx5050" aria-pressed="false">RTX 5050 Laptop 8GB</button>
+								<button class="preset-btn" data-preset="arc_b570" aria-pressed="false">Arc B570 10GB</button>
+								<button class="preset-btn" data-preset="rtx3060" aria-pressed="false">RTX 3060 12GB</button>
+								<button class="preset-btn" data-preset="arc_b580" aria-pressed="false">Arc B580 12GB</button>
+							</div>
+						</div>
+						<div class="preset-group">
+							<h3 class="preset-tier-title" id="presetMainstream">Mainstream / Enthusiast (16–32 GB)</h3>
+							<div class="presets-grid" role="group" aria-labelledby="presetMainstream">
+								<button class="preset-btn" data-preset="arc_a770" aria-pressed="false">Arc A770 16GB</button>
+								<button class="preset-btn" data-preset="rtx5070ti" aria-pressed="false">RTX 5070 Ti 16GB</button>
+								<button class="preset-btn" data-preset="rtx4090" aria-pressed="false">RTX 4090 24GB</button>
+								<button class="preset-btn" data-preset="arc_pro_b60" aria-pressed="false">Arc Pro B60 24GB</button>
+								<button class="preset-btn" data-preset="rtx5090" aria-pressed="false">RTX 5090 32GB</button>
+							</div>
+						</div>
+						<div class="preset-group">
+							<h3 class="preset-tier-title" id="presetWorkstation">Workstation / Server (48–192 GB)</h3>
+							<div class="presets-grid" role="group" aria-labelledby="presetWorkstation">
+								<button class="preset-btn" data-preset="l40s" aria-pressed="false">L40S 48GB</button>
+								<button class="preset-btn" data-preset="a100" aria-pressed="false">A100 80GB</button>
+								<button class="preset-btn" data-preset="rtx_pro_6000" aria-pressed="false">RTX PRO 6000 96GB</button>
+								<button class="preset-btn" data-preset="h200" aria-pressed="false">H200 141GB</button>
+								<button class="preset-btn" data-preset="b200" aria-pressed="false">B200 192GB</button>
+							</div>
+						</div>
+						<div class="preset-group">
+							<h3 class="preset-tier-title" id="presetAppleMobile">Apple / Mobile</h3>
+							<div class="presets-grid" role="group" aria-labelledby="presetAppleMobile">
+								<button class="preset-btn" data-preset="macbookneo" aria-pressed="false">MacBook Neo 8GB</button>
+								<button class="preset-btn" data-preset="m4max" aria-pressed="false">M4 Max 128GB</button>
+								<button class="preset-btn" data-preset="m3ultra" aria-pressed="false">M3 Ultra 192GB</button>
+								<button class="preset-btn" data-preset="snapdragon" aria-pressed="false">Snapdragon X 32GB</button>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -884,6 +917,10 @@
 				maxParamsLabel: 'Maximum Parameters',
 				memoryAllocationLabel: 'Memory Allocation',
 				presetsLabel: 'Quick Presets',
+				presetBudget: 'Budget / Entry (4–12 GB)',
+				presetMainstream: 'Mainstream / Enthusiast (16–32 GB)',
+				presetWorkstation: 'Workstation / Server (48–192 GB)',
+				presetAppleMobile: 'Apple / Mobile',
 				referenceTitle: 'References & Methodology',
 				languageLabel: 'Select Language',
 				themeLabel: 'Select Theme',
@@ -947,6 +984,10 @@
 				maxParamsLabel: 'Parameter Maksimum',
 				memoryAllocationLabel: 'Alokasi Memori',
 				presetsLabel: 'Preset Cepat',
+				presetBudget: 'Anggaran / Entri (4–12 GB)',
+				presetMainstream: 'Mainstream / Antusias (16–32 GB)',
+				presetWorkstation: 'Workstation / Server (48–192 GB)',
+				presetAppleMobile: 'Apple / Seluler',
 				referenceTitle: 'Referensi & Metodologi',
 				languageLabel: 'Pilih Bahasa',
 				themeLabel: 'Pilih Tema',
