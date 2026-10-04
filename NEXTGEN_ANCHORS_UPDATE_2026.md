@@ -1,6 +1,6 @@
 # Model-Synthesis Update: Zhipu GLM-4.5 → GLM-5.3, Qwen3-Next → Qwen3.8, InclusionAI Ling 2.0 → 3.0, DeepSeek V4.1-Flash and Hy4-preview — 2026-10-04
 
-**Scope:** Newer-generation open-weight language backbones from Z.ai / Zhipu (GLM MoE line) and Alibaba (Qwen3-Next and Qwen3.5) added as interpolation anchors in the multi-generational auto-estimate synthesis in `LLMCalculator.html`, plus both READMEs. The reference table grows from 72 to **94 strictly sorted, unique anchors** (sections 1–5 cover the first 90; section 6 covers the 2026 Q3 generation sweep that adds the last four).
+**Scope:** Newer-generation open-weight language backbones from Z.ai / Zhipu (GLM MoE line) and Alibaba (Qwen3-Next and Qwen3.5) added as interpolation anchors in the multi-generational auto-estimate synthesis in `LLMCalculator.html`, plus both READMEs. The reference table grows from 72 to **98 strictly sorted, unique anchors** (sections 1–5 cover the first 90; section 6 covers the 2026 Q3 generation sweep; section 7 adds the Gemma 3 / Gemma 4 interleaved-attention anchors).
 
 Four new KV-cache shapes are introduced: `qwen_gdn` / `qwen_gdn_4kv` (hybrid Gated DeltaNet + Gated Attention), `mla_dsa` (MLA latent cache + DeepSeek Sparse Attention indexer), and `ling_kda_mla` / `ling_lightning_mla` (hybrid linear attention + one gated-MLA layer per layer group).
 
@@ -98,7 +98,7 @@ Both offsets are smaller than the interpolation step in that region and are docu
 
 ## 4. Verification
 
-- All 94 anchors verified strictly ascending and unique.
+- All 98 anchors verified strictly ascending and unique.
 - Script block passes `node --check`.
 - Sweep of 0.1B → 2800B in 0.1B steps: every interpolated point yields positive layers/hidden and a finite, non-negative KV estimate (0 bad points).
 
@@ -178,3 +178,61 @@ A condensed version of this table ships in the app's reference-data panel (EN an
 - DeepSeek-V4.1-Flash model card and technical report (552B backbone, 20 + 20 causal encoder-decoder, 5120 hidden, vocab 129,280, CSA2 Full/Reindex/Reuse, 890 B/token FP4 global KV, 196B Engram, DSpark draft head).
 - `github.com/Tencent-Hunyuan/Hy4-preview` repository and model card (78 layers, 6144 hidden, 770B/A49B, Gated DSA + IndexCache, KV compression 512 + RoPE 64, indexer 32 × 128, top-k 2048, 256 experts ×8 + shared, Apache 2.0).
 - Release trackers and roundups for the not-anchored set: Qwen 3.7 API-only coverage, StepFun Step 5 Preview announcement, GLM-5.3-Flash/FlashX release notes, IBM Granite 4.2 announcement, Meta Muse Spark / Glimmer notes, MiniMax Hailuo 3.0 (H3) model card, DiffusionGemma announcement.
+
+
+---
+
+## 7. Gemma 3 / Gemma 4 — interleaved sliding-window anchors
+
+Gemma was the last tracked family whose newer generations were still being interpolated from the Gemma 2 27B anchor (46 × 4608), which badly mis-sizes both the geometry and the KV cache. Gemma 3 and Gemma 4 interleave **five sliding-window layers per global layer** (`sliding_window_pattern` 6), so most of the stack never grows past a 1,024-token window.
+
+### 7.1 New anchors
+
+| Size anchor | Model | Layers × hidden | Attention / KV details | Context | `attn` |
+|---:|---|---:|---|---:|---|
+| **12.0** | Gemma 3 12B | 48 × 3840 | 8 KV × 256-d, window 1024, 40 local + 8 global | 128K | `gemma3_swa` (new) |
+| **25.2** | Gemma 4 26B-A4B (25.2B total / 3.8B active) | 30 × 2816 | 25 local + 5 global; local 8 KV × 256-d, global 2 KV × 512-d unified K=V + p-RoPE; 128 experts top-8 + 1 shared | 256K | `gemma4_swa` (new) |
+| **27.2** | Gemma 3 27B | 62 × 5376 | 32 Q / 16 KV × 128-d, window 1024, 52 local + 10 global, FFN 21504, vocab 262,208 (+0.4B SigLIP tower) | 128K | `gemma3_swa` |
+| **30.7** | Gemma 4 31B dense (30.7B) | 60 × 5376 | 50 local + 10 global; local 16 KV × 256-d, global 4 KV × 512-d unified K=V + proportional RoPE; FFN 21504 (+0.55B vision tower), Apache 2.0 | 256K | `gemma4_swa` |
+
+The sizes 12.0 / 25.2 / 27.2 / 30.7 sit in free gaps (10.0 → 14.0, 24.0 → 26.0, 27.0 → 27.5, 30.0 → 31.2), so no existing anchor had to move. The Gemma 2 27B anchor at 27.0 stays as-is.
+
+### 7.2 KV formulas
+
+```js
+globalLayers = max(1, round(layers / 6));
+localLayers  = layers - globalLayers;
+localTokens  = min(context, 1024);
+
+// gemma3_swa — 27B is 16 KV × 128-d, 12B is 8 KV × 256-d: 4096 K+V elements/token/layer either way
+elements = (localLayers * localTokens + globalLayers * context) * 4096;
+
+// gemma4_swa — wider local heads, narrow unified-K=V global heads
+kv       = hidden >= 5376 ? 16 : 8;
+elements = localLayers * localTokens * kv * (256 + 256)
+         + globalLayers * context * (kv / 4) * 512;
+```
+
+Worked examples:
+
+| Anchor | KV @ 32K fp16 | KV @ 256K bf16 |
+|---|---:|---:|
+| Gemma 3 12B | 2.31 GiB | 16.31 GiB |
+| Gemma 3 27B | 2.91 GiB | 20.41 GiB |
+| Gemma 4 26B-A4B | 0.51 GiB | 2.70 GiB |
+| Gemma 4 31B | 2.03 GiB | 10.78 GiB |
+
+The Gemma 4 31B figure decomposes into 50 local layers × 16 MiB (a full 1,024-token window at bf16) plus 10 global layers × 1 GiB at 256K — the per-layer breakdown published in third-party memory analyses of the release. Gemma 4 31B therefore costs roughly **half** the KV of Gemma 3 27B at the same context despite being larger and supporting twice the window, which is exactly the effect these anchors exist to capture.
+
+### 7.3 Not anchored
+
+- **Gemma 4 12B** — announced and released after the 31B / 26B-A4B pair; layer/hidden geometry not published at the time of writing, so it is listed in the app's "checked, not anchored" line rather than guessed.
+- **Gemma 4 E2B / E4B** — per-layer-embedding (PLE) models whose effective parameter count differs from their resident size; the existing 2B–4B anchors already cover their decoder shape.
+- **DiffusionGemma 26B-A4B** — text diffusion, not autoregressive KV decoding.
+
+### 7.4 Sources
+
+- Gemma 4 Technical Report (arXiv:2607.02770) — family composition (E2B, E4B, 12B, 31B dense; 26B-A4B MoE), MTP drafter, training setup.
+- Hugging Face `transformers` `Gemma4TextConfig` documentation and the Gemma 4 release blog — interleaved local/global attention, dual RoPE (standard for sliding layers, pruned/proportional for global layers), per-layer embeddings, 256K context for 31B / 26B-A4B.
+- Third-party architecture breakdowns of the Gemma 4 configs — `num_hidden_layers` 60 / 30, `num_key_value_heads` 16 / 8, `head_dim` 256, `num_global_key_value_heads` 4 / 2, `global_head_dim` 512, `sliding_window` 1024 with a 5-local : 1-global `layer_types` pattern, 128 experts top-8 + 1 shared, and the per-layer KV memory breakdown used to validate the formula above.
+- `google/gemma-3-27b-it` `config.json` — 62 layers, hidden 5376, 32 Q / 16 KV × 128, `sliding_window` 1024, `sliding_window_pattern` 6, FFN 21504, vocab 262,208.
