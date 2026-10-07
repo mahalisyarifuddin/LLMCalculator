@@ -6,6 +6,8 @@
 
 **Update 2026-10-07:** The `snapdragon` GPU type is now `arm_uma` — “Other Arm SoC (Snapdragon X/X2 · DGX Spark · Linux)”. It keeps the configurable fixed reserve described below (default 3.0 GB). A new `rtxspark` type implements NVIDIA’s published RTX Spark GPU-budget rule (carveout + shared). See [ARM_SOC_RTX_SPARK_UPDATE_2026.md](ARM_SOC_RTX_SPARK_UPDATE_2026.md).
 
+**Update 2026-10-08:** `arm_uma` is renamed `uma` — “Other Unified Memory (DGX Spark · Ryzen AI Max · Snapdragon)”. The fixed-reserve math is unchanged. The type now also covers AMD Ryzen AI Max+ (Strix Halo): ~16 GB reserve on Linux; on Windows, use Discrete GPU at the 96 GB VGM carve-out. See [PRESET_CONSOLIDATION_AUDIT_2026.md](PRESET_CONSOLIDATION_AUDIT_2026.md).
+
 ---
 
 ## Summary of Findings

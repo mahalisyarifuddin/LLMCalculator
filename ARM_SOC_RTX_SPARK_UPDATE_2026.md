@@ -1,5 +1,7 @@
 # Arm SoC Research + NVIDIA RTX Spark Support — 2026-10-07
 
+**Update 2026-10-08:** The presets were consolidated (25 → 14). From this audit's Arm SoC tier, **RTX Spark 128GB** and **DGX Spark 128GB** remain, now in a "Unified Memory" group. RTX Spark 24/64GB, Snapdragon X2 Elite 48GB, MacBook Neo 8GB and M5 Max 128GB were removed and are reproducible with the slider. The "Other Arm SoC" type (`arm_uma`) is renamed "Other Unified Memory (DGX Spark · Ryzen AI Max · Snapdragon)" (`uma`). Its math is unchanged, and it now also covers AMD Ryzen AI Max+. The RTX Spark and DGX Spark rules below are unchanged. See [PRESET_CONSOLIDATION_AUDIT_2026.md](PRESET_CONSOLIDATION_AUDIT_2026.md).
+
 **Scope:** In-depth research on **NVIDIA RTX Spark** and the other Arm SoCs used in computers in 2026: NVIDIA DGX Spark (GB10), Qualcomm Snapdragon X2, Apple M5, NVIDIA Jetson AGX Thor, Cix P1, MediaTek Kompanio Ultra, Huawei Kirin X90, Raspberry Pi 5 and Ampere workstations. The findings are applied to `LLMCalculator.html` and both READMEs.
 
 **Method:** Web research on 2026-10-07. Sources include NVIDIA's *RTX Spark Windows on Arm Porting Guide*, NVIDIA and Microsoft announcements, Apple Newsroom, measured DGX Spark reports, Qualcomm spec coverage, llama.cpp documentation and launch-day press. Every factual claim below cites a source. Lines marked *Interpretation* are this audit's own reasoning.
