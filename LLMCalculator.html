@@ -501,24 +501,68 @@
 			background: var(--hover);
 		}
 
-		/* Reference */
+		/* ---------- Disclosure ----------
+		   Where methodology, reference data and sources live. Collapsed by default
+		   so it never competes with the tool — the same .disclosure pattern as the
+		   author's other single-file apps (HijriCalc, BrailleConverter). */
 		.reference-section {
-			margin-top: 3rem;
-			padding-top: 2rem;
-			border-top: 1px solid var(--border);
-			color: var(--text-muted);
-			font-size: 0.875rem;
-		}
-
-		.reference-section h3 {
-			color: var(--text);
-			margin-bottom: 1rem;
-		}
-
-		.reference-grid {
+			margin-top: 2rem;
 			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 2rem;
+			gap: .75rem;
+		}
+
+		.disclosure {
+			background: var(--muted);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			padding: .75rem 1rem;
+		}
+
+		.disclosure > summary {
+			cursor: pointer;
+			font-size: .875rem;
+			font-weight: 600;
+			color: var(--text-muted);
+			display: flex;
+			align-items: center;
+			gap: .5rem;
+			list-style: none;
+			user-select: none;
+		}
+
+		.disclosure > summary::-webkit-details-marker { display: none; }
+
+		.disclosure > summary::before {
+			content: "";
+			width: 0;
+			height: 0;
+			border-left: 5px solid currentColor;
+			border-top: 4px solid transparent;
+			border-bottom: 4px solid transparent;
+			transition: transform .2s;
+			flex-shrink: 0;
+		}
+
+		.disclosure[open] > summary::before { transform: rotate(90deg); }
+		.disclosure > summary:hover { color: var(--primary); }
+		.disclosure[open] > summary { margin-bottom: .75rem; }
+
+		.disclosure-body {
+			font-size: .875rem;
+			line-height: 1.7;
+			color: var(--text-muted);
+		}
+
+		.disclosure-body > * + * { margin-top: .75rem; }
+
+		.disclosure-body ul,
+		.disclosure-body ol { padding-left: 1.25rem; }
+
+		.disclosure-body li + li { margin-top: .25rem; }
+
+		.disclosure-body code {
+			font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+			font-size: .8125rem;
 		}
 
 		.hidden {
@@ -596,11 +640,6 @@
 				width: 24px;
 				height: 24px;
 			}
-
-			.reference-grid {
-				grid-template-columns: 1fr;
-				gap: 1rem;
-			}
 		}
 	</style>
 </head>
@@ -650,8 +689,25 @@
 						<select id="gpuType" class="full-width" aria-labelledby="gpuTypeLabel">
 							<option value="discrete">Discrete GPU (NVIDIA / AMD / Intel ARC)</option>
 							<option value="soc">Apple Silicon (M/A-series)</option>
-							<option value="snapdragon">Snapdragon (Windows on Arm)</option>
+							<option value="rtxspark">NVIDIA RTX Spark (Windows on Arm)</option>
+							<option value="uma">Other Unified Memory (DGX Spark · Ryzen AI Max · Snapdragon)</option>
 						</select>
+					</div>
+
+					<div class="form-group hidden" id="rtxCarveoutGroup">
+						<div class="label-row">
+							<label id="rtxCarveoutLabel">Dedicated GPU Carveout (OEM)</label>
+						</div>
+						<select id="rtxCarveout" class="full-width" aria-labelledby="rtxCarveoutLabel" aria-describedby="rtxCarveoutHelp">
+							<option value="0" selected>Unknown / none (0 GB)</option>
+							<option value="8">8 GB</option>
+							<option value="16">16 GB</option>
+							<option value="32">32 GB</option>
+							<option value="48">48 GB</option>
+							<option value="64">64 GB</option>
+							<option value="96">96 GB</option>
+						</select>
+						<p id="rtxCarveoutHelp" class="context-help"></p>
 					</div>
 
 					<div class="form-group">
@@ -659,12 +715,13 @@
 							<label id="overheadLabel">System Overhead</label>
 							<span class="value" id="overheadValueDisplay">1.5 GB</span>
 						</div>
-						<input type="range" id="overheadSlider" min="0" max="16" step="0.1" value="1.5" aria-labelledby="overheadLabel">
+						<input type="range" id="overheadSlider" min="0" max="16" step="0.1" value="1.5" aria-labelledby="overheadLabel" aria-describedby="overheadHint">
 						<div class="slider-labels">
 							<span style="left: 0%">0GB</span>
 							<span style="left: 50%">8GB</span>
 							<span style="left: 100%">16GB</span>
 						</div>
+						<p id="overheadHint" class="context-help hidden"></p>
 					</div>
 				</div>
 
@@ -813,44 +870,32 @@
 					<h2 id="presetsLabel">Quick Presets</h2>
 					<div id="presetsContainer">
 						<div class="preset-group">
-							<h3 class="preset-tier-title" id="presetBudget">Budget / Entry (4–12 GB)</h3>
-							<div class="presets-grid" role="group" aria-labelledby="presetBudget">
-								<button class="preset-btn" data-preset="gtx1650" aria-pressed="false">GTX 1650 4GB</button>
-								<button class="preset-btn" data-preset="arc_a380" aria-pressed="false">Arc A380 6GB</button>
-								<button class="preset-btn" data-preset="rtx4060" aria-pressed="false">RTX 4060 8GB</button>
-								<button class="preset-btn" data-preset="rtx5050" aria-pressed="false">RTX 5050 Laptop 8GB</button>
-								<button class="preset-btn" data-preset="arc_b570" aria-pressed="false">Arc B570 10GB</button>
-								<button class="preset-btn" data-preset="rtx3060" aria-pressed="false">RTX 3060 12GB</button>
-								<button class="preset-btn" data-preset="arc_b580" aria-pressed="false">Arc B580 12GB</button>
+							<h3 class="preset-tier-title" id="presetConsumer">Consumer GPUs (4–32 GB)</h3>
+							<div class="presets-grid" role="group" aria-labelledby="presetConsumer">
+								<button class="preset-btn" data-preset="gtx1650" aria-pressed="false" title="GTX 1650 · GTX 1050 Ti · RTX 3050 Laptop 4GB">GTX 1650 4GB</button>
+								<button class="preset-btn" data-preset="rtx5060" aria-pressed="false" title="RTX 5060 · RTX 4060 · RTX 4060 Laptop · RX 7600 · Arc A750">RTX 5060 / 4060 8GB</button>
+								<button class="preset-btn" data-preset="rtx5070" aria-pressed="false" title="RTX 5070 · RTX 3060 · RTX 4070 · RX 7700 XT · Arc B580">RTX 5070 / 3060 12GB</button>
+								<button class="preset-btn" data-preset="rtx5060ti" aria-pressed="false" title="RTX 5060 Ti 16GB · RTX 5070 Ti · RTX 5080 · RX 9070 XT · RX 9060 XT 16GB · Arc A770 16GB">RTX 5060 Ti / RX 9070 XT 16GB</button>
+								<button class="preset-btn" data-preset="rtx3090" aria-pressed="false" title="RTX 3090 · RTX 4090 · RX 7900 XTX · Arc Pro B60">RTX 3090 / 4090 24GB</button>
+								<button class="preset-btn" data-preset="rtx5090" aria-pressed="false" title="RTX 5090 · Radeon AI PRO R9700">RTX 5090 32GB</button>
 							</div>
 						</div>
 						<div class="preset-group">
-							<h3 class="preset-tier-title" id="presetMainstream">Mainstream / Enthusiast (16–32 GB)</h3>
-							<div class="presets-grid" role="group" aria-labelledby="presetMainstream">
-								<button class="preset-btn" data-preset="arc_a770" aria-pressed="false">Arc A770 16GB</button>
-								<button class="preset-btn" data-preset="rtx5070ti" aria-pressed="false">RTX 5070 Ti 16GB</button>
-								<button class="preset-btn" data-preset="rtx4090" aria-pressed="false">RTX 4090 24GB</button>
-								<button class="preset-btn" data-preset="arc_pro_b60" aria-pressed="false">Arc Pro B60 24GB</button>
-								<button class="preset-btn" data-preset="rtx5090" aria-pressed="false">RTX 5090 32GB</button>
+							<h3 class="preset-tier-title" id="presetUnified">Unified Memory (16–256 GB)</h3>
+							<div class="presets-grid" role="group" aria-labelledby="presetUnified">
+								<button class="preset-btn" data-preset="mac16" aria-pressed="false" title="MacBook Air M5 · Mac mini M6 · MacBook Pro M5">MacBook Air / Mac mini 16GB</button>
+								<button class="preset-btn" data-preset="ryzenaimax" aria-pressed="false" title="Ryzen AI Max+ 395 · Framework Desktop · GMKtec EVO-X2 · HP Z2 Mini G1a">Ryzen AI Max+ 128GB</button>
+								<button class="preset-btn" data-preset="dgxspark" aria-pressed="false" title="DGX Spark · ASUS Ascent GX10 · Dell Pro Max GB10">DGX Spark 128GB</button>
+								<button class="preset-btn" data-preset="rtxspark128" aria-pressed="false" title="RTX Spark N1X · Surface Laptop Ultra">RTX Spark 128GB</button>
+								<button class="preset-btn" data-preset="m5ultra" aria-pressed="false" title="Mac Studio M5 Ultra">M5 Ultra 256GB</button>
 							</div>
 						</div>
 						<div class="preset-group">
-							<h3 class="preset-tier-title" id="presetWorkstation">Workstation / Server (48–192 GB)</h3>
-							<div class="presets-grid" role="group" aria-labelledby="presetWorkstation">
-								<button class="preset-btn" data-preset="l40s" aria-pressed="false">L40S 48GB</button>
-								<button class="preset-btn" data-preset="a100" aria-pressed="false">A100 80GB</button>
-								<button class="preset-btn" data-preset="rtx_pro_6000" aria-pressed="false">RTX PRO 6000 96GB</button>
-								<button class="preset-btn" data-preset="h200" aria-pressed="false">H200 141GB</button>
-								<button class="preset-btn" data-preset="b200" aria-pressed="false">B200 192GB</button>
-							</div>
-						</div>
-						<div class="preset-group">
-							<h3 class="preset-tier-title" id="presetAppleMobile">Apple / Mobile</h3>
-							<div class="presets-grid" role="group" aria-labelledby="presetAppleMobile">
-								<button class="preset-btn" data-preset="macbookneo" aria-pressed="false">MacBook Neo 8GB</button>
-								<button class="preset-btn" data-preset="m4max" aria-pressed="false">M4 Max 128GB</button>
-								<button class="preset-btn" data-preset="m3ultra" aria-pressed="false">M3 Ultra 192GB</button>
-								<button class="preset-btn" data-preset="snapdragon" aria-pressed="false">Snapdragon X 32GB</button>
+							<h3 class="preset-tier-title" id="presetDatacenter">Workstation / Datacenter (80–180 GB)</h3>
+							<div class="presets-grid" role="group" aria-labelledby="presetDatacenter">
+								<button class="preset-btn" data-preset="h100" aria-pressed="false" title="H100 80GB · A100 80GB">A100 / H100 80GB</button>
+								<button class="preset-btn" data-preset="rtx_pro_6000" aria-pressed="false" title="RTX PRO 6000 Blackwell">RTX PRO 6000 96GB</button>
+								<button class="preset-btn" data-preset="b200" aria-pressed="false" title="B200 · HGX B200 · DGX B200">B200 180GB</button>
 							</div>
 						</div>
 					</div>
@@ -859,12 +904,22 @@
 		</div>
 
 		<div class="reference-section">
-			<h3 id="referenceTitle">References & Methodology</h3>
-			<div class="reference-grid">
-				<div id="formulasSection"></div>
-				<div id="architectureSection"></div>
-			</div>
-			<div style="margin-top: 1rem; opacity: 0.8;" id="sourcesText"></div>
+			<details class="disclosure">
+				<summary id="formulasTitle">Formulas</summary>
+				<div class="disclosure-body" id="formulasSection"></div>
+			</details>
+			<details class="disclosure">
+				<summary id="architectureTitle">Reference Data (Auto-Estimate Anchors)</summary>
+				<div class="disclosure-body" id="architectureSection"></div>
+			</details>
+			<details class="disclosure">
+				<summary id="presetsInfoTitle">Hardware Presets (14, 4 GB–256 GB)</summary>
+				<div class="disclosure-body" id="presetsInfoSection"></div>
+			</details>
+			<details class="disclosure">
+				<summary id="sourcesTitle">Sources</summary>
+				<div class="disclosure-body" id="sourcesText"></div>
+			</details>
 		</div>
 	</div>
 
@@ -900,9 +955,12 @@
 				vramLabel: 'GPU Memory',
 				vramSizeLabel: 'VRAM Size',
 				unifiedMemoryLabel: 'Unified Memory',
-				sharedMemoryLabel: 'Shared Memory',
 				gpuTypeLabel: 'GPU Type',
 				overheadLabel: 'System Overhead Deduction',
+				rtxHeadroomLabel: 'Desktop / Driver Headroom',
+				rtxCarveoutLabel: 'Dedicated GPU Carveout (OEM)',
+				carveoutNone: 'Unknown / none (0 GB)',
+				rtxCarveoutHelp: 'NVIDIA rule (Windows): GPU budget = carveout + shared; shared = memory after the carveout − 16 GB, clamped to 50–80% of it. The rest is CPU-only. OEM firmware sets the carveout (Task Manager → Dedicated GPU memory); 0 GB is the conservative floor. The headroom below stays free inside the budget.',
 				modelLabel: 'Model Configuration',
 				modelFamilyLabel: 'Model Family',
 				modelQuantLabel: 'Model Precision',
@@ -917,11 +975,13 @@
 				maxParamsLabel: 'Maximum Parameters',
 				memoryAllocationLabel: 'Memory Allocation',
 				presetsLabel: 'Quick Presets',
-				presetBudget: 'Budget / Entry (4–12 GB)',
-				presetMainstream: 'Mainstream / Enthusiast (16–32 GB)',
-				presetWorkstation: 'Workstation / Server (48–192 GB)',
-				presetAppleMobile: 'Apple / Mobile',
-				referenceTitle: 'References & Methodology',
+				presetConsumer: 'Consumer GPUs (4–32 GB)',
+				presetUnified: 'Unified Memory (16–256 GB)',
+				presetDatacenter: 'Workstation / Datacenter (80–180 GB)',
+				formulasTitle: 'Formulas',
+				architectureTitle: 'Reference Data (Auto-Estimate Anchors)',
+				presetsInfoTitle: 'Hardware Presets (14, 4 GB–256 GB)',
+				sourcesTitle: 'Sources',
 				languageLabel: 'Select Language',
 				themeLabel: 'Select Theme',
 				autoEstimate: 'Auto-Estimate (General)',
@@ -946,7 +1006,13 @@
 				categoryLarge: 'Large (150B+)',
 				estimatedArchitecture: 'Estimated Architecture',
 				reserved: 'Reserved',
-				snapdragonOverhead: 'GPU memory capped at 50% of total RAM',
+				umaOverhead: 'OS / firmware reserve (configurable)',
+				rtxSparkOverhead: 'CPU-only {cpu} GB ({rule}) + {headroom} GB headroom · GPU budget {budget} GB',
+				rtxRuleFloor: 'NVIDIA 50% floor',
+				rtxRuleMinus16: 'NVIDIA rest − 16 GB',
+				rtxRuleCap: 'NVIDIA 80% cap',
+				umaHint: 'Fixed OS / firmware reserve. DGX Spark (DGX OS): ~12 GB headless, ~16 GB with the desktop (≈116 / ≈112 GiB of 128 GB stay available). Ryzen AI Max+ 128 GB on Linux: ~16 GB, since GTT lets the iGPU reach ~112 GB; Windows limits it to the 96 GB VGM carve-out, so pick Discrete GPU at 96 GB there. Snapdragon X/X2: ~3 GB for CPU/NPU inference; Windows caps Adreno GPU offload (llama.cpp OpenCL) at 50% of RAM.',
+				appleHint: 'macOS lets Metal wire ≈75% of RAM (recommendedMaxWorkingSetSize; ≈⅔ on ≤32 GB Macs with older macOS). sudo sysctl iogpu.wired_limit_mb raises it at the cost of the OS reserve.',
 				intelArcOverhead: 'Requires Resizable BAR; ~1.5 GB driver overhead typical',
 				mbPerToken: 'MiB/token',
 
@@ -954,9 +1020,10 @@
 				warningInsufficient: '❌ Insufficient VRAM for model.',
 				insufficient: 'INSUFFICIENT',
 
-				formulas: '<strong>Formulas:</strong><br>• Scope: the dual-label slider is the KV token quantity for one active inference context<br>• Model: params(B) × 10^9 × bytes/param × 1.05 ÷ 2^30 (GiB); MXFP4 ≈ 0.53 B/param (gpt-oss/Kimi K3; expert-only on MiMo Pro), NVFP4 ≈ 0.56 B/param (Laguna/Step 3.7/Blackwell)<br>• Attention (Auto-Estimate): per-anchor buckets — GQA/MQA (including 64-dim Granite/gpt-oss), hybrid SWA+global (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH, Gemma 3/4), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), MLA+DSA (GLM-5.x), hybrid Gated DeltaNet/Gated Attention (Qwen3-Next, Qwen3.5/3.6), hybrid linear+MLA (Ling 2.5/2.6, Ling 3.0), GDN+QSA (Qwen3.8-Flash-Next), causal encoder-decoder + CSA2 (DeepSeek V4.1-Flash), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): layers × kv_heads × (K head_dim + V head_dim) × context × bytes<br>• KV (hybrid SWA): full layers retain context; SWA layers retain min(context, window), using each family&apos;s exact K/V widths<br>• KV (MFA): layers × context × (256 K + 256 V) × bytes (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes<br>• KV (MLA+DSA, GLM-5.x): 576 × layers × context + 128-d DSA indexer on every 4th layer<br>• KV (Qwen3.5 hybrid GDN): only the 1-in-4 Gated Attention layers cache tokens — kv_heads × (256 K + 256 V) × context × bytes; Gated DeltaNet layers keep a constant-size state<br>• KV (Ling hybrid linear): one gated-MLA layer per group (6 layers on Ling 3.0, 8 on Ling 2.5/2.6) × 576 × context × bytes; KDA/lightning layers keep a constant-size state<br>• KV (Qwen3.8-Flash-Next): 1-in-4 full layers × [2 × (256 K + 256 V) × context + 128-d QSA index over context/4]<br>• KV (DeepSeek V4.1-Flash CED+CSA2): ~44.5 elements per layer per token (the card&apos;s 890 B/token global cache at FP4)<br>• KV (Gemma 3): 5 sliding-window-1024 layers per global layer; 4096 K+V elements per token per layer (16 KV × 128-d on 27B, 8 KV × 256-d on 12B)<br>• KV (Gemma 4): same 5:1 schedule, but local layers widen to kv_heads × (256 K + 256 V) and global layers use a quarter of the KV heads at 512-d with unified K = V (one vector per head per token)<br>• KV (CSA/HCA): shared K=V 512-d; CSA = SWA-128 + ctx/4 compressed + 128-d indexer; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): GQA-8 width with ceil(layers/2) shared-KV layers (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1.5 GB desktop / 0.5 GB headless (configurable), Apple Silicon 25% Metal reservation, Snapdragon/X Elite shared-GPU cap 50%',
-				architecture: '<strong>Reference Data (Multi-Generational Auto-Estimate Synthesis):</strong><br>• IBM Granite ~0.35B–8.1B: Granite 3.0–3.3 dense/MoE (1.3B-A0.4B, 2.5B, 3.3B-A0.8B, 8.1B; 24–40L, 64/128-d heads), Granite 4.0 dense Nano/Micro plus hybrid Mamba2 H variants, Granite 4.1 dense 3B/8B, Granite SWASH 2.14B / 3.02B-A0.6B (SWA-128 + sinks)<br>• ~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)<br>• Qwen3.5 small dense (hybrid GDN, 1-in-4 Gated Attention): 0.8B (24L×1024H, 2 KV × 256), 2B (24L×2048H, 2 KV), 4B (32L×2560H, 4 KV), 9B (32L×4096H, 4 KV)<br>• ~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)<br>• ~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)<br>• ~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B<br>• ~12B (48L, 3840H): Gemma 3 12B (8 KV × 256-d, 5 sliding-window-1024 layers per global layer, 128K ctx)<br>• ~16.4B (20L, 2048H): Ling-mini-2.0 16.4B-A1.4B MoE (GQA-4, 256 experts ×8 + shared); Ring-mini-linear-2.0 shares the size with a 1:4 linear/softmax stack<br>• ~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B active), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 active), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)<br>• IBM Granite Code / 4.x at 20B–34B: Code 20B/34B (52L/88L×6144H, MQA-1); Granite 4.1 30B dense (64L×4096H, GQA-8) and Granite 4.0 H-Small 32B-A9B (4 attention + 36 Mamba2) overlap general anchors<br>• Gemma 3 27B / Gemma 4 (interleaved SWA-1024 + global): 25.2B Gemma 4 26B-A4B (30L×2816H, 25 local + 5 global, 128 experts ×8 + shared), 27.2B Gemma 3 27B (62L×5376H, 16 KV × 128-d, 52 local + 10 global), 30.7B Gemma 4 31B dense (60L×5376H, 50 local + 10 global, global layers use 4 KV × 512-d with unified K=V and proportional RoPE, 256K ctx, Apache 2.0)<br>• ~29.6B (52L, 6656H): Muse Glimmer 30B multimodal (13 full + 39 SWA-2048 layers, GQA-2; includes 1.8B perception encoder)<br>• ~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, 256K ctx)<br>• ~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, runs on 36 GB Mac)<br>• ~27.5B–35.5B Qwen3.5 hybrid GDN: Qwen3.5-27B dense (64L×5120H, 4 KV × 256) and Qwen3.5-35B-A3B (40L×2048H, 2 KV × 256) — 3 Gated DeltaNet layers per Gated Attention layer<br>• ~31.2B (47L, 2048H): GLM-4.7-Flash 31.2B-A3B MoE (MLA 512+64, 64 experts ×4 + shared, 202K ctx, MIT)<br>• ~32B (64L, 5120H): Qwen 2.5/3 32B<br>• ~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)<br>• ~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)<br>• ~100B (32L, 4096H): Ling-flash-2.0 100–104B-A6B MoE (GQA-4); Ring-flash-linear-2.0 shares the size with a 1:7 linear/softmax stack<br>• ~124B (42L, 2560H): Ling-3.0-flash 124B-A5.1B hybrid-linear MoE (35 Kimi Delta Attention + 7 gated MLA layers, 512 experts ×8 + shared)<br>• ~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)<br>• ~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (MXFP4 native, 64-dim GQA-8), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, 1M ctx)<br>• ~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, 1M ctx), M.1 (225B-A23B, all-global attn)<br>• ~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, 512K ctx), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, 1M ctx, multimodal), MiniMax Text-01 / M1 (456B-A46B, hybrid lightning attn)<br>• ~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)<br>• ~81B–122B Qwen hybrid GDN MoE: Qwen3-Next-80B-A3B (48L×2048H, 2 KV × 256, 262K ctx) and Qwen3.5-122B-A10B multimodal (48L×3072H, 256 experts ×8 + shared, 262K→1M ctx)<br>• ~106B (46L, 4096H): GLM-4.5-Air 106B-A12B MoE (96Q/8KV × 128, 128 experts ×8 + shared, partial RoPE)<br>• ~180B (48L, 2560H): Qwen3.8-Flash-Next — Qwen4 architecture preview, 125B-A6B LM + 51B n-gram table + 4B MTP, 3:1 Gated DeltaNet / gated full attention with Qwen Sparse Attention indexing<br>• ~196.8B–198B (45L×4096H): Step-3.5-Flash / Step-3.7-Flash (196B language backbone, 11B active; 12 full + 33 SWA-512 GQA-8; 3.7 adds 1.8B vision encoder and ships NVFP4)<br>• ~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)<br>• ~309B–321B: MiMo-V2-Flash / V2.5 309–310B-A15B (48L×4096H, 9 global + 39 SWA-128, asymmetric 192/128-d K/V, 256K–1M ctx); Step-3 321B-A38B VLM (61L×7168H, MFA shared 256-d K/V)<br>• ~357B (92L, 5120H): GLM-4.5 / 4.6 / 4.7 355–358B-A32B MoE (96Q/8KV × 128, 160 experts ×8 + shared, 200K ctx, MIT)<br>• ~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)<br>• ~397B (60L, 4096H): Qwen3.5-397B-A17B multimodal MoE (15 × [3 Gated DeltaNet + 1 Gated Attention], 2 KV × 256, 512 experts ×10 + shared, 262K→1M ctx)<br>• ~552B (40L, 5120H): DeepSeek-V4.1-Flash causal encoder-decoder (20 encoder + 20 decoder, CSA2 Full/Reindex/Reuse, 890 B/token global KV at FP4, +196B Engram memory, 1M ctx)<br>• ~770B (78L, 6144H): Hy4-preview 770B-A49B MoE (Gated DSA with IndexCache, iHC residuals, 256 experts ×8 + shared, 1M ctx, Apache 2.0)<br>• ~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), GLM-5 / 5.1 / 5.2 / 5.3 (744B-A40B, 78L×6144H, MLA 512+64 + DeepSeek Sparse Attention, 1M ctx), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), Ling-1T (1T-A50B, 80L×8192H, GQA-8), Ling 2.5 / 2.6 (1T-A63B, 80L×8192H, 70 lightning + 10 gated-MLA layers), MiMo-V2.5-Pro (1.02T-A42B, 70L×6144H, 10 global + 60 SWA-128, expert-only MXFP4 available), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, 1M ctx), Kimi K3 (2.8T, 93L×7168H, KDA+MLA), Qwen3.8-Max (2.4T-A95B, 92L×8192H, 3:1 Gated DeltaNet / 64 Q / 4 KV × 256 gated attention)<br>• <strong>Checked, not anchored:</strong> Qwen3.7 (API-only, no weights), StepFun Step 5 Preview (600B-A27B, weights pending), Kimi K2.8 Preview (undisclosed), GLM-5.3-Flash / FlashX (geometry undisclosed), Meta Muse Spark 1.2/1.3 (closed), MiniMax H3 (video generator), DiffusionGemma 26B-A4B (text-diffusion decoder), Gemma 4 12B (geometry not yet published)<br><br><strong>Hardware Presets (4 GB–192 GB):</strong> Budget 4–12 GB (GTX 1650 4GB, Arc A380 6GB, RTX 4060 8GB, Arc B570 10GB, RTX 3060 12GB Steam #1, Arc B580 12GB $249) → Mainstream 16–32 GB (Arc A770 16GB cheapest 16GB, RTX 5070 Ti 16GB, RTX 4090 24GB, Arc Pro B60 24GB $599 workstation, RTX 5090 32GB) → Workstation/Server 48–192 GB (L40S 48GB, A100 80GB, RTX PRO 6000 96GB, H200 141GB, B200 192GB) → Apple/Mobile (MacBook Neo 8GB, M4 Max 128GB MBP, M3 Ultra 192GB Studio, Snapdragon X Elite 32GB shared)',
-				sources: '<strong>Context guidance:</strong> llama.cpp completion documentation (<code>--ctx-size</code> prompt-context size); Anthropic, “Effective context engineering for AI agents” (compaction, structured notes, and just-in-time retrieval); Chroma, “Context Rot” (performance degradation as input length grows).<br><strong>Open-source harness cross-check:</strong> OpenClaw, OpenCode, Pi, Qwen Code, and Gemini CLI keep durable sessions or memory separate from compacted model context; DeepSeek Harness records an append-only session log with pluggable compaction; Hermes Agent compresses active history after flushing persistent memory; Prime Agent exposes context, memory, and subagents through persistent harness state; OpenHands, SWE-agent, Aider, Cline, Roo Code, Goose, LangGraph, and Letta use condensers, filtering, summaries, checkpoints, retrieval, or external memory.<br><strong>Architecture & hardware sources:</strong> Llama Gen 1–4 Papers & Model Cards (Meta AI, 2023–2025), Gemma Gen 1–4 Reports (Google; Gemma 4 Technical Report arXiv:2607.02770 and `gemma4` configs: 31B 60L×5376H / 26B-A4B 30L×2816H, 5 local : 1 global schedule, sliding_window 1024, global layers 4 (or 2) KV heads × 512-d with unified K=V and p-RoPE; Gemma 3 27B `gemma3_text` 62L×5376H, 16 KV × 128-d, sliding_window_pattern 6), Qwen Gen 1–3 Papers (Alibaba), Qwen3-Next-80B-A3B and Qwen3.5 (0.8B, 2B, 4B, 9B, 27B, 35B-A3B, 122B-A10B, 397B-A17B), Qwen3.6 (27B, 35B-A3B) and Qwen3.8 (27B, Flash-Next `qwen4_exp_text` config, Max 2.4T-A95B) model cards & configs (Alibaba, 2025–2026; Gated DeltaNet + Gated Attention 3:1 hybrid), MiniCPM Gen 1–5 Technical Reports (OpenBMB), G9 v1–v3 Specs (AI9Stars), Ling Gen 1–2 / 1000B Reports (InclusionAI; Ling-mini-2.0 20L×2048H, Ling-flash-2.0 32L×4096H, Ling-1T 80L×8192H bailing_moe configs, Ring-linear 2.0 arXiv:2510.19338) and the bailing_hybrid configs of Ling 2.5 / 2.6-1T (layer_group_size 8) and Ling-3.0-flash (layer_group_size 6), Inkling Gen 1 Specs (Thinking Machines), DeepSeek V1–V4.1 & R1 Reports (V4.1-Flash model card & technical report: 552B backbone, 20+20 causal encoder-decoder, 5120 hidden, CSA2, 890 B/token FP4 global KV, 196B Engram; V4 paper arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Tencent Hunyuan / Hy Model Cards — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B and Hy4-preview 770B-A49B (Tencent Hy Team, 2026; Hy4 repo: 78L×6144H, Gated DSA, KV compression 512, 32 × 128-d indexer, top-k 2048, Apache 2.0), GLM 1–4 Specs (Zhipu AI), GLM-4.5 / 4.5-Air / 4.6 / 4.7 (glm4_moe) and GLM-4.7-Flash (glm4_moe_lite, MLA) configs plus GLM-5 → 5.3 (glm_moe_dsa, 78L×6144H, MLA + DSA, index_topk 2048 shared every 4 layers) model cards (Z.ai / Zhipu AI, 2025–2026), Kimi V1–K3 Technical Reports (Moonshot AI, 2023–2026), Xiaomi MiMo-7B / V2-Flash (arXiv:2505.07608 / 2601.02780) and V2.5 / V2.5-Pro official configs & model cards (Xiaomi, 2025–2026), StepFun Step-3 (arXiv:2507.19427), Step-3.5-Flash (arXiv:2602.10604), Step3-VL-10B and Step-3.7-Flash configs/cards, Muse Glimmer 30B config/card (Meta Superintelligence Lab, 2026), IBM Granite Code report (arXiv:2405.04324), Granite 3.0–4.1 and SWASH official configs/cards (IBM, 2024–2026), GPT-OSS 20b/120b Model Cards & GptOss Specs (OpenAI, 2025; MXFP4-native MoE), Cohere Command R / R+ / R7B / A / A+ and Aya 101 / 23 / Expanse / Vision plus North Mini Code / Micro Model Cards & Technical Reports (Cohere Labs, 2022–2026), Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 Model Cards & Technical Report (Poolside, 2026; NVFP4/FP8/INT4 variants), Arcee Trinity Nano / Mini / Large Model Cards (Arcee AI, 2025–2026, OpenMDW), Mistral Open-Weight Model Cards & params.json — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), MiniMax Text-01 / M1 / M2→M2.7 / M3 Model Cards + M3 Technical Report arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> NVIDIA RTX 50/40 specs (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Steam HW Survey 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4.8%, 8GB most common); Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra specs (128GB MBP, 64–192GB Studio, 25% Metal cap); Snapdragon X Elite shared-GPU cap 50%'
+				formulas: '<ul><li>Scope: the dual-label slider is the KV token quantity for one active inference context</li><li>Model: params(B) × 10^9 × bytes/param × 1.05 ÷ 2^30 (GiB); MXFP4 ≈ 0.53 B/param (gpt-oss/Kimi K3; expert-only on MiMo Pro), NVFP4 ≈ 0.56 B/param (Laguna/Step 3.7/Blackwell)</li><li>Attention (Auto-Estimate): per-anchor buckets — GQA/MQA (including 64-dim Granite/gpt-oss), hybrid SWA+global (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH, Gemma 3/4), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), MLA+DSA (GLM-5.x), hybrid Gated DeltaNet/Gated Attention (Qwen3-Next, Qwen3.5/3.6), hybrid linear+MLA (Ling 2.5/2.6, Ling 3.0), GDN+QSA (Qwen3.8-Flash-Next), causal encoder-decoder + CSA2 (DeepSeek V4.1-Flash), CLA-2 (Hunyuan-Large), MHA (Command R+)</li><li>KV (MHA/GQA/MQA): layers × kv_heads × (K head_dim + V head_dim) × context × bytes</li><li>KV (hybrid SWA): full layers retain context; SWA layers retain min(context, window), using each family&apos;s exact K/V widths</li><li>KV (MFA): layers × context × (256 K + 256 V) × bytes (Step-3)</li><li>KV (MLA): (kv_lora_rank + qk_rope_head_dim) × layers × context × bytes</li><li>KV (MLA+DSA, GLM-5.x): 576 × layers × context + 128-d DSA indexer on every 4th layer</li><li>KV (Qwen3.5 hybrid GDN): only the 1-in-4 Gated Attention layers cache tokens — kv_heads × (256 K + 256 V) × context × bytes; Gated DeltaNet layers keep a constant-size state</li><li>KV (Ling hybrid linear): one gated-MLA layer per group (6 layers on Ling 3.0, 8 on Ling 2.5/2.6) × 576 × context × bytes; KDA/lightning layers keep a constant-size state</li><li>KV (Qwen3.8-Flash-Next): 1-in-4 full layers × [2 × (256 K + 256 V) × context + 128-d QSA index over context/4]</li><li>KV (DeepSeek V4.1-Flash CED+CSA2): ~44.5 elements per layer per token (the card&apos;s 890 B/token global cache at FP4)</li><li>KV (Gemma 3): 5 sliding-window-1024 layers per global layer; 4096 K+V elements per token per layer (16 KV × 128-d on 27B, 8 KV × 256-d on 12B)</li><li>KV (Gemma 4): same 5:1 schedule, but local layers widen to kv_heads × (256 K + 256 V) and global layers use a quarter of the KV heads at 512-d with unified K = V (one vector per head per token)</li><li>KV (CSA/HCA): shared K=V 512-d; CSA = SWA-128 + ctx/4 compressed + 128-d indexer; HCA = SWA-128 + ctx/128</li><li>KV (CLA-2): GQA-8 width with ceil(layers/2) shared-KV layers (Hunyuan-Large)</li><li>Overhead: Discrete/Intel ARC 1.5 GB desktop / 0.5 GB headless (configurable); Apple Silicon 25% Metal reservation (≈75% recommendedMaxWorkingSetSize); NVIDIA RTX Spark (Windows on Arm) GPU budget = carveout + clamp(post-carveout − 16 GB, 50%, 80% of post-carveout) — the CPU-only balance plus 1.5 GB desktop/driver headroom is deducted; Other unified memory fixed OS/firmware reserve (DGX Spark/GB10 on DGX OS ~12 GB headless; Ryzen AI Max+ 128 GB on Linux ~16 GB via GTT, Windows caps the iGPU at the 96 GB VGM carve-out; Snapdragon X/X2 ~3 GB for CPU/NPU, Windows caps Adreno GPU offload at 50% of RAM)</li></ul>',
+				architecture: '<ul><li>IBM Granite ~0.35B–8.1B: Granite 3.0–3.3 dense/MoE (1.3B-A0.4B, 2.5B, 3.3B-A0.8B, 8.1B; 24–40L, 64/128-d heads), Granite 4.0 dense Nano/Micro plus hybrid Mamba2 H variants, Granite 4.1 dense 3B/8B, Granite SWASH 2.14B / 3.02B-A0.6B (SWA-128 + sinks)</li><li>~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)</li><li>Qwen3.5 small dense (hybrid GDN, 1-in-4 Gated Attention): 0.8B (24L×1024H, 2 KV × 256), 2B (24L×2048H, 2 KV), 4B (32L×2560H, 4 KV), 9B (32L×4096H, 4 KV)</li><li>~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)</li><li>~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)</li><li>~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B</li><li>~12B (48L, 3840H): Gemma 3 12B (8 KV × 256-d, 5 sliding-window-1024 layers per global layer, 128K ctx)</li><li>~16.4B (20L, 2048H): Ling-mini-2.0 16.4B-A1.4B MoE (GQA-4, 256 experts ×8 + shared); Ring-mini-linear-2.0 shares the size with a 1:4 linear/softmax stack</li><li>~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B active), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 active), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)</li><li>IBM Granite Code / 4.x at 20B–34B: Code 20B/34B (52L/88L×6144H, MQA-1); Granite 4.1 30B dense (64L×4096H, GQA-8) and Granite 4.0 H-Small 32B-A9B (4 attention + 36 Mamba2) overlap general anchors</li><li>Gemma 3 27B / Gemma 4 (interleaved SWA-1024 + global): 25.2B Gemma 4 26B-A4B (30L×2816H, 25 local + 5 global, 128 experts ×8 + shared), 27.2B Gemma 3 27B (62L×5376H, 16 KV × 128-d, 52 local + 10 global), 30.7B Gemma 4 31B dense (60L×5376H, 50 local + 10 global, global layers use 4 KV × 512-d with unified K=V and proportional RoPE, 256K ctx, Apache 2.0)</li><li>~29.6B (52L, 6656H): Muse Glimmer 30B multimodal (13 full + 39 SWA-2048 layers, GQA-2; includes 1.8B perception encoder)</li><li>~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, 256K ctx)</li><li>~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, runs on 36 GB Mac)</li><li>~27.5B–35.5B Qwen3.5 hybrid GDN: Qwen3.5-27B dense (64L×5120H, 4 KV × 256) and Qwen3.5-35B-A3B (40L×2048H, 2 KV × 256) — 3 Gated DeltaNet layers per Gated Attention layer</li><li>~31.2B (47L, 2048H): GLM-4.7-Flash 31.2B-A3B MoE (MLA 512+64, 64 experts ×4 + shared, 202K ctx, MIT)</li><li>~32B (64L, 5120H): Qwen 2.5/3 32B</li><li>~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)</li><li>~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)</li><li>~100B (32L, 4096H): Ling-flash-2.0 100–104B-A6B MoE (GQA-4); Ring-flash-linear-2.0 shares the size with a 1:7 linear/softmax stack</li><li>~124B (42L, 2560H): Ling-3.0-flash 124B-A5.1B hybrid-linear MoE (35 Kimi Delta Attention + 7 gated MLA layers, 512 experts ×8 + shared)</li><li>~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)</li><li>~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (MXFP4 native, 64-dim GQA-8), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, 1M ctx)</li><li>~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, 1M ctx), M.1 (225B-A23B, all-global attn)</li><li>~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, 512K ctx), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, 1M ctx, multimodal), MiniMax Text-01 / M1 (456B-A46B, hybrid lightning attn)</li><li>~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)</li><li>~81B–122B Qwen hybrid GDN MoE: Qwen3-Next-80B-A3B (48L×2048H, 2 KV × 256, 262K ctx) and Qwen3.5-122B-A10B multimodal (48L×3072H, 256 experts ×8 + shared, 262K→1M ctx)</li><li>~106B (46L, 4096H): GLM-4.5-Air 106B-A12B MoE (96Q/8KV × 128, 128 experts ×8 + shared, partial RoPE)</li><li>~180B (48L, 2560H): Qwen3.8-Flash-Next — Qwen4 architecture preview, 125B-A6B LM + 51B n-gram table + 4B MTP, 3:1 Gated DeltaNet / gated full attention with Qwen Sparse Attention indexing</li><li>~196.8B–198B (45L×4096H): Step-3.5-Flash / Step-3.7-Flash (196B language backbone, 11B active; 12 full + 33 SWA-512 GQA-8; 3.7 adds 1.8B vision encoder and ships NVFP4)</li><li>~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)</li><li>~309B–321B: MiMo-V2-Flash / V2.5 309–310B-A15B (48L×4096H, 9 global + 39 SWA-128, asymmetric 192/128-d K/V, 256K–1M ctx); Step-3 321B-A38B VLM (61L×7168H, MFA shared 256-d K/V)</li><li>~357B (92L, 5120H): GLM-4.5 / 4.6 / 4.7 355–358B-A32B MoE (96Q/8KV × 128, 160 experts ×8 + shared, 200K ctx, MIT)</li><li>~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)</li><li>~397B (60L, 4096H): Qwen3.5-397B-A17B multimodal MoE (15 × [3 Gated DeltaNet + 1 Gated Attention], 2 KV × 256, 512 experts ×10 + shared, 262K→1M ctx)</li><li>~552B (40L, 5120H): DeepSeek-V4.1-Flash causal encoder-decoder (20 encoder + 20 decoder, CSA2 Full/Reindex/Reuse, 890 B/token global KV at FP4, +196B Engram memory, 1M ctx)</li><li>~770B (78L, 6144H): Hy4-preview 770B-A49B MoE (Gated DSA with IndexCache, iHC residuals, 256 experts ×8 + shared, 1M ctx, Apache 2.0)</li><li>~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), GLM-5 / 5.1 / 5.2 / 5.3 (744B-A40B, 78L×6144H, MLA 512+64 + DeepSeek Sparse Attention, 1M ctx), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), Ling-1T (1T-A50B, 80L×8192H, GQA-8), Ling 2.5 / 2.6 (1T-A63B, 80L×8192H, 70 lightning + 10 gated-MLA layers), MiMo-V2.5-Pro (1.02T-A42B, 70L×6144H, 10 global + 60 SWA-128, expert-only MXFP4 available), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, 1M ctx), Kimi K3 (2.8T, 93L×7168H, KDA+MLA), Qwen3.8-Max (2.4T-A95B, 92L×8192H, 3:1 Gated DeltaNet / 64 Q / 4 KV × 256 gated attention)</li></ul><p><strong>Checked, not anchored:</strong> Qwen3.7 (API-only, no weights), StepFun Step 5 Preview (600B-A27B, weights pending), Kimi K2.8 Preview (undisclosed), GLM-5.3-Flash / FlashX (geometry undisclosed), Meta Muse Spark 1.2/1.3 (closed), MiniMax H3 (video generator), DiffusionGemma 26B-A4B (text-diffusion decoder), Gemma 4 12B (geometry not yet published)</p>',
+				presetsInfo: '<p>One button per memory tier: cards with the same memory and GPU type give identical results, so each button names the most common cards (hover a button for equivalents). Rarer sizes (6/10/48/141 GB; 24/48/64 GB unified) are one slider move away.</p><ul><li><strong>Consumer GPUs 4–32 GB:</strong> GTX 1650 4GB (student laptops); RTX 5060 / 4060 8GB; RTX 5070 / 3060 12GB (Steam #1 in Sep 2026 / long-time #1); RTX 5060 Ti / RX 9070 XT 16GB (the most common VRAM tier); RTX 3090 / 4090 24GB; RTX 5090 32GB</li><li><strong>Unified Memory 16–256 GB:</strong> MacBook Air / Mac mini 16GB (base Macs); Ryzen AI Max+ 128GB (Strix Halo, ~112 GB GPU-reachable on Linux); DGX Spark 128GB (NVFP4); RTX Spark 128GB (Windows on Arm); M5 Ultra 256GB (Mac Studio)</li><li><strong>Workstation / Datacenter 80–180 GB:</strong> A100 / H100 80GB (the most affordable widely available cloud GPUs); RTX PRO 6000 96GB; B200 180GB (software-visible of 192GB HBM3e)</li></ul>',
+				sources: '<p><strong>Context guidance:</strong> llama.cpp completion documentation (<code>--ctx-size</code> prompt-context size); Anthropic, “Effective context engineering for AI agents” (compaction, structured notes, and just-in-time retrieval); Chroma, “Context Rot” (performance degradation as input length grows).</p><p><strong>Open-source harness cross-check:</strong> OpenClaw, OpenCode, Pi, Qwen Code, and Gemini CLI keep durable sessions or memory separate from compacted model context; DeepSeek Harness records an append-only session log with pluggable compaction; Hermes Agent compresses active history after flushing persistent memory; Prime Agent exposes context, memory, and subagents through persistent harness state; OpenHands, SWE-agent, Aider, Cline, Roo Code, Goose, LangGraph, and Letta use condensers, filtering, summaries, checkpoints, retrieval, or external memory.</p><p><strong>Architecture & hardware sources:</strong> Llama Gen 1–4 Papers & Model Cards (Meta AI, 2023–2025), Gemma Gen 1–4 Reports (Google; Gemma 4 Technical Report arXiv:2607.02770 and `gemma4` configs: 31B 60L×5376H / 26B-A4B 30L×2816H, 5 local : 1 global schedule, sliding_window 1024, global layers 4 (or 2) KV heads × 512-d with unified K=V and p-RoPE; Gemma 3 27B `gemma3_text` 62L×5376H, 16 KV × 128-d, sliding_window_pattern 6), Qwen Gen 1–3 Papers (Alibaba), Qwen3-Next-80B-A3B and Qwen3.5 (0.8B, 2B, 4B, 9B, 27B, 35B-A3B, 122B-A10B, 397B-A17B), Qwen3.6 (27B, 35B-A3B) and Qwen3.8 (27B, Flash-Next `qwen4_exp_text` config, Max 2.4T-A95B) model cards & configs (Alibaba, 2025–2026; Gated DeltaNet + Gated Attention 3:1 hybrid), MiniCPM Gen 1–5 Technical Reports (OpenBMB), G9 v1–v3 Specs (AI9Stars), Ling Gen 1–2 / 1000B Reports (InclusionAI; Ling-mini-2.0 20L×2048H, Ling-flash-2.0 32L×4096H, Ling-1T 80L×8192H bailing_moe configs, Ring-linear 2.0 arXiv:2510.19338) and the bailing_hybrid configs of Ling 2.5 / 2.6-1T (layer_group_size 8) and Ling-3.0-flash (layer_group_size 6), Inkling Gen 1 Specs (Thinking Machines), DeepSeek V1–V4.1 & R1 Reports (V4.1-Flash model card & technical report: 552B backbone, 20+20 causal encoder-decoder, 5120 hidden, CSA2, 890 B/token FP4 global KV, 196B Engram; V4 paper arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Tencent Hunyuan / Hy Model Cards — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B and Hy4-preview 770B-A49B (Tencent Hy Team, 2026; Hy4 repo: 78L×6144H, Gated DSA, KV compression 512, 32 × 128-d indexer, top-k 2048, Apache 2.0), GLM 1–4 Specs (Zhipu AI), GLM-4.5 / 4.5-Air / 4.6 / 4.7 (glm4_moe) and GLM-4.7-Flash (glm4_moe_lite, MLA) configs plus GLM-5 → 5.3 (glm_moe_dsa, 78L×6144H, MLA + DSA, index_topk 2048 shared every 4 layers) model cards (Z.ai / Zhipu AI, 2025–2026), Kimi V1–K3 Technical Reports (Moonshot AI, 2023–2026), Xiaomi MiMo-7B / V2-Flash (arXiv:2505.07608 / 2601.02780) and V2.5 / V2.5-Pro official configs & model cards (Xiaomi, 2025–2026), StepFun Step-3 (arXiv:2507.19427), Step-3.5-Flash (arXiv:2602.10604), Step3-VL-10B and Step-3.7-Flash configs/cards, Muse Glimmer 30B config/card (Meta Superintelligence Lab, 2026), IBM Granite Code report (arXiv:2405.04324), Granite 3.0–4.1 and SWASH official configs/cards (IBM, 2024–2026), GPT-OSS 20b/120b Model Cards & GptOss Specs (OpenAI, 2025; MXFP4-native MoE), Cohere Command R / R+ / R7B / A / A+ and Aya 101 / 23 / Expanse / Vision plus North Mini Code / Micro Model Cards & Technical Reports (Cohere Labs, 2022–2026), Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 Model Cards & Technical Report (Poolside, 2026; NVFP4/FP8/INT4 variants), Arcee Trinity Nano / Mini / Large Model Cards (Arcee AI, 2025–2026, OpenMDW), Mistral Open-Weight Model Cards & params.json — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), MiniMax Text-01 / M1 / M2→M2.7 / M3 Model Cards + M3 Technical Report arXiv:2606.13392 (MiniMax, 2025–2026)</p><p><strong>Hardware:</strong> Preset audit Oct 2026: Steam HW Survey Aug–Sep 2026 (RTX 5070 #1 5.86%, RTX 5060 4.20%, RTX 5060 Ti 3.87%; VRAM tiers 16GB 27.2%, 8GB 26.7%, 12GB 13.0%, 4GB 5.7%), 2026 local-LLM GPU guides (RTX 5060 Ti 16GB entry pick, used RTX 3090 24GB best $/GB, RTX 5090 32GB; RX 9070 XT 16GB ~$600; Arc B580 the only sub-$300 12GB), AMD Ryzen AI Max+ 395 (128GB LPDDR5X, 256 GB/s; 96GB VGM maximum per Framework &amp; HP, Linux GTT ~110–120GB per AMD), Apple Mac mini M6 (16GB, $899) / MacBook Air M5 (16GB) / Mac Studio M5 Ultra (96–512GB), NVIDIA B200 (180GB software-visible of 192GB HBM3e), A100/H100 80GB cloud rental ($1.4–3.2/GPU-hr), RTX PRO 6000 Blackwell 96GB; 25% Metal cap per llama.cpp recommendedMaxWorkingSetSize logs; NVIDIA RTX Spark Windows on Arm Porting Guide 0.1.0 (UMA carveout/shared/CPU-only rule, 300 GB/s, CUDA 13.4 for Windows on Arm) &amp; product page (N1X 20-core ≤128GB / 18-core ≤64GB); DGX Spark GB10 measurements (CUDA sees 119.7 GiB of 128GB, 273 GB/s); Snapdragon X2 Elite (152/228 GB/s, ≤128GB) &amp; Windows 50% shared-GPU cap; llama.cpp OpenCL Adreno backend; Intel Arc Resizable BAR / IPEX-LLM notes via Intel ARK</p>'
 			},
 			id: {
 				title: 'Kalkulator VRAM LLM',
@@ -967,9 +1034,12 @@
 				vramLabel: 'Memori GPU',
 				vramSizeLabel: 'Ukuran VRAM',
 				unifiedMemoryLabel: 'Memori Terpadu (Unified)',
-				sharedMemoryLabel: 'Memori Bersama (Shared)',
 				gpuTypeLabel: 'Tipe GPU',
 				overheadLabel: 'Deduksi Overhead Sistem',
+				rtxHeadroomLabel: 'Ruang Desktop / Driver',
+				rtxCarveoutLabel: 'Carveout GPU Khusus (OEM)',
+				carveoutNone: 'Tidak diketahui (0 GB)',
+				rtxCarveoutHelp: 'Aturan NVIDIA (Windows): anggaran GPU = carveout + shared; shared = memori setelah carveout − 16 GB, dibatasi 50–80% darinya. Sisanya khusus CPU. Firmware OEM menentukan carveout (Task Manager → Dedicated GPU memory); 0 GB adalah batas bawah konservatif. Ruang di bawah ini tetap kosong di dalam anggaran.',
 				modelLabel: 'Konfigurasi Model',
 				modelFamilyLabel: 'Keluarga Model',
 				modelQuantLabel: 'Presisi Model',
@@ -984,11 +1054,13 @@
 				maxParamsLabel: 'Parameter Maksimum',
 				memoryAllocationLabel: 'Alokasi Memori',
 				presetsLabel: 'Preset Cepat',
-				presetBudget: 'Anggaran / Entri (4–12 GB)',
-				presetMainstream: 'Mainstream / Antusias (16–32 GB)',
-				presetWorkstation: 'Workstation / Server (48–192 GB)',
-				presetAppleMobile: 'Apple / Seluler',
-				referenceTitle: 'Referensi & Metodologi',
+				presetConsumer: 'GPU Konsumen (4–32 GB)',
+				presetUnified: 'Memori Terpadu (16–256 GB)',
+				presetDatacenter: 'Workstation / Pusat Data (80–180 GB)',
+				formulasTitle: 'Formula',
+				architectureTitle: 'Data Referensi (Anchor Estimasi Otomatis)',
+				presetsInfoTitle: 'Preset Hardware (14, 4 GB–256 GB)',
+				sourcesTitle: 'Sumber',
 				languageLabel: 'Pilih Bahasa',
 				themeLabel: 'Pilih Tema',
 				autoEstimate: 'Estimasi Otomatis (Umum)',
@@ -1013,7 +1085,13 @@
 				categoryLarge: 'Besar (150B+)',
 				estimatedArchitecture: 'Arsitektur Terestimasi',
 				reserved: 'Dicadangkan',
-				snapdragonOverhead: 'Memori GPU dibatasi maks. 50% dari total RAM',
+				umaOverhead: 'Cadangan OS / firmware (dapat dikonfigurasi)',
+				rtxSparkOverhead: 'Khusus CPU {cpu} GB ({rule}) + ruang {headroom} GB · anggaran GPU {budget} GB',
+				rtxRuleFloor: 'batas bawah 50% NVIDIA',
+				rtxRuleMinus16: 'sisa − 16 GB NVIDIA',
+				rtxRuleCap: 'batas atas 80% NVIDIA',
+				umaHint: 'Cadangan tetap OS / firmware. DGX Spark (DGX OS): ~12 GB tanpa desktop, ~16 GB dengan desktop (≈116 / ≈112 GiB dari 128 GB tetap tersedia). Ryzen AI Max+ 128 GB di Linux: ~16 GB, karena GTT memungkinkan iGPU menjangkau ~112 GB; Windows membatasinya pada carve-out VGM 96 GB, jadi pilih Discrete GPU 96 GB di sana. Snapdragon X/X2: ~3 GB untuk inferensi CPU/NPU; Windows membatasi offload GPU Adreno (llama.cpp OpenCL) hingga 50% RAM.',
+				appleHint: 'macOS mengizinkan Metal memakai ≈75% RAM (recommendedMaxWorkingSetSize; ≈⅔ pada Mac ≤32 GB dengan macOS lama). sudo sysctl iogpu.wired_limit_mb dapat menaikkannya dengan mengorbankan cadangan OS.',
 				intelArcOverhead: 'Butuh Resizable BAR; overhead driver ~1,5 GB lazim',
 				mbPerToken: 'MiB/token',
 
@@ -1021,9 +1099,10 @@
 				warningInsufficient: '❌ VRAM tidak cukup untuk model.',
 				insufficient: 'TIDAK CUKUP',
 
-				formulas: '<strong>Formula:</strong><br>• Cakupan: penggeser berlabel ganda adalah jumlah token KV untuk satu konteks inferensi aktif<br>• Model: params(B) × 10^9 × byte/param × 1,05 ÷ 2^30 (GiB); MXFP4 ≈ 0,53 byte/param (gpt-oss/Kimi K3; hanya expert pada MiMo Pro), NVFP4 ≈ 0,56 byte/param (Laguna/Step 3.7/Blackwell)<br>• Atensi (Estimasi Otomatis): bucket per-anchor — GQA/MQA (termasuk kepala 64-dim Granite/gpt-oss), SWA+global hibrida (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH, Gemma 3/4), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), MLA+DSA (GLM-5.x), hibrida Gated DeltaNet/Gated Attention (Qwen3-Next, Qwen3.5/3.6), hibrida linear+MLA (Ling 2.5/2.6, Ling 3.0), GDN+QSA (Qwen3.8-Flash-Next), causal encoder-decoder + CSA2 (DeepSeek V4.1-Flash), CLA-2 (Hunyuan-Large), MHA (Command R+)<br>• KV (MHA/GQA/MQA): lapisan × kv_head × (head_dim K + head_dim V) × konteks × byte<br>• KV (SWA hibrida): lapisan penuh menyimpan konteks; lapisan SWA menyimpan min(konteks, window), dengan lebar K/V tepat per keluarga<br>• KV (MFA): lapisan × konteks × (256 K + 256 V) × byte (Step-3)<br>• KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte<br>• KV (MLA+DSA, GLM-5.x): 576 × lapisan × konteks + indexer DSA 128-d pada tiap lapisan ke-4<br>• KV (hibrida GDN Qwen3.5): hanya lapisan Gated Attention (1 dari 4) yang menyimpan token — kv_head × (256 K + 256 V) × konteks × byte; lapisan Gated DeltaNet berstate konstan<br>• KV (hibrida linear Ling): satu lapisan gated-MLA per grup (6 lapisan pada Ling 3.0, 8 pada Ling 2.5/2.6) × 576 × konteks × byte; lapisan KDA/lightning berstate konstan<br>• KV (Qwen3.8-Flash-Next): lapisan penuh 1 dari 4 × [2 × (256 K + 256 V) × konteks + indeks QSA 128-d atas konteks/4]<br>• KV (DeepSeek V4.1-Flash CED+CSA2): ~44,5 elemen per lapisan per token (cache global 890 B/token pada FP4 sesuai kartu model)<br>• KV (Gemma 3): 5 lapisan sliding-window-1024 per lapisan global; 4096 elemen K+V per token per lapisan (16 KV × 128-d pada 27B, 8 KV × 256-d pada 12B)<br>• KV (Gemma 4): jadwal 5:1 yang sama, tetapi lapisan lokal melebar ke kv_head × (256 K + 256 V) dan lapisan global memakai seperempat KV head pada 512-d dengan K = V terpadu (satu vektor per head per token)<br>• KV (CSA/HCA): K=V bersama 512-d; CSA = SWA-128 + ctx/4 terkompresi + indexer 128-d; HCA = SWA-128 + ctx/128<br>• KV (CLA-2): lebar GQA-8 dengan ceil(lapisan/2) lapisan KV bersama (Hunyuan-Large)<br>• Overhead: Discrete/Intel ARC 1,5 GB desktop / 0,5 GB headless (dapat dikonfigurasi), Apple Silicon 25% reservasi Metal, Snapdragon/X Elite cap GPU bersama 50%',
-				architecture: '<strong>Data Referensi (Sintesis Estimasi Otomatis Multi-Generasi):</strong><br>• IBM Granite ~0,35B–8,1B: Granite 3.0–3.3 dense/MoE (1,3B-A0,4B, 2,5B, 3,3B-A0,8B, 8,1B; 24–40L, kepala 64/128-d), Granite 4.0 dense Nano/Micro serta varian H Mamba2 hibrida, Granite 4.1 dense 3B/8B, Granite SWASH 2,14B / 3,02B-A0,6B (SWA-128 + sink)<br>• ~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)<br>• Qwen3.5 dense kecil (GDN hibrida, Gated Attention 1 dari 4): 0,8B (24L×1024H, 2 KV × 256), 2B (24L×2048H, 2 KV), 4B (32L×2560H, 4 KV), 9B (32L×4096H, 4 KV)<br>• ~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)<br>• ~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)<br>• ~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B<br>• ~12B (48L, 3840H): Gemma 3 12B (8 KV × 256-d, 5 lapisan sliding-window-1024 per lapisan global, konteks 128K)<br>• ~16,4B (20L, 2048H): Ling-mini-2.0 16,4B-A1,4B MoE (GQA-4, 256 expert ×8 + shared); Ring-mini-linear-2.0 berukuran sama dengan tumpukan linear/softmax 1:4<br>• ~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B aktif), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 aktif), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)<br>• IBM Granite Code / 4.x pada 20B–34B: Code 20B/34B (52L/88L×6144H, MQA-1); Granite 4.1 30B dense (64L×4096H, GQA-8) dan Granite 4.0 H-Small 32B-A9B (4 atensi + 36 Mamba2) bertumpang tindih dengan anchor umum<br>• Gemma 3 27B / Gemma 4 (SWA-1024 + global berselang-seling): 25,2B Gemma 4 26B-A4B (30L×2816H, 25 lokal + 5 global, 128 expert ×8 + shared), 27,2B Gemma 3 27B (62L×5376H, 16 KV × 128-d, 52 lokal + 10 global), 30,7B Gemma 4 31B dense (60L×5376H, 50 lokal + 10 global, lapisan global memakai 4 KV × 512-d dengan K=V terpadu dan RoPE proporsional, konteks 256K, Apache 2.0)<br>• ~29,6B (52L, 6656H): Muse Glimmer 30B multimodal (13 lapisan penuh + 39 SWA-2048, GQA-2; termasuk perception encoder 1,8B)<br>• ~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, konteks 256K)<br>• ~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, muat di Mac 36 GB)<br>• ~27,5B–35,5B GDN hibrida Qwen3.5: Qwen3.5-27B dense (64L×5120H, 4 KV × 256) dan Qwen3.5-35B-A3B (40L×2048H, 2 KV × 256) — 3 lapisan Gated DeltaNet per lapisan Gated Attention<br>• ~31,2B (47L, 2048H): GLM-4.7-Flash 31,2B-A3B MoE (MLA 512+64, 64 expert ×4 + shared, konteks 202K, MIT)<br>• ~32B (64L, 5120H): Qwen 2.5/3 32B<br>• ~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)<br>• ~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)<br>• ~100B (32L, 4096H): Ling-flash-2.0 100–104B-A6B MoE (GQA-4); Ring-flash-linear-2.0 berukuran sama dengan tumpukan linear/softmax 1:7<br>• ~124B (42L, 2560H): Ling-3.0-flash 124B-A5,1B MoE hibrida-linear (35 lapisan Kimi Delta Attention + 7 gated MLA, 512 expert ×8 + shared)<br>• ~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)<br>• ~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (native MXFP4, GQA-8 64-dim), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, konteks 1M)<br>• ~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, konteks 1M), M.1 (225B-A23B, atensi global semua lapisan)<br>• ~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, konteks 512K), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, konteks 1M, multimodal), MiniMax Text-01 / M1 (456B-A46B, atensi lightning hibrida)<br>• ~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)<br>• ~81B–122B MoE GDN hibrida Qwen: Qwen3-Next-80B-A3B (48L×2048H, 2 KV × 256, konteks 262K) dan Qwen3.5-122B-A10B multimodal (48L×3072H, 256 expert ×8 + shared, konteks 262K→1M)<br>• ~106B (46L, 4096H): GLM-4.5-Air 106B-A12B MoE (96Q/8KV × 128, 128 expert ×8 + shared, RoPE parsial)<br>• ~180B (48L, 2560H): Qwen3.8-Flash-Next — pratinjau arsitektur Qwen4, LM 125B-A6B + tabel n-gram 51B + MTP 4B, Gated DeltaNet / atensi penuh bergerbang 3:1 dengan pengindeksan Qwen Sparse Attention<br>• ~196,8B–198B (45L×4096H): Step-3.5-Flash / Step-3.7-Flash (backbone bahasa 196B, 11B aktif; 12 penuh + 33 SWA-512 GQA-8; 3.7 menambah vision encoder 1,8B dan menyediakan NVFP4)<br>• ~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)<br>• ~309B–321B: MiMo-V2-Flash / V2.5 309–310B-A15B (48L×4096H, 9 global + 39 SWA-128, K/V asimetris 192/128-d, konteks 256K–1M); Step-3 321B-A38B VLM (61L×7168H, MFA berbagi K/V 256-d)<br>• ~357B (92L, 5120H): GLM-4.5 / 4.6 / 4.7 355–358B-A32B MoE (96Q/8KV × 128, 160 expert ×8 + shared, konteks 200K, MIT)<br>• ~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)<br>• ~397B (60L, 4096H): Qwen3.5-397B-A17B MoE multimodal (15 × [3 Gated DeltaNet + 1 Gated Attention], 2 KV × 256, 512 expert ×10 + shared, konteks 262K→1M)<br>• ~552B (40L, 5120H): DeepSeek-V4.1-Flash causal encoder-decoder (20 encoder + 20 decoder, CSA2 Full/Reindex/Reuse, KV global 890 B/token pada FP4, +memori Engram 196B, konteks 1M)<br>• ~770B (78L, 6144H): Hy4-preview 770B-A49B MoE (Gated DSA dengan IndexCache, residual iHC, 256 expert ×8 + shared, konteks 1M, Apache 2.0)<br>• ~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), GLM-5 / 5.1 / 5.2 / 5.3 (744B-A40B, 78L×6144H, MLA 512+64 + DeepSeek Sparse Attention, konteks 1M), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), Ling-1T (1T-A50B, 80L×8192H, GQA-8), Ling 2.5 / 2.6 (1T-A63B, 80L×8192H, 70 lapisan lightning + 10 gated-MLA), MiMo-V2.5-Pro (1.02T-A42B, 70L×6144H, 10 global + 60 SWA-128, expert-only MXFP4 available), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, konteks 1M), Kimi K3 (2.8T, 93L×7168H, KDA+MLA), Qwen3.8-Max (2,4T-A95B, 92L×8192H, Gated DeltaNet 3:1 / atensi bergerbang 64 Q / 4 KV × 256)<br>• <strong>Diperiksa, tidak di-anchor:</strong> Qwen3.7 (hanya API, tanpa bobot), StepFun Step 5 Preview (600B-A27B, bobot belum rilis), Kimi K2.8 Preview (tidak diungkap), GLM-5.3-Flash / FlashX (geometri tidak diungkap), Meta Muse Spark 1.2/1.3 (tertutup), MiniMax H3 (generator video), DiffusionGemma 26B-A4B (dekoder difusi teks), Gemma 4 12B (geometri belum dipublikasikan)<br><br><strong>Preset Hardware (4 GB–192 GB):</strong> Budget 4–12 GB (GTX 1650 4GB, Arc A380 6GB, RTX 4060 8GB, Arc B570 10GB, RTX 3060 12GB #1 Steam, Arc B580 12GB $249) → Mainstream 16–32 GB (Arc A770 16GB termurah 16GB, RTX 5070 Ti 16GB, RTX 4090 24GB, Arc Pro B60 24GB $599 workstation, RTX 5090 32GB) → Workstation/Server 48–192 GB (L40S 48GB, A100 80GB, RTX PRO 6000 96GB, H200 141GB, B200 192GB) → Apple/Mobile (MacBook Neo 8GB, M4 Max 128GB MBP, M3 Ultra 192GB Studio, Snapdragon X Elite 32GB shared)',
-				sources: '<strong>Panduan konteks:</strong> dokumentasi completion llama.cpp (ukuran konteks prompt <code>--ctx-size</code>); Anthropic, “Effective context engineering for AI agents” (kompaksi, catatan terstruktur, dan retrieval tepat waktu); Chroma, “Context Rot” (degradasi performa saat panjang input bertambah).<br><strong>Pemeriksaan silang harness sumber terbuka:</strong> OpenClaw, OpenCode, Pi, Qwen Code, dan Gemini CLI memisahkan sesi atau memori persisten dari konteks model yang dikompaksi; DeepSeek Harness mencatat log sesi append-only dengan kompaksi yang dapat diganti; Hermes Agent mengompaksi riwayat aktif setelah menyimpan memori persisten; Prime Agent mengekspos konteks, memori, dan subagen melalui state harness persisten; OpenHands, SWE-agent, Aider, Cline, Roo Code, Goose, LangGraph, dan Letta memakai condenser, penyaringan, ringkasan, checkpoint, pengambilan informasi, atau memori eksternal.<br><strong>Sumber arsitektur & perangkat keras:</strong> Makalah & Kartu Model Llama Gen 1–4 (Meta AI, 2023–2025), Laporan Gemma Gen 1–4 (Google; Gemma 4 Technical Report arXiv:2607.02770 dan config `gemma4`: 31B 60L×5376H / 26B-A4B 30L×2816H, jadwal 5 lokal : 1 global, sliding_window 1024, lapisan global 4 (atau 2) KV head × 512-d dengan K=V terpadu dan p-RoPE; Gemma 3 27B `gemma3_text` 62L×5376H, 16 KV × 128-d, sliding_window_pattern 6), Makalah Qwen Gen 1–3 (Alibaba), kartu model & config Qwen3-Next-80B-A3B dan Qwen3.5 (0,8B, 2B, 4B, 9B, 27B, 35B-A3B, 122B-A10B, 397B-A17B), Qwen3.6 (27B, 35B-A3B) dan Qwen3.8 (27B, config `qwen4_exp_text` Flash-Next, Max 2,4T-A95B) (Alibaba, 2025–2026; hibrida Gated DeltaNet + Gated Attention 3:1), Laporan Teknis MiniCPM Gen 1–5 (OpenBMB), Spek G9 v1–v3 (AI9Stars), Laporan Ling Gen 1–2 / 1000B (InclusionAI; config bailing_moe Ling-mini-2.0 20L×2048H, Ling-flash-2.0 32L×4096H, Ling-1T 80L×8192H, Ring-linear 2.0 arXiv:2510.19338) serta config bailing_hybrid Ling 2.5 / 2.6-1T (layer_group_size 8) dan Ling-3.0-flash (layer_group_size 6), Spek Inkling Gen 1 (Thinking Machines), Laporan DeepSeek V1–V4.1 & R1 (kartu model & laporan teknis V4.1-Flash: backbone 552B, encoder-decoder kausal 20+20, hidden 5120, CSA2, KV global 890 B/token pada FP4, Engram 196B; makalah V4 arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Kartu Model Tencent Hunyuan / Hy — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B dan Hy4-preview 770B-A49B (Tim Hy Tencent, 2026; repo Hy4: 78L×6144H, Gated DSA, kompresi KV 512, indexer 32 × 128-d, top-k 2048, Apache 2.0), Spek GLM 1–4 (Zhipu AI), config GLM-4.5 / 4.5-Air / 4.6 / 4.7 (glm4_moe) dan GLM-4.7-Flash (glm4_moe_lite, MLA) serta kartu model GLM-5 → 5.3 (glm_moe_dsa, 78L×6144H, MLA + DSA, index_topk 2048 berbagi tiap 4 lapisan) (Z.ai / Zhipu AI, 2025–2026), Laporan Teknis Kimi V1–K3 (Moonshot AI, 2023–2026), Kartu Model & Spek GPT-OSS 20b/120b (OpenAI, 2025; MoE native MXFP4), Kartu Model & Laporan Teknis Cohere Command R / R+ / R7B / A / A+ dan Aya 101 / 23 / Expanse / Vision serta North Mini Code / Micro (Cohere Labs, 2022–2026), Kartu Model & Laporan Teknis Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 (Poolside, 2026; varian NVFP4/FP8/INT4), Kartu Model Arcee Trinity Nano / Mini / Large (Arcee AI, 2025–2026, OpenMDW), Kartu Model & params.json Bobot Terbuka Mistral — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), Kartu Model MiniMax Text-01 / M1 / M2→M2.7 / M3 + Laporan Teknis M3 arXiv:2606.13392 (MiniMax, 2025–2026)<br><strong>Hardware:</strong> Spek NVIDIA RTX 50/40 (GB202/GB203, GDDR7 32/16/12 GB), Intel Arc Alchemist (A380 6GB, A770 16GB) & Battlemage (B570 10GB, B580 12GB, Pro B60 24GB $599) via Tom&apos;s Hardware, Intel ARK; Survei HW Steam 2025–2026 (RTX 3060 #1 8–9%, GTX 1650 4,8%, 8GB paling umum); Spek Apple A18 Pro MacBook Neo (8GB unified, $599) & M4 Max/M3 Ultra (128GB MBP, 64–192GB Studio, cap Metal 25%); cap GPU bersama Snapdragon X Elite 50%'
+				formulas: '<ul><li>Cakupan: penggeser berlabel ganda adalah jumlah token KV untuk satu konteks inferensi aktif</li><li>Model: params(B) × 10^9 × byte/param × 1,05 ÷ 2^30 (GiB); MXFP4 ≈ 0,53 byte/param (gpt-oss/Kimi K3; hanya expert pada MiMo Pro), NVFP4 ≈ 0,56 byte/param (Laguna/Step 3.7/Blackwell)</li><li>Atensi (Estimasi Otomatis): bucket per-anchor — GQA/MQA (termasuk kepala 64-dim Granite/gpt-oss), SWA+global hibrida (MiMo V2, Step 3.5/3.7, Muse Glimmer, Granite SWASH, Gemma 3/4), MFA (Step-3), MLA (DeepSeek V2/V3/R1, Mistral Large 3, Kimi K2/K3), CSA/HCA (DeepSeek V4), MLA+DSA (GLM-5.x), hibrida Gated DeltaNet/Gated Attention (Qwen3-Next, Qwen3.5/3.6), hibrida linear+MLA (Ling 2.5/2.6, Ling 3.0), GDN+QSA (Qwen3.8-Flash-Next), causal encoder-decoder + CSA2 (DeepSeek V4.1-Flash), CLA-2 (Hunyuan-Large), MHA (Command R+)</li><li>KV (MHA/GQA/MQA): lapisan × kv_head × (head_dim K + head_dim V) × konteks × byte</li><li>KV (SWA hibrida): lapisan penuh menyimpan konteks; lapisan SWA menyimpan min(konteks, window), dengan lebar K/V tepat per keluarga</li><li>KV (MFA): lapisan × konteks × (256 K + 256 V) × byte (Step-3)</li><li>KV (MLA): (kv_lora_rank + qk_rope_head_dim) × lapisan × konteks × byte</li><li>KV (MLA+DSA, GLM-5.x): 576 × lapisan × konteks + indexer DSA 128-d pada tiap lapisan ke-4</li><li>KV (hibrida GDN Qwen3.5): hanya lapisan Gated Attention (1 dari 4) yang menyimpan token — kv_head × (256 K + 256 V) × konteks × byte; lapisan Gated DeltaNet berstate konstan</li><li>KV (hibrida linear Ling): satu lapisan gated-MLA per grup (6 lapisan pada Ling 3.0, 8 pada Ling 2.5/2.6) × 576 × konteks × byte; lapisan KDA/lightning berstate konstan</li><li>KV (Qwen3.8-Flash-Next): lapisan penuh 1 dari 4 × [2 × (256 K + 256 V) × konteks + indeks QSA 128-d atas konteks/4]</li><li>KV (DeepSeek V4.1-Flash CED+CSA2): ~44,5 elemen per lapisan per token (cache global 890 B/token pada FP4 sesuai kartu model)</li><li>KV (Gemma 3): 5 lapisan sliding-window-1024 per lapisan global; 4096 elemen K+V per token per lapisan (16 KV × 128-d pada 27B, 8 KV × 256-d pada 12B)</li><li>KV (Gemma 4): jadwal 5:1 yang sama, tetapi lapisan lokal melebar ke kv_head × (256 K + 256 V) dan lapisan global memakai seperempat KV head pada 512-d dengan K = V terpadu (satu vektor per head per token)</li><li>KV (CSA/HCA): K=V bersama 512-d; CSA = SWA-128 + ctx/4 terkompresi + indexer 128-d; HCA = SWA-128 + ctx/128</li><li>KV (CLA-2): lebar GQA-8 dengan ceil(lapisan/2) lapisan KV bersama (Hunyuan-Large)</li><li>Overhead: Discrete/Intel ARC 1,5 GB desktop / 0,5 GB headless (dapat dikonfigurasi); Apple Silicon 25% reservasi Metal (≈75% recommendedMaxWorkingSetSize); NVIDIA RTX Spark (Windows on Arm) anggaran GPU = carveout + clamp(sisa setelah carveout − 16 GB, 50%, 80% dari sisa) — sisa khusus CPU ditambah ruang desktop/driver 1,5 GB dikurangkan; Memori terpadu lain cadangan tetap OS/firmware (DGX Spark/GB10 di DGX OS ~12 GB tanpa desktop; Ryzen AI Max+ 128 GB di Linux ~16 GB via GTT, Windows membatasi iGPU pada carve-out VGM 96 GB; Snapdragon X/X2 ~3 GB untuk CPU/NPU, Windows membatasi offload GPU Adreno hingga 50% RAM)</li></ul>',
+				architecture: '<ul><li>IBM Granite ~0,35B–8,1B: Granite 3.0–3.3 dense/MoE (1,3B-A0,4B, 2,5B, 3,3B-A0,8B, 8,1B; 24–40L, kepala 64/128-d), Granite 4.0 dense Nano/Micro serta varian H Mamba2 hibrida, Granite 4.1 dense 3B/8B, Granite SWASH 2,14B / 3,02B-A0,6B (SWA-128 + sink)</li><li>~0.5B–1.7B (24–40L, 896–2048H): Qwen2.5 0.5B (24L×896H), Qwen3 0.6B (28L×1024H GQA-8), Qwen3 1.7B (28L×2048H), Hunyuan-1.8B (32L×2048H, GQA-4), MiniCPM (Gen 1, 5)</li><li>Qwen3.5 dense kecil (GDN hibrida, Gated Attention 1 dari 4): 0,8B (24L×1024H, 2 KV × 256), 2B (24L×2048H, 2 KV), 4B (32L×2560H, 4 KV), 9B (32L×4096H, 4 KV)</li><li>~2B–4B (26–36L, 2048–2560H): Gemma 3 4B / Qwen3 4B (2560H), Gemma (Gen 1, 2, 4 2B), MiniCPM (Gen 1–4), G9 (v1–v3), North Micro (2B / 2.4B Vision), Ministral-3 3B (262K ctx)</li><li>~6B (56L, 1024H): Trinity Nano 6B MoE (GQA-2, 128 experts, 1-in-4 global attn, OpenMDW)</li><li>~6.5B–9B (28–38L, 3584–4096H): Llama (Gen 1/2 7B, Gen 3 8B), Gemma (Gen 1, 2), Qwen (Gen 1.5, 2.5, 3), GLM (Gen 1, 2, 3, 4), MiniCPM (Gen 2/V2.6, 4/o 4.5), Command R7B, Aya (23 / Expanse / Vision 8B), Mistral 7B (v0.1–0.3), Ministral-3 8B</li><li>~12B (48L, 3840H): Gemma 3 12B (8 KV × 256-d, 5 lapisan sliding-window-1024 per lapisan global, konteks 128K)</li><li>~16,4B (20L, 2048H): Ling-mini-2.0 16,4B-A1,4B MoE (GQA-4, 256 expert ×8 + shared); Ring-mini-linear-2.0 berukuran sama dengan tumpukan linear/softmax 1:4</li><li>~13B–39B (40–62L, 5120–6144H): Llama (Gen 1/2 13B, Gen 4 17B aktif), DeepSeek (V1, V2), Gemma (Gen 2, 3, 4), Qwen (Gen 1.5, 2.5, 3), G9 (v3 39A5B), Kimi (K2/K2.5 aktif), Aya 101 13B (mT5 enc-dec), Mistral NeMo 12B, Ministral-3 14B, Mistral Small 3.x 24B (incl. Magistral / Devstral / Voxtral Small)</li><li>IBM Granite Code / 4.x pada 20B–34B: Code 20B/34B (52L/88L×6144H, MQA-1); Granite 4.1 30B dense (64L×4096H, GQA-8) dan Granite 4.0 H-Small 32B-A9B (4 atensi + 36 Mamba2) bertumpang tindih dengan anchor umum</li><li>Gemma 3 27B / Gemma 4 (SWA-1024 + global berselang-seling): 25,2B Gemma 4 26B-A4B (30L×2816H, 25 lokal + 5 global, 128 expert ×8 + shared), 27,2B Gemma 3 27B (62L×5376H, 16 KV × 128-d, 52 lokal + 10 global), 30,7B Gemma 4 31B dense (60L×5376H, 50 lokal + 10 global, lapisan global memakai 4 KV × 512-d dengan K=V terpadu dan RoPE proporsional, konteks 256K, Apache 2.0)</li><li>~29,6B (52L, 6656H): Muse Glimmer 30B multimodal (13 lapisan penuh + 39 SWA-2048, GQA-2; termasuk perception encoder 1,8B)</li><li>~30B (49L, 2048H): North Mini Code 30B-A3B MoE (GQA-4, konteks 256K)</li><li>~33B (40L, 2048H): Laguna XS.2 / XS 2.1 33B-A3B MoE (GQA-8, 3:1 SWA-512/global, muat di Mac 36 GB)</li><li>~27,5B–35,5B GDN hibrida Qwen3.5: Qwen3.5-27B dense (64L×5120H, 4 KV × 256) dan Qwen3.5-35B-A3B (40L×2048H, 2 KV × 256) — 3 lapisan Gated DeltaNet per lapisan Gated Attention</li><li>~31,2B (47L, 2048H): GLM-4.7-Flash 31,2B-A3B MoE (MLA 512+64, 64 expert ×4 + shared, konteks 202K, MIT)</li><li>~32B (64L, 5120H): Qwen 2.5/3 32B</li><li>~32B–35B (40L, 8192H): Command R 35B, Aya 23 35B (MHA), Aya Expanse/Vision 32B (GQA-8)</li><li>~65B–405B dense (70–126L, 8192–16384H): Llama (Gen 1 65B, Gen 2/3 70B, Gen 3.1 405B), Qwen (72B, 110B), GLM-130B (70L×12288H)</li><li>~100B (32L, 4096H): Ling-flash-2.0 100–104B-A6B MoE (GQA-4); Ring-flash-linear-2.0 berukuran sama dengan tumpukan linear/softmax 1:7</li><li>~124B (42L, 2560H): Ling-3.0-flash 124B-A5,1B MoE hibrida-linear (35 lapisan Kimi Delta Attention + 7 gated MLA, 512 expert ×8 + shared)</li><li>~104B–128B dense (64–88L, 12288H): Command R+ 104B (MHA 96-head), Command A / A Reasoning / A Vision / A Translate 111B (GQA-8), Devstral 2 123B & Mistral Medium 3.5 128B (88L, FP8, 256K ctx)</li><li>~21B–218B MoE (24–49L, 2048–4096H): gpt-oss 20b/120b (native MXFP4, GQA-8 64-dim), North Mini Code 30B-A3B, Trinity Mini (26B-A3B, GQA-4), Mixtral 8x7B (47B-A13B), Command A+ 218B-A25B, Mistral Small 4 (119B-A6B, MLA, konteks 1M)</li><li>~33B–225B MoE (40–70L, 2048–4096H): Poolside Laguna XS.2 / XS 2.1 (33B-A3B), S 2.1 (118B-A8B, konteks 1M), M.1 (225B-A23B, atensi global semua lapisan)</li><li>~141B–456B MoE (56–80L, 3072–6400H): Mixtral 8x22B (141B-A39B), MiniMax M2 / M2.1 / M2.5 / M2.7 (230B-A10B), Arcee Trinity Large (398B-A13B, GQA-8, konteks 512K), MiniMax M3 (428B-A23B, GQA-4 + Sparse Attention, konteks 1M, multimodal), MiniMax Text-01 / M1 (456B-A46B, atensi lightning hibrida)</li><li>~80B (32L, 4096H): Hunyuan-A13B 80B-A13B MoE (GQA-8, 256K ctx)</li><li>~81B–122B MoE GDN hibrida Qwen: Qwen3-Next-80B-A3B (48L×2048H, 2 KV × 256, konteks 262K) dan Qwen3.5-122B-A10B multimodal (48L×3072H, 256 expert ×8 + shared, konteks 262K→1M)</li><li>~106B (46L, 4096H): GLM-4.5-Air 106B-A12B MoE (96Q/8KV × 128, 128 expert ×8 + shared, RoPE parsial)</li><li>~180B (48L, 2560H): Qwen3.8-Flash-Next — pratinjau arsitektur Qwen4, LM 125B-A6B + tabel n-gram 51B + MTP 4B, Gated DeltaNet / atensi penuh bergerbang 3:1 dengan pengindeksan Qwen Sparse Attention</li><li>~196,8B–198B (45L×4096H): Step-3.5-Flash / Step-3.7-Flash (backbone bahasa 196B, 11B aktif; 12 penuh + 33 SWA-512 GQA-8; 3.7 menambah vision encoder 1,8B dan menyediakan NVFP4)</li><li>~235B–295B MoE: Qwen3-235B-A22B (94L×4096H, GQA-4), DeepSeek-V2 (236B, 60L×5120H, MLA), Inkling-Small (276B, 42L×4096H, GQA-8), DeepSeek-V4-Flash (284B-A13B, 43L×4096H, CSA/HCA), Hy3 (295B-A21B, 80L×4096H, GQA-8, 256K ctx)</li><li>~309B–321B: MiMo-V2-Flash / V2.5 309–310B-A15B (48L×4096H, 9 global + 39 SWA-128, K/V asimetris 192/128-d, konteks 256K–1M); Step-3 321B-A38B VLM (61L×7168H, MFA berbagi K/V 256-d)</li><li>~357B (92L, 5120H): GLM-4.5 / 4.6 / 4.7 355–358B-A32B MoE (96Q/8KV × 128, 160 expert ×8 + shared, konteks 200K, MIT)</li><li>~389B (64L, 6400H): Hunyuan-Large / A52B 389B-A52B MoE (GQA-8 + CLA-2)</li><li>~397B (60L, 4096H): Qwen3.5-397B-A17B MoE multimodal (15 × [3 Gated DeltaNet + 1 Gated Attention], 2 KV × 256, 512 expert ×10 + shared, konteks 262K→1M)</li><li>~552B (40L, 5120H): DeepSeek-V4.1-Flash causal encoder-decoder (20 encoder + 20 decoder, CSA2 Full/Reindex/Reuse, KV global 890 B/token pada FP4, +memori Engram 196B, konteks 1M)</li><li>~770B (78L, 6144H): Hy4-preview 770B-A49B MoE (Gated DSA dengan IndexCache, residual iHC, 256 expert ×8 + shared, konteks 1M, Apache 2.0)</li><li>~671B–2.8T MoE: DeepSeek-V3/V3.2/R1 (671B, 61L×7168H, MLA), Mistral Large 3 (675B-A41B, MLA), GLM-5 / 5.1 / 5.2 / 5.3 (744B-A40B, 78L×6144H, MLA 512+64 + DeepSeek Sparse Attention, konteks 1M), Inkling (975B, 66L×6144H, GQA-8), Kimi K2/K2.5 (1T, 61L×7168H, MLA), Ling-1T (1T-A50B, 80L×8192H, GQA-8), Ling 2.5 / 2.6 (1T-A63B, 80L×8192H, 70 lapisan lightning + 10 gated-MLA), MiMo-V2.5-Pro (1.02T-A42B, 70L×6144H, 10 global + 60 SWA-128, expert-only MXFP4 available), DeepSeek-V4-Pro (1.6T-A49B, 61L×7168H, CSA/HCA, konteks 1M), Kimi K3 (2.8T, 93L×7168H, KDA+MLA), Qwen3.8-Max (2,4T-A95B, 92L×8192H, Gated DeltaNet 3:1 / atensi bergerbang 64 Q / 4 KV × 256)</li></ul><p><strong>Diperiksa, tidak di-anchor:</strong> Qwen3.7 (hanya API, tanpa bobot), StepFun Step 5 Preview (600B-A27B, bobot belum rilis), Kimi K2.8 Preview (tidak diungkap), GLM-5.3-Flash / FlashX (geometri tidak diungkap), Meta Muse Spark 1.2/1.3 (tertutup), MiniMax H3 (generator video), DiffusionGemma 26B-A4B (dekoder difusi teks), Gemma 4 12B (geometri belum dipublikasikan)</p>',
+				presetsInfo: '<p>Satu tombol per tingkat memori: kartu dengan memori dan tipe GPU yang sama memberi hasil identik, sehingga tiap tombol menyebut kartu paling umum (arahkan kursor ke tombol untuk padanannya). Ukuran yang lebih jarang (6/10/48/141 GB; terpadu 24/48/64 GB) cukup satu geseran slider.</p><ul><li><strong>GPU Konsumen 4–32 GB:</strong> GTX 1650 4GB (laptop pelajar); RTX 5060 / 4060 8GB; RTX 5070 / 3060 12GB (#1 Steam Sep 2026 / lama menjadi #1); RTX 5060 Ti / RX 9070 XT 16GB (tingkat VRAM paling umum); RTX 3090 / 4090 24GB; RTX 5090 32GB</li><li><strong>Memori Terpadu 16–256 GB:</strong> MacBook Air / Mac mini 16GB (Mac dasar); Ryzen AI Max+ 128GB (Strix Halo, ~112 GB terjangkau GPU di Linux); DGX Spark 128GB (NVFP4); RTX Spark 128GB (Windows on Arm); M5 Ultra 256GB (Mac Studio)</li><li><strong>Workstation / Pusat Data 80–180 GB:</strong> A100 / H100 80GB (GPU cloud termurah yang paling mudah disewa); RTX PRO 6000 96GB; B200 180GB (terlihat software dari 192GB HBM3e)</li></ul>',
+				sources: '<p><strong>Panduan konteks:</strong> dokumentasi completion llama.cpp (ukuran konteks prompt <code>--ctx-size</code>); Anthropic, “Effective context engineering for AI agents” (kompaksi, catatan terstruktur, dan retrieval tepat waktu); Chroma, “Context Rot” (degradasi performa saat panjang input bertambah).</p><p><strong>Pemeriksaan silang harness sumber terbuka:</strong> OpenClaw, OpenCode, Pi, Qwen Code, dan Gemini CLI memisahkan sesi atau memori persisten dari konteks model yang dikompaksi; DeepSeek Harness mencatat log sesi append-only dengan kompaksi yang dapat diganti; Hermes Agent mengompaksi riwayat aktif setelah menyimpan memori persisten; Prime Agent mengekspos konteks, memori, dan subagen melalui state harness persisten; OpenHands, SWE-agent, Aider, Cline, Roo Code, Goose, LangGraph, dan Letta memakai condenser, penyaringan, ringkasan, checkpoint, pengambilan informasi, atau memori eksternal.</p><p><strong>Sumber arsitektur & perangkat keras:</strong> Makalah & Kartu Model Llama Gen 1–4 (Meta AI, 2023–2025), Laporan Gemma Gen 1–4 (Google; Gemma 4 Technical Report arXiv:2607.02770 dan config `gemma4`: 31B 60L×5376H / 26B-A4B 30L×2816H, jadwal 5 lokal : 1 global, sliding_window 1024, lapisan global 4 (atau 2) KV head × 512-d dengan K=V terpadu dan p-RoPE; Gemma 3 27B `gemma3_text` 62L×5376H, 16 KV × 128-d, sliding_window_pattern 6), Makalah Qwen Gen 1–3 (Alibaba), kartu model & config Qwen3-Next-80B-A3B dan Qwen3.5 (0,8B, 2B, 4B, 9B, 27B, 35B-A3B, 122B-A10B, 397B-A17B), Qwen3.6 (27B, 35B-A3B) dan Qwen3.8 (27B, config `qwen4_exp_text` Flash-Next, Max 2,4T-A95B) (Alibaba, 2025–2026; hibrida Gated DeltaNet + Gated Attention 3:1), Laporan Teknis MiniCPM Gen 1–5 (OpenBMB), Spek G9 v1–v3 (AI9Stars), Laporan Ling Gen 1–2 / 1000B (InclusionAI; config bailing_moe Ling-mini-2.0 20L×2048H, Ling-flash-2.0 32L×4096H, Ling-1T 80L×8192H, Ring-linear 2.0 arXiv:2510.19338) serta config bailing_hybrid Ling 2.5 / 2.6-1T (layer_group_size 8) dan Ling-3.0-flash (layer_group_size 6), Spek Inkling Gen 1 (Thinking Machines), Laporan DeepSeek V1–V4.1 & R1 (kartu model & laporan teknis V4.1-Flash: backbone 552B, encoder-decoder kausal 20+20, hidden 5120, CSA2, KV global 890 B/token pada FP4, Engram 196B; makalah V4 arXiv:2606.19348; V4-Flash 284B 43L×4096H CSA/HCA, V4-Pro 1.6T 61L×7168H CSA/HCA), Kartu Model Tencent Hunyuan / Hy — dense 0.5B/1.8B/4B/7B, A13B, Large/A52B (arXiv:2411.02265, CLA-2), Hy3 295B-A21B dan Hy4-preview 770B-A49B (Tim Hy Tencent, 2026; repo Hy4: 78L×6144H, Gated DSA, kompresi KV 512, indexer 32 × 128-d, top-k 2048, Apache 2.0), Spek GLM 1–4 (Zhipu AI), config GLM-4.5 / 4.5-Air / 4.6 / 4.7 (glm4_moe) dan GLM-4.7-Flash (glm4_moe_lite, MLA) serta kartu model GLM-5 → 5.3 (glm_moe_dsa, 78L×6144H, MLA + DSA, index_topk 2048 berbagi tiap 4 lapisan) (Z.ai / Zhipu AI, 2025–2026), Laporan Teknis Kimi V1–K3 (Moonshot AI, 2023–2026), Kartu Model & Spek GPT-OSS 20b/120b (OpenAI, 2025; MoE native MXFP4), Kartu Model & Laporan Teknis Cohere Command R / R+ / R7B / A / A+ dan Aya 101 / 23 / Expanse / Vision serta North Mini Code / Micro (Cohere Labs, 2022–2026), Kartu Model & Laporan Teknis Poolside Laguna XS.2 / XS 2.1 / M.1 / S 2.1 (Poolside, 2026; varian NVFP4/FP8/INT4), Kartu Model Arcee Trinity Nano / Mini / Large (Arcee AI, 2025–2026, OpenMDW), Kartu Model & params.json Bobot Terbuka Mistral — Mistral 7B, Mixtral, NeMo, Small 3.x/4, Devstral, Medium 3.5, Ministral 3, Large 3 (Mistral AI, 2023–2026), Kartu Model MiniMax Text-01 / M1 / M2→M2.7 / M3 + Laporan Teknis M3 arXiv:2606.13392 (MiniMax, 2025–2026)</p><p><strong>Hardware:</strong> Audit preset Okt 2026: Survei HW Steam Agu–Sep 2026 (RTX 5070 #1 5,86%, RTX 5060 4,20%, RTX 5060 Ti 3,87%; tingkat VRAM 16GB 27,2%, 8GB 26,7%, 12GB 13,0%, 4GB 5,7%), panduan GPU LLM lokal 2026 (RTX 5060 Ti 16GB pilihan awal, RTX 3090 24GB bekas $/GB terbaik, RTX 5090 32GB; RX 9070 XT 16GB ~$600; Arc B580 satu-satunya 12GB di bawah $300), AMD Ryzen AI Max+ 395 (128GB LPDDR5X, 256 GB/s; maksimum VGM 96GB menurut Framework &amp; HP, GTT Linux ~110–120GB menurut AMD), Apple Mac mini M6 (16GB, $899) / MacBook Air M5 (16GB) / Mac Studio M5 Ultra (96–512GB), NVIDIA B200 (180GB terlihat software dari 192GB HBM3e), sewa cloud A100/H100 80GB ($1,4–3,2/GPU-jam), RTX PRO 6000 Blackwell 96GB; cap Metal 25% menurut log recommendedMaxWorkingSetSize llama.cpp; NVIDIA RTX Spark Windows on Arm Porting Guide 0.1.0 (aturan UMA carveout/shared/khusus CPU, 300 GB/s, CUDA 13.4 untuk Windows on Arm) &amp; halaman produk (N1X 20-core ≤128GB / 18-core ≤64GB); pengukuran DGX Spark GB10 (CUDA melihat 119,7 GiB dari 128GB, 273 GB/s); Snapdragon X2 Elite (152/228 GB/s, ≤128GB) &amp; cap GPU bersama Windows 50%; backend OpenCL Adreno llama.cpp; catatan Intel Arc Resizable BAR / IPEX-LLM via Intel ARK</p>'
 			}
 		};
 
@@ -1180,6 +1259,23 @@
 		const GIB_PER_BILLION_BYTES = 1e9 / BYTES_PER_GIB;
 		const WEIGHT_OVERHEAD = 1.05; // metadata, quantization scales, and alignment
 
+		// NVIDIA RTX Spark (N1X, Windows on Arm) GPU memory budget — NVIDIA Windows on Arm Porting Guide 0.1.0,
+		// "Unified Memory Architecture": dedicated carveout (OEM firmware) + shared system memory, where
+		// shared = (post-carveout capacity − 16 GB) clamped to [50%, 80%] of the post-carveout capacity.
+		// The balance is CPU-only memory that can never hold GPU allocations (cudaMalloc fills the carveout, then
+		// spills into shared memory; cudaMemGetInfo reports carveout + shared). Calculator guard: the carveout is
+		// limited so ≥16 GB remains after it. Same GB10-class silicon as DGX Spark, but DGX OS (Linux) exposes
+		// nearly all memory to CUDA, so DGX Spark uses the fixed-reserve 'uma' model instead.
+		const RTX_SPARK_RESERVED_GB = 16;
+		function rtxSparkGpuBudget(totalGB, carveoutGB = 0) {
+			const carveout = Math.min(Math.max(0, Number(carveoutGB) || 0), Math.max(0, totalGB - RTX_SPARK_RESERVED_GB));
+			const post = totalGB - carveout;
+			const nominal = post - RTX_SPARK_RESERVED_GB;
+			const shared = Math.min(Math.max(nominal, post * 0.5), post * 0.8);
+			const rule = nominal <= post * 0.5 ? 'floor' : nominal >= post * 0.8 ? 'cap' : 'minus16';
+			return { carveout, shared, budget: carveout + shared, cpuOnly: post - shared, rule };
+		}
+
 		class LLMCalculator {
 			constructor() {
 				this.vramSize = 24;
@@ -1189,6 +1285,7 @@
 				this.attention = 'auto';
 				this.gpuType = 'discrete';
 				this.manualOverhead = 1.5;
+				this.rtxCarveout = 0; // GB; RTX Spark dedicated carveout (OEM-defined, unknown → 0 = conservative floor)
 				this.modelFamily = 'auto';
 
 				this.setup();
@@ -1221,10 +1318,11 @@
 				elements.gpuType.onchange = e=>{
 					this.clearActivePreset();
 					this.gpuType = e.target.value;
-					if (this.gpuType === 'snapdragon' && this.manualOverhead < 2.0) this.manualOverhead = 3.0;
+					if (this.gpuType === 'uma' && this.manualOverhead < 2.0) this.manualOverhead = 3.0;
 					this.updateVramDisplay();
 					this.calculate();
 				},
+				elements.rtxCarveout.onchange = e=>(this.clearActivePreset(),this.rtxCarveout = Number(e.target.value),this.calculate()),
 				elements.overheadSlider.oninput = e=>(this.clearActivePreset(),this.manualOverhead = Number(e.target.value),this.calculate()),
 				elements.advancedToggle.onchange = e=>{
 					this.clearActivePreset();
@@ -1437,6 +1535,7 @@
 					summary = `${t.title} Summary:\n` + [
 						`${elements.vramSizeLabel.textContent}: ${elements.vramValue.textContent}`,
 						`${t.gpuTypeLabel}: ${elements.gpuType.options[elements.gpuType.selectedIndex].text}`,
+						this.gpuType === 'rtxspark' ? `${t.rtxCarveoutLabel}: ${elements.rtxCarveout.options[elements.rtxCarveout.selectedIndex].text}` : null,
 						`${t.modelQuantLabel}: ${elements.quantization.options[elements.quantization.selectedIndex].text}`,
 						`${elements.maxContextLabel.textContent}: ${elements.contextValue.textContent}`,
 						`---`,
@@ -1473,31 +1572,26 @@
 
 			applyPreset(preset) {
 				const presets = {
-					// Budget / Entry — 4–12 GB — for students, poor men, developing-world rigs (Steam survey: RTX 3060 12GB #1, GTX 1650 4.8%, RTX 4060 8GB)
+					// Consumer GPUs — one button per Steam VRAM tier (Aug–Sep 2026: 16 GB 27.2%, 8 GB 26.7%, 12 GB 13.0%, 4 GB 5.7%);
+					// cards with the same memory share a button: results depend only on memory, GPU type, precision, context and overhead
 					gtx1650: { vram: 4, quant: 'gguf_q4', context: 4096, gpu: 'discrete', overhead: 1.0, attention: 'auto' },
-					arc_a380: { vram: 6, quant: 'gguf_q4', context: 4096, gpu: 'discrete', overhead: 1.0, attention: 'auto' },
-					rtx4060: { vram: 8, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					rtx5050: { vram: 8, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					arc_b570: { vram: 10, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					rtx3060: { vram: 12, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					arc_b580: { vram: 12, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					// Mainstream / Enthusiast — 16–32 GB
-					arc_a770: { vram: 16, quant: 'gguf_q4', context: 16384, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					rtx5070ti: { vram: 16, quant: 'gguf_q4', context: 16384, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					rtx4090: { vram: 24, quant: 'gguf_q4', context: 32768, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					arc_pro_b60: { vram: 24, quant: 'gguf_q4', context: 32768, gpu: 'discrete', overhead: 0.8, attention: 'auto' },
+					rtx5060: { vram: 8, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
+					rtx5070: { vram: 12, quant: 'gguf_q4', context: 8192, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
+					rtx5060ti: { vram: 16, quant: 'gguf_q4', context: 16384, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
+					rtx3090: { vram: 24, quant: 'gguf_q4', context: 32768, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
 					rtx5090: { vram: 32, quant: 'gguf_q4', context: 32768, gpu: 'discrete', overhead: 1.5, attention: 'auto' },
-					// Workstation / Server — 48–192 GB — for businesses / self-hosted
-					l40s: { vram: 48, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
-					a100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
+					// Unified memory — base 16 GB Macs (Metal ≈75% cap), Ryzen AI Max+ 395 / Strix Halo (Linux GTT ≈112 GB of 128 → 16 GB reserve),
+					// DGX Spark on DGX OS (headless: ≈116 of 119 GiB available → ~12 GB reserve), RTX Spark N1X (NVIDIA Windows on Arm budget rule),
+					// Mac Studio M5 Ultra
+					mac16: { vram: 16, quant: 'gguf_q4', context: 8192, gpu: 'soc', attention: 'auto' },
+					ryzenaimax: { vram: 128, quant: 'gguf_q4', context: 32768, gpu: 'uma', overhead: 16, attention: 'auto' },
+					dgxspark: { vram: 128, quant: 'nvfp4', context: 65536, gpu: 'uma', overhead: 12, attention: 'auto' },
+					rtxspark128: { vram: 128, quant: 'gguf_q4', context: 32768, gpu: 'rtxspark', carveout: 0, overhead: 1.5, attention: 'auto' },
+					m5ultra: { vram: 256, quant: 'gguf_q4', context: 65536, gpu: 'soc', attention: 'auto' },
+					// Workstation / datacenter — full-precision serving on headless hosts; B200 = 180 GB software-visible (192 GB physical HBM3e)
+					h100: { vram: 80, quant: 'fp16', context: 32768, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
 					rtx_pro_6000: { vram: 96, quant: 'fp16', context: 65536, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
-					h200: { vram: 141, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
-					b200: { vram: 192, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'auto' },
-					// Apple Silicon / Mobile — unified / shared memory
-					macbookneo: { vram: 8, quant: 'gguf_q4', context: 8192, gpu: 'soc', attention: 'auto' },
-					m4max: { vram: 128, quant: 'gguf_q4', context: 32768, gpu: 'soc', attention: 'auto' },
-					m3ultra: { vram: 192, quant: 'gguf_q4', context: 65536, gpu: 'soc', attention: 'auto' },
-					snapdragon: { vram: 32, quant: 'gguf_q4', context: 8192, gpu: 'snapdragon', overhead: 3.0, attention: 'auto' }
+					b200: { vram: 180, quant: 'fp16', context: 131072, gpu: 'discrete', overhead: 0.5, attention: 'auto' }
 				}, p = presets[preset];
 				if (!p) return;
 				this.clearActivePreset();
@@ -1513,6 +1607,8 @@
 					this.gpuType = p.gpu,
 					this.attention = p.attention || 'auto',
 					p.overhead !== undefined && (this.manualOverhead = p.overhead),
+					p.carveout !== undefined && (this.rtxCarveout = p.carveout),
+					elements.rtxCarveout.value = this.rtxCarveout,
 					elements.vramSlider.value = p.vram,
 					elements.quantization.value = p.quant,
 					elements.contextSlider.value = Math.log2(p.context),
@@ -1526,10 +1622,15 @@
 			}
 
 			updateVramDisplay() {
+				const hint = { soc: 'appleHint', uma: 'umaHint' }[this.gpuType];
 				(elements.vramValue.textContent = `${this.vramSize} GB`,
 				elements.vramSlider.setAttribute('aria-valuetext',elements.vramValue.textContent),
-				elements.vramSizeLabel.textContent = this.gpuType === 'soc' ? this.string('unifiedMemoryLabel') :
-					this.gpuType === 'snapdragon' ? this.string('sharedMemoryLabel') : this.string('vramSizeLabel'));
+				elements.vramSizeLabel.textContent = this.string(this.gpuType === 'discrete' ? 'vramSizeLabel' : 'unifiedMemoryLabel'),
+				// RTX Spark: the slider sets only desktop/driver headroom inside the NVIDIA GPU budget; CPU-only memory is derived
+				elements.overheadLabel.textContent = this.string(this.gpuType === 'rtxspark' ? 'rtxHeadroomLabel' : 'overheadLabel'),
+				elements.rtxCarveoutGroup.classList.toggle('hidden', this.gpuType !== 'rtxspark'),
+				elements.overheadHint.textContent = hint ? this.string(hint) : '',
+				elements.overheadHint.classList.toggle('hidden', !hint));
 			}
 
 			updateContextDisplay() {
@@ -1607,10 +1708,23 @@
 					overheadGB = this.vramSize * 0.25;
 					availableVram = this.vramSize * 0.75;
 					overheadMsg = `${t.reserved} (25%)`;
-				} else if (this.gpuType === 'snapdragon') {
+				} else if (this.gpuType === 'rtxspark') {
+					// CPU-only memory (NVIDIA rule) is unreachable by the GPU; headroom covers display/DWM, CUDA context and
+					// compute buffers — NVIDIA advises against allocating the full GPU budget (system can become unresponsive).
+					const b = rtxSparkGpuBudget(this.vramSize, this.rtxCarveout);
+					overheadGB = b.cpuOnly + this.manualOverhead;
+					availableVram = b.budget - this.manualOverhead;
+					overheadMsg = t.rtxSparkOverhead
+						.replace('{cpu}', b.cpuOnly.toFixed(1))
+						.replace('{rule}', t[{ floor: 'rtxRuleFloor', minus16: 'rtxRuleMinus16', cap: 'rtxRuleCap' }[b.rule]])
+						.replace('{headroom}', this.manualOverhead.toFixed(1))
+						.replace('{budget}', b.budget.toFixed(1));
+				} else if (this.gpuType === 'uma') {
+					// Other unified memory with a fixed OS/firmware reserve: DGX Spark (DGX OS), AMD Ryzen AI Max / Strix Halo
+					// (Linux GTT), Snapdragon X/X2 (Windows CPU/NPU path), Linux Arm boards
 					overheadGB = this.manualOverhead;
 					availableVram = this.vramSize - this.manualOverhead;
-					overheadMsg = t.snapdragonOverhead;
+					overheadMsg = t.umaOverhead;
 				} else {
 					// Discrete covers NVIDIA / AMD / Intel ARC — same dedicated-GDDR model
 					overheadGB = this.manualOverhead;
@@ -1618,10 +1732,11 @@
 					overheadMsg = "";
 				}
 
+				const sliderGB = this.gpuType === 'rtxspark' ? this.manualOverhead : overheadGB;
 				(elements.overheadSlider.disabled = this.gpuType === 'soc',
-				elements.overheadSlider.value = overheadGB,
-				elements.overheadValueDisplay.textContent = `${overheadGB.toFixed(1)} GB`,
-				elements.overheadSlider.setAttribute('aria-valuetext', `${overheadGB.toFixed(1)} GB`));
+				elements.overheadSlider.value = sliderGB,
+				elements.overheadValueDisplay.textContent = `${sliderGB.toFixed(1)} GB`,
+				elements.overheadSlider.setAttribute('aria-valuetext', `${sliderGB.toFixed(1)} GB`));
 
 				const availableForUse = Math.max(0,availableVram);
 				const contextTokens = this.contextWindow;
@@ -1737,8 +1852,10 @@
 				[...elements.theme.options].forEach(o=>o.textContent = this.string(o.value + 'Theme')),
 				elements.modelFamily.options[0].textContent = this.string('autoEstimate'),
 				elements.attention.options[0].textContent = this.string('autoEstimate'),
+				elements.rtxCarveout.options[0].textContent = this.string('carveoutNone'),
 				elements.formulasSection.innerHTML = this.string('formulas'),
 				elements.architectureSection.innerHTML = this.string('architecture'),
+				elements.presetsInfoSection.innerHTML = this.string('presetsInfo'),
 				elements.sourcesText.innerHTML = this.string('sources'),
 				this.updateVramDisplay(),
 				this.updateContextDisplay(),
