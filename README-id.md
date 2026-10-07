@@ -24,7 +24,7 @@ Kalkulator memperkirakan penggunaan memori berdasarkan:
 Alat ini menelusuri kurva arsitektur terinterpolasi untuk menemukan jumlah parameter tertinggi yang muat setelah memperhitungkan overhead dan KV cache. Byte bobot serta byte KV berbasis arsitektur dikonversi secara konsisten ke GiB biner secara internal; label memori UI tetap memakai konvensi “GB” yang lazim pada pemasaran GPU. Lihat [ringkasan audit](AUDIT-id.md#2-matematika-memori).
 
 ## Mulai Cepat
-1.  Unduh `LLMCalculator.html`.
+1.  Unduh [`LLMCalculator.html`](LLMCalculator.html).
 2.  Buka di peramban modern apa pun (Chrome, Edge, Firefox, Safari).
 3.  Atur **Memori GPU** (Ukuran VRAM) Anda menggunakan penggeser.
 4.  Pilih **Tipe GPU** (Diskrit — NVIDIA / AMD / Intel ARC, Apple Silicon, NVIDIA RTX Spark, atau Memori Terpadu Lain). Untuk RTX Spark, pilih juga **Carveout GPU Khusus** dari OEM bila diketahui.
@@ -37,14 +37,14 @@ Alat ini menelusuri kurva arsitektur terinterpolasi untuk menemukan jumlah param
     - **Workstation / Pusat Data (80–180 GB)**: A100 / H100 80GB, RTX PRO 6000 96GB, B200 180GB (terlihat software; fisik 192 GB)
 
 ## Fitur Utama
--   **Dukungan Multi-bahasa**: Beralih antara Bahasa Inggris dan Indonesia.
+-   **Dukungan Multi-bahasa**: Beralih antara Bahasa Inggris dan Indonesia, dengan tema Otomatis, Terang, dan Gelap.
 -   **Kalkulasi Real-time**: Pembaruan instan saat Anda menyesuaikan penggeser dan menu drop-down.
 -   **Logika Arsitektur Cerdas**: Mekanisme attention spesifik (MHA, GQA, MLA) dan aturan reservasi memori spesifik-GPU (Diskrit termasuk Intel ARC, memori terpadu Apple, anggaran carveout + shared NVIDIA RTX Spark, memori terpadu dengan cadangan tetap seperti DGX Spark, Ryzen AI Max, dan Snapdragon).
 -   **Overhead yang Dapat Disesuaikan**: Atur deduksi memori sistem secara presisi untuk server Linux headless vs desktop Windows.
 -   **Rincian Memori Mendetail**: Memvisualisasikan penggunaan untuk Overhead Sistem, KV Cache, dan Bobot Model.
--   **Satu Penggeser Konteks Serbaguna**: Penggeser logaritmik **Jendela Konteks / Konteks Kerja Aktif** mengestimasi satu konteks inferensi lokal aktif tanpa toggle mode yang redundan.
 -   **Preset Perangkat Keras (14 preset, 4 GB–256 GB)**: Satu tombol per tingkat memori yang umum, dipilih berdasarkan Steam Hardware Survey (Agu–Sep 2026), panduan pembelian LLM lokal 2026, dan data harga sewa cloud: GPU Konsumen (GTX 1650 4GB → RTX 5090 32GB), Memori Terpadu (Mac dasar 16 GB, Ryzen AI Max+, DGX Spark, RTX Spark, M5 Ultra), dan Workstation / Pusat Data (A100 / H100, RTX PRO 6000, B200). Lihat [ringkasan audit](AUDIT-id.md#6-preset-hardware).
--   **Opsi Lanjutan**: Dukungan untuk berbagai format kuantisasi (hingga FP2, termasuk MXFP4 dan NVFP4) dan presisi KV cache terpisah.
+-   **Satu Penggeser Konteks Serbaguna**: Penggeser logaritmik **Jendela Konteks / Konteks Kerja Aktif** mengestimasi satu konteks inferensi lokal aktif tanpa toggle mode yang redundan; lihat [Perencanaan Konteks Lokal dan KV Cache](#perencanaan-konteks-lokal-dan-kv-cache).
+-   **Opsi Lanjutan**: Kuantisasi dari FP32 hingga FP2 — GGUF (Q2_K–Q8_0), GPTQ 4-bit, FP8/INT8, MXFP4, NVFP4, dan INT4/FP4 — plus presisi KV cache terpisah, pemilihan atensi manual, serta override jumlah lapisan / ukuran tersembunyi.
 -   **Estimasi Model & Atensi Otomatis Multi-Generasi**: Secara dinamis mengestimasi arsitektur model (Lapisan dan Ukuran Tersembunyi) serta mekanisme atensi (GQA/MQA termasuk kepala ringkas 64-d, atensi sliding-window/global hibrida, MFA, MLA, MLA+DSA, atensi linear/softmax hibrida, CSA/HCA, dan CLA-2) melalui sintesis perhitungan dari semua generasi keluarga LLM modern: Llama (Gen 1–4), Gemma (Gen 1–4, **Gemma 3 12B/27B, Gemma 4 26B-A4B / 31B**), Qwen (Gen 1–3, **Gen 3-Next, Gen 3.5 (0,8B–397B), Gen 3.6, Gen 3.8 (27B, Flash-Next 180B, Max 2,4T)**), MiniCPM (Gen 1–5), G9 (v1–v3), Ling (1.0–2.0 mini/flash/1T, Ring-linear 2.0, **2.5/2.6 1T, 3.0-flash**), Inkling (Small/276B, Base/975B), DeepSeek (V1–V4, V4.1-Flash, R1), Tencent Hunyuan / Hy (dense 0,5B–7B, A13B, Large/A52B, Hy3, **Hy4-preview 770B**), GLM (1–4, **4.5/4.5-Air, 4.6, 4.7/4.7-Flash, 5→5.3**), Kimi (V1–K3), **Xiaomi MiMo (7B, V2-Flash, V2.5, V2.5-Pro), StepFun (Step3-VL-10B, Step-3, Step-3.5/3.7 Flash), Muse Glimmer 30B, IBM Granite (Code, 3.0–3.3, 4.0, 4.1, SWASH)**, GPT-OSS, Cohere Command/Aya/North, Poolside Laguna, bobot terbuka Mistral, Arcee Trinity, dan MiniMax. Formula KV khusus keluarga memperhitungkan dimensi K/V asimetris dan SWA-128 MiMo, SWA-512 dan MFA Step, SWA-2048 Muse, serta lapisan GQA/MQA 64-d dan SWASH Granite. Generasi terbaru menambah tujuh bentuk KV: **Qwen3-Next / Qwen3.5** hanya menyimpan token pada lapisan Gated Attention (1 dari 4) karena lapisan Gated DeltaNet berstate konstan, dan **GLM-5.x** menggabungkan cache laten MLA dengan indexer DeepSeek Sparse Attention 128-d yang dibagi tiap empat lapisan. **Ling 2.5/2.6 dan Ling 3.0** melangkah lebih jauh: satu lapisan gated-MLA per grup 8 (atau 6) lapisan menanggung seluruh cache, sedangkan lapisan lightning-attention / Kimi Delta Attention berstate konstan. **Qwen3.8-Flash-Next** menambahkan indeks Qwen Sparse Attention (1 KV head × 128-d, kompresi 4:1) di atas lapisan atensi penuh 1-dari-4-nya, dan **DeepSeek-V4.1-Flash** adalah encoder-decoder kausal yang lapisan CSA2 Full/Reindex/Reuse-nya berbagi satu cache global ~890 byte per token pada FP4. Generasi yang sudah diperiksa namun sengaja tidak di-anchor (tanpa bobot terbuka atau geometri tidak diungkap) — Qwen 3.7, StepFun Step 5 Preview, Kimi K2.8 Preview, GLM-5.3-Flash/FlashX, Meta Muse Spark 1.2/1.3, MiniMax H3 (model video), DiffusionGemma — tercantum di panel data referensi aplikasi. **Gemma 3 dan Gemma 4** mendapat bentuk berselang-selingnya sendiri: lima lapisan sliding-window-1024 per lapisan global, dengan lapisan global Gemma 4 menyimpan satu vektor K=V terpadu per head pada 512-d. Lihat [ringkasan audit](AUDIT-id.md#4-anchor-arsitektur-estimasi-otomatis).
 -   **Kategori Ukuran Model Standar (Artificial Analysis)**: Mengelompokkan model ke dalam 4 tingkatan standar: **Sangat Kecil (<4B)**, **Kecil (4B–40B)**, **Sedang (40B–150B)**, dan **Besar (150B+)** berdasarkan taksonomi Artificial Analysis.
 -   **Berkas HTML tunggal**: Tidak ada instalasi, tidak ada dependensi, bekerja sepenuhnya offline.
@@ -55,7 +55,7 @@ Alat ini menelusuri kurva arsitektur terinterpolasi untuk menemukan jumlah param
 -   **Pemilihan Model**: Memilih ukuran model dan kuantisasi yang tepat untuk perangkat keras Anda yang ada.
 -   **Edukasi**: Memahami hubungan antara parameter model, panjang konteks, dan kebutuhan memori.
 
-### Perencanaan konteks lokal dan KV cache
+## Perencanaan Konteks Lokal dan KV Cache
 Penggeser konteks berlabel ganda adalah kapasitas token terkonfigurasi yang digunakan langsung oleh formula KV berbasis arsitektur kalkulator. Ini serupa dengan ukuran konteks prompt yang dikonfigurasi melalui [`llama.cpp --ctx-size`](https://github.com/ggml-org/llama.cpp/blob/master/tools/completion/README.md). Penggeser ini mencakup satu chat lokal, prompt dokumen, fitur tertanam, atau langkah inferensi aktif dalam alur kerja agen lokal jangka panjang.
 
 Riwayat proyek jangka panjang sebaiknya disimpan di luar konteks aktif dalam artefak, catatan terstruktur, dan sistem pengambilan informasi, dengan kompaksi untuk menyegarkan set kerja. Pendekatan ini mengikuti [panduan rekayasa konteks agen](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents). Jendela nominal yang lebih besar bukan jaminan kualitas: [riset context rot](https://research.trychroma.com/context-rot) menemukan bahwa performa model dapat menjadi kurang andal saat panjang input bertambah.
@@ -73,7 +73,7 @@ Semua perhitungan terjadi secara lokal di peramban Anda. Tidak ada data yang dik
 Setiap asumsi kalkulator sudah diperiksa terhadap config model resmi dan data hardware 2026: rumus memori, aturan overhead, anchor arsitektur, dan preset hardware. Temuannya dirangkum dalam satu dokumen, [AUDIT-id.md](AUDIT-id.md) ([English](AUDIT.md)). Di aplikasi, materi yang sama ada di panel yang dapat dilipat di bagian bawah halaman: Formula, Data Referensi, Preset Hardware, dan Sumber.
 
 ## Lisensi
-Lisensi MIT. Lihat LICENSE untuk detailnya.
+Lisensi MIT. Lihat [LICENSE](LICENSE) untuk detailnya.
 
 ## Kontribusi
 Kontribusi, masalah, dan saran dipersilakan. Silakan buka issue untuk mendiskusikan ide atau mengirimkan PR.
