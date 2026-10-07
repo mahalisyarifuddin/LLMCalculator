@@ -2,6 +2,8 @@
 
 **Update 2026-08-19 (user feedback):** Intel ARC merged into `Discrete GPU (NVIDIA / AMD / Intel ARC)` — single dropdown option. Presets remain distinct; calculation identical (dedicated VRAM, 1.5 GB desktop / 0.8 GB Pro). See §4.3.
 
+**Update 2026-10-07:** The Apple/Mobile tier is now split into **Apple Silicon** (MacBook Neo 8GB, M5 Max 128GB, M5 Ultra 256GB, replacing M4 Max and M3 Ultra) and **Arm SoC** (RTX Spark 24/64/128GB, DGX Spark 128GB, Snapdragon X2 Elite 48GB, replacing Snapdragon X 32GB). That brings the total to 25 presets covering 4–256 GB. See [ARM_SOC_RTX_SPARK_UPDATE_2026.md](ARM_SOC_RTX_SPARK_UPDATE_2026.md).
+
 **Scope:** Audit `LLMCalculator.html` preset coverage and calculation correctness across the economic spectrum — from “poor men” (4 GB GTX 1650, student laptops) to businesses self-hosting datacenter GPUs — and research + implement Intel ARC support.
 
 **Method:** Web searches on 2026-08-19 covering quantization formulas, KV-cache math, Steam Hardware Survey, GPU VRAM databases, Intel ARC launch coverage, and Apple Silicon memory specs. Every factual claim below cites a search result.

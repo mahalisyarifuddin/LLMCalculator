@@ -4,6 +4,8 @@
 **Audited by**: Web research into industry sources, technical documentation, and community knowledge bases
 **Target**: LLMCalculator (`LLMCalculator.html`) — system overhead assumptions for three GPU platform types
 
+**Update 2026-10-07:** The `snapdragon` GPU type is now `arm_uma` — “Other Arm SoC (Snapdragon X/X2 · DGX Spark · Linux)”. It keeps the configurable fixed reserve described below (default 3.0 GB). A new `rtxspark` type implements NVIDIA’s published RTX Spark GPU-budget rule (carveout + shared). See [ARM_SOC_RTX_SPARK_UPDATE_2026.md](ARM_SOC_RTX_SPARK_UPDATE_2026.md).
+
 ---
 
 ## Summary of Findings
