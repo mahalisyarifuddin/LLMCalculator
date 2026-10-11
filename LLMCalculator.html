@@ -1560,12 +1560,11 @@
 					} catch (err) { console.error(err); }
 				}
 				if (success) {
-					const _b = elements.copyBtn.innerHTML;
 					elements.copyBtn.innerHTML = CLIPBOARD_ICON + t.copied;
 					elements.copyBtn.setAttribute('aria-label', t.copied);
 					setTimeout(() => {
-						elements.copyBtn.innerHTML = _b;
-						elements.copyBtn.setAttribute('aria-label', t.copyBtn);
+						elements.copyBtn.innerHTML = CLIPBOARD_ICON + this.string('copyBtn');
+						elements.copyBtn.setAttribute('aria-label', this.string('copyBtn'));
 					}, 2000);
 				}
 			}
