@@ -835,7 +835,7 @@
 				<div class="result-card">
 					<h3 class="result-category" id="maxParamsLabel">Maximum Parameters</h3>
 					<div class="result-value" id="resultValue" aria-live="polite">0B</div>
-					<div class="result-category" id="resultCategory"></div>
+					<div class="result-category" id="resultCategory" aria-live="polite"></div>
 
 					<div class="model-details hidden" id="modelDetails">
 						<div class="detail-item">
@@ -863,7 +863,7 @@
 						<div id="barKv" class="memory-bar-segment segment-kv" style="width: 0%" role="img"></div>
 						<div id="barModel" class="memory-bar-segment segment-model" style="width: 0%" role="img"></div>
 					</div>
-					<div id="metricsList"></div>
+					<div id="metricsList" aria-live="polite"></div>
 				</div>
 
 				<div class="card">
@@ -1322,7 +1322,7 @@
 					this.updateVramDisplay();
 					this.calculate();
 				},
-				elements.rtxCarveout.onchange = e=>(this.clearActivePreset(),this.rtxCarveout = Number(e.target.value),this.calculate()),
+				elements.rtxCarveout.onchange = e=>(this.clearActivePreset(),this.rtxCarveout = Number(e.target.value),this.updateVramDisplay(),this.calculate()),
 				elements.overheadSlider.oninput = e=>(this.clearActivePreset(),this.manualOverhead = Number(e.target.value),this.calculate()),
 				elements.advancedToggle.onchange = e=>{
 					this.clearActivePreset();
@@ -1624,6 +1624,7 @@
 				const hint = { soc: 'appleHint', uma: 'umaHint' }[this.gpuType];
 				(elements.vramValue.textContent = `${this.vramSize} GB`,
 				elements.vramSlider.setAttribute('aria-valuetext',elements.vramValue.textContent),
+				elements.overheadSlider.setAttribute('aria-valuetext', elements.overheadValueDisplay.textContent),
 				elements.vramSizeLabel.textContent = this.string(this.gpuType === 'discrete' ? 'vramSizeLabel' : 'unifiedMemoryLabel'),
 				// RTX Spark: the slider sets only desktop/driver headroom inside the NVIDIA GPU budget; CPU-only memory is derived
 				elements.overheadLabel.textContent = this.string(this.gpuType === 'rtxspark' ? 'rtxHeadroomLabel' : 'overheadLabel'),
