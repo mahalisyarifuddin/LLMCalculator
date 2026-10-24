@@ -1109,6 +1109,7 @@
 		const _c = {}, elements = new Proxy({}, { get: (_,id)=>_c[id]||(_c[id]=document.getElementById(id)) });
 
 		const CLIPBOARD_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem;vertical-align:text-bottom"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+		const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem;vertical-align:text-bottom"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 
 			// Synthesized auto-estimate reference configurations from ALL generation versions of modern LLM families:
 			// Llama (Gen 1, Gen 2, Gen 3/3.1, Gen 4 Scout/Maverick), Gemma (Gen 1, Gen 2, Gen 3, Gen 4 E2B/E4B/12B/26B-A4B/31B), Qwen (Gen 1/1.5, Gen 2/2.5, Gen 3, Gen 3-Next 80B-A3B, Gen 3.5 0.8B/2B/4B/9B/27B/35B-A3B/122B-A10B/397B-A17B, Gen 3.6 27B/35B-A3B, Gen 3.8 27B / Flash-Next 125B-A6B / Max 2.4T-A95B — Gen 3.7 shipped API-only and was skipped for open weights),
@@ -1540,7 +1541,7 @@
 						`${elements.maxContextLabel.textContent}: ${elements.contextValue.textContent}`,
 						`---`,
 						`${t.maxParamsLabel}: ${elements.resultValue.textContent} ${elements.resultCategory.textContent}`,
-						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d`
+						elements.modelDetails.classList.contains('hidden') ? null : `${t.estimatedArchitecture}: ${elements.layersValue.textContent}L x ${elements.hiddenValue.textContent}d${elements.attentionDetailValue?.textContent ? ` (${elements.attentionDetailValue.textContent})` : ''}`
 					].filter(Boolean).join('\n');
 				let success = false;
 				try {
@@ -1560,8 +1561,8 @@
 					} catch (err) { console.error(err); }
 				}
 				if (success) {
-					elements.copyBtn.innerHTML = CLIPBOARD_ICON + t.copied;
-					elements.copyBtn.setAttribute('aria-label', t.copied);
+					elements.copyBtn.innerHTML = CHECK_ICON + this.string('copied');
+					elements.copyBtn.setAttribute('aria-label', this.string('copied'));
 					setTimeout(() => {
 						elements.copyBtn.innerHTML = CLIPBOARD_ICON + this.string('copyBtn');
 						elements.copyBtn.setAttribute('aria-label', this.string('copyBtn'));
